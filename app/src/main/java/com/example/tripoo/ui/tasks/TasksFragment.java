@@ -18,6 +18,7 @@ import com.example.tripoo.viewmodel.HomeViewModel;
 import com.example.tripoo.viewmodel.TaskViewModel;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -40,7 +41,7 @@ public class TasksFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(TaskViewModel.class);
         homeViewModel = new ViewModelProvider(requireActivity()).get(HomeViewModel.class);
         
-        adapter = new TaskAdapter(new ArrayList<>(), task -> {
+        adapter = new TaskAdapter(new HashMap<>(), task -> {
             // Handle task click
         });
         

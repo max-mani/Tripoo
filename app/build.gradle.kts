@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "com.example.tripoo"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.tripoo"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -47,7 +47,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
-    implementation(libs.google.sign.in)
+    implementation(libs.google.signin)
 
     // Navigation Component
     implementation(libs.navigation.fragment)

@@ -71,7 +71,7 @@
                         android:layout_marginBottom="24dp"
                         android:hint="Email"
                         app:startIconDrawable="@android:drawable/ic_menu_edit"
-                        app:enabled="false">
+                        android:enabled="false">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etEmail"

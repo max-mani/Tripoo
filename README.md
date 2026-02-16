@@ -15,7 +15,10 @@ A modern Android application for planning group trips with expense tracking, tas
 
 - **Language**: Java 17
 - **Min SDK**: 24 (Android 7.0)
-- **Target SDK**: 34 (Android 14)
+- **Target SDK**: 36 (Android 15)
+- **Compile SDK**: 36
+- **Gradle**: 8.11.1
+- **Android Gradle Plugin**: 8.9.1
 - **Architecture**: MVVM (Model-View-ViewModel)
 - **Backend**: Firebase (Authentication, Firestore, Storage)
 - **UI**: Material Design 3, Navigation Component, ViewBinding
@@ -46,6 +49,7 @@ app/src/main/java/com/example/tripoo/
 
 - Android Studio Hedgehog or newer
 - JDK 17 or higher
+- Gradle 8.11.1 or higher
 - Firebase account
 
 ### Firebase Configuration
@@ -219,6 +223,17 @@ See `firestore.rules` for complete rules.
 - Ensure `google-services.json` is in `app/` directory
 - Check that all dependencies are synced in Gradle
 - Verify Java 17 is configured
+- Ensure Gradle wrapper version is 8.11.1 (check `gradle/wrapper/gradle-wrapper.properties`)
+- Verify Android Gradle Plugin is 8.9.1 (check `gradle/libs.versions.toml`)
+- If you encounter namespace errors in layout files, ensure `tools` namespace is declared: `xmlns:tools="http://schemas.android.com/tools"`
+- For `layout_gravity` errors, use `android:layout_gravity` instead of `app:layout_gravity` for MaterialCardView in CoordinatorLayout
+- If NavController errors occur, ensure NavHostFragment is properly initialized before accessing NavController
+
+### Common Issues Fixed
+- **Glide version**: Updated to 4.14.2 (latest stable 4.x version)
+- **Namespace declarations**: Fixed `tools` namespace missing in layout files
+- **Attribute errors**: Corrected `layout_gravity` and `enabled` attribute usage
+- **NavController initialization**: Fixed timing issue by using `post()` to ensure fragment is attached
 
 ### Authentication Issues
 - Check SHA-1 fingerprint is added to Firebase
