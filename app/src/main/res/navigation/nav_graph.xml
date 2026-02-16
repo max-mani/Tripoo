@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/splashFragment">
+
+    <!-- Splash Fragment -->
+    <fragment
+        android:id="@+id/splashFragment"
+        android:name="com.example.tripoo.ui.splash.SplashFragment"
+        android:label="Splash"
+        tools:layout="@layout/fragment_splash">
+        <action
+            android:id="@+id/action_splash_to_home"
+            app:destination="@id/homeFragment" />
+        <action
+            android:id="@+id/action_splash_to_auth"
+            app:destination="@id/authFragment" />
+    </fragment>
+
+    <!-- Auth Fragment -->
+    <fragment
+        android:id="@+id/authFragment"
+        android:name="com.example.tripoo.ui.auth.AuthFragment"
+        android:label="Authentication"
+        tools:layout="@layout/fragment_auth">
+        <action
+            android:id="@+id/action_auth_to_login"
+            app:destination="@id/loginFragment" />
+        <action
+            android:id="@+id/action_auth_to_signup"
+            app:destination="@id/signUpFragment" />
+        <action
+            android:id="@+id/action_auth_to_home"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/authFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- Login Fragment -->
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.tripoo.ui.auth.LoginFragment"
+        android:label="Login"
+        tools:layout="@layout/fragment_login">
+        <action
+            android:id="@+id/action_login_to_home"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/authFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- Sign Up Fragment -->
+    <fragment
+        android:id="@+id/signUpFragment"
+        android:name="com.example.tripoo.ui.auth.SignUpFragment"
+        android:label="Sign Up"
+        tools:layout="@layout/fragment_signup">
+        <action
+            android:id="@+id/action_signup_to_home"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/authFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- Home Fragment -->
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.tripoo.ui.home.HomeFragment"
+        android:label="Home"
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_home_to_create_trip"
+            app:destination="@id/createTripFragment" />
+        <action
+            android:id="@+id/action_home_to_join_trip"
+            app:destination="@id/joinTripFragment" />
+    </fragment>
+
+    <!-- Create Trip Fragment -->
+    <fragment
+        android:id="@+id/createTripFragment"
+        android:name="com.example.tripoo.ui.home.CreateTripFragment"
+        android:label="Create Trip"
+        tools:layout="@layout/fragment_create_trip">
+        <action
+            android:id="@+id/action_create_trip_to_home"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/homeFragment" />
+    </fragment>
+
+    <!-- Join Trip Fragment -->
+    <fragment
+        android:id="@+id/joinTripFragment"
+        android:name="com.example.tripoo.ui.home.JoinTripFragment"
+        android:label="Join Trip"
+        tools:layout="@layout/fragment_join_trip">
+        <action
+            android:id="@+id/action_join_trip_to_home"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/homeFragment" />
+    </fragment>
+
+    <!-- Expense Fragment -->
+    <fragment
+        android:id="@+id/expenseFragment"
+        android:name="com.example.tripoo.ui.expense.ExpenseFragment"
+        android:label="Expenses"
+        tools:layout="@layout/fragment_expense" />
+
+    <!-- Tasks Fragment -->
+    <fragment
+        android:id="@+id/tasksFragment"
+        android:name="com.example.tripoo.ui.tasks.TasksFragment"
+        android:label="Tasks"
+        tools:layout="@layout/fragment_tasks" />
+
+    <!-- Groups Fragment -->
+    <fragment
+        android:id="@+id/groupsFragment"
+        android:name="com.example.tripoo.ui.groups.GroupsFragment"
+        android:label="Groups"
+        tools:layout="@layout/fragment_groups" />
+
+    <!-- Profile Fragment -->
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.tripoo.ui.profile.ProfileFragment"
+        android:label="Profile"
+        tools:layout="@layout/fragment_profile">
+        <action
+            android:id="@+id/action_profile_to_auth"
+            app:destination="@id/authFragment"
+            app:popUpTo="@id/splashFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+</navigation>

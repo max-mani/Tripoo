@@ -1,0 +1,76 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is the document owner
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Users collection - users can read/write their own user document
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+    }
+    
+    // Trips collection
+    match /trips/{tripId} {
+      // Check if user is a member of the trip
+      function isTripMember() {
+        return isAuthenticated() && 
+               exists(/databases/$(database)/documents/trips/$(tripId)/members/$(request.auth.uid));
+      }
+      
+      // Check if user is admin
+      function isAdmin() {
+        return isAuthenticated() && 
+               get(/databases/$(database)/documents/trips/$(tripId)/members/$(request.auth.uid)).data.isAdmin == true;
+      }
+      
+      // Trip document - members can read, only admin can update
+      allow read: if isTripMember();
+      allow create: if isAuthenticated();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+      
+      // Members subcollection
+      match /members/{memberId} {
+        allow read: if isTripMember();
+        allow create: if isAuthenticated();
+        allow update: if isAdmin() || isOwner(memberId);
+        allow delete: if isAdmin();
+      }
+      
+      // Expenses subcollection
+      match /expenses/{expenseId} {
+        function isExpenseCreator() {
+          return isAuthenticated() && 
+                 resource.data.createdBy == request.auth.uid;
+        }
+        
+        allow read: if isTripMember();
+        allow create: if isTripMember();
+        allow update: if isAdmin() || isExpenseCreator();
+        allow delete: if isAdmin() || isExpenseCreator();
+      }
+      
+      // Tasks subcollection
+      match /tasks/{taskId} {
+        function isTaskCreator() {
+          return isAuthenticated() && 
+                 resource.data.createdBy == request.auth.uid;
+        }
+        
+        allow read: if isTripMember();
+        allow create: if isTripMember();
+        allow update: if isAdmin() || isTaskCreator();
+        allow delete: if isAdmin() || isTaskCreator();
+      }
+    }
+  }
+}
