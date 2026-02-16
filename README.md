@@ -90,7 +90,7 @@ app/src/main/java/com/example/tripoo/
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd MAD_Project
+   cd Tripoo
    ```
 
 2. **Sync Gradle**
