@@ -2,18 +2,22 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/homeFragment"
-        android:icon="@android:drawable/ic_menu_view"
+        android:icon="@drawable/nav_home_selector"
         android:title="Home" />
     <item
         android:id="@+id/expenseFragment"
-        android:icon="@android:drawable/ic_menu_agenda"
+        android:icon="@drawable/nav_expense_selector"
         android:title="Expense" />
     <item
         android:id="@+id/tasksFragment"
-        android:icon="@android:drawable/ic_menu_sort_by_size"
+        android:icon="@drawable/nav_tasks_selector"
         android:title="Tasks" />
     <item
         android:id="@+id/groupsFragment"
-        android:icon="@android:drawable/ic_menu_myplaces"
+        android:icon="@drawable/nav_groups_selector"
         android:title="Groups" />
+    <item
+        android:id="@+id/profileFragment"
+        android:icon="@drawable/nav_profile_selector"
+        android:title="Profile" />
 </menu>

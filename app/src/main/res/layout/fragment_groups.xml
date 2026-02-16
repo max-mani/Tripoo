@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface">
+    android:background="?android:attr/colorBackground">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -38,7 +38,7 @@
                         android:layout_marginBottom="8dp"
                         android:text="Trip Code"
                         android:textSize="16sp"
-                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textColor="@color/text_secondary"
                         tools:text="Trip Code" />
 
                     <TextView
@@ -49,6 +49,7 @@
                         android:layout_marginBottom="16dp"
                         android:textSize="24sp"
                         android:textStyle="bold"
+                        android:textColor="@color/text_primary"
                         tools:text="TRP-123" />
 
                     <com.google.android.material.button.MaterialButton
@@ -71,6 +72,7 @@
                 android:text="Members"
                 android:textSize="18sp"
                 android:textStyle="bold"
+                android:textColor="@color/text_primary"
                 tools:text="Members" />
 
             <androidx.recyclerview.widget.RecyclerView

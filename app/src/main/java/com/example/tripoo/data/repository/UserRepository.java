@@ -1,6 +1,5 @@
 package com.example.tripoo.data.repository;
 
-import android.util.Log;
 import com.example.tripoo.data.model.User;
 import com.example.tripoo.utils.FirebaseHelper;
 import com.google.android.gms.tasks.Task;
@@ -9,7 +8,6 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class UserRepository {
-    private static final String TAG = "UserRepository";
     private FirebaseFirestore firestore;
     private static final String COLLECTION_USERS = "users";
 

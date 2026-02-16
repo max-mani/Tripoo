@@ -10,15 +10,7 @@ import com.example.tripoo.data.repository.AuthRepository;
 import com.example.tripoo.data.repository.UserRepository;
 import com.google.firebase.auth.FirebaseUser;
 import com.example.tripoo.utils.Resource;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
-
-import java.util.UUID;
 
 public class ProfileViewModel extends AndroidViewModel {
     private AuthRepository authRepository;
@@ -74,7 +66,7 @@ public class ProfileViewModel extends AndroidViewModel {
         }
     }
 
-    public void uploadProfileImage(byte[] imageData) {
+    public void uploadProfileImage(String base64Image) {
         uploadImageLiveData.setValue(Resource.loading());
         
         FirebaseUser firebaseUser = authRepository.getCurrentUser();
@@ -83,26 +75,13 @@ public class ProfileViewModel extends AndroidViewModel {
             return;
         }
         
-        String fileName = "profile_images/" + firebaseUser.getUid() + "_" + UUID.randomUUID().toString() + ".jpg";
-        StorageReference storageRef = FirebaseStorage.getInstance().getReference().child(fileName);
+        if (base64Image == null || base64Image.isEmpty()) {
+            uploadImageLiveData.setValue(Resource.error("Image data is empty"));
+            return;
+        }
         
-        storageRef.putBytes(imageData)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        storageRef.getDownloadUrl()
-                                .addOnCompleteListener(urlTask -> {
-                                    if (urlTask.isSuccessful()) {
-                                        String downloadUrl = urlTask.getResult().toString();
-                                        uploadImageLiveData.setValue(Resource.success(downloadUrl));
-                                    } else {
-                                        uploadImageLiveData.setValue(Resource.error("Failed to get download URL"));
-                                    }
-                                });
-                    } else {
-                        uploadImageLiveData.setValue(Resource.error(
-                                task.getException() != null ? task.getException().getMessage() : "Failed to upload image"));
-                    }
-                });
+        // Store base64 string directly - it will be saved to Firestore
+        uploadImageLiveData.setValue(Resource.success(base64Image));
     }
 
     public LiveData<Resource<User>> getUserLiveData() {
@@ -115,6 +94,30 @@ public class ProfileViewModel extends AndroidViewModel {
 
     public LiveData<Resource<String>> getUploadImageLiveData() {
         return uploadImageLiveData;
+    }
+
+    /**
+     * Save only the photo (base64) to Firestore, keeping existing name.
+     * Used when user selects a new photo so we don't require them to tap Update Profile.
+     */
+    public void savePhotoToFirestore(String base64Photo) {
+        FirebaseUser firebaseUser = authRepository.getCurrentUser();
+        if (firebaseUser == null) {
+            return;
+        }
+        userRepository.getUser(firebaseUser.getUid())
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        String currentName = doc.getString("name");
+                        if (currentName == null || currentName.isEmpty()) {
+                            currentName = firebaseUser.getDisplayName() != null ? firebaseUser.getDisplayName() : "User";
+                        }
+                        userRepository.updateProfile(firebaseUser.getUid(), currentName, base64Photo)
+                                .addOnSuccessListener(aVoid -> {
+                                    loadUser();
+                                });
+                    }
+                });
     }
 
     public void signOut() {

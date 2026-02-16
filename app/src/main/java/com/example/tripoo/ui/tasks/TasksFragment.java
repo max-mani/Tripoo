@@ -49,15 +49,14 @@ public class TasksFragment extends Fragment {
         binding.rvTasks.setAdapter(adapter);
         
         binding.fabAddTask.setOnClickListener(v -> {
-            homeViewModel.getUserLiveData().observe(getViewLifecycleOwner(), resource -> {
-                if (resource.isSuccess() && resource.getData() != null) {
-                    User user = resource.getData();
-                    String tripId = user.getActiveTripId();
-                    if (tripId != null && !tripId.isEmpty()) {
-                        showAddTaskBottomSheet(tripId, null);
-                    }
+            Resource<User> resource = homeViewModel.getUserLiveData().getValue();
+            if (resource != null && resource.isSuccess() && resource.getData() != null) {
+                User user = resource.getData();
+                String tripId = user.getActiveTripId();
+                if (tripId != null && !tripId.isEmpty()) {
+                    showAddTaskBottomSheet(tripId, null);
                 }
-            });
+            }
         });
         
         homeViewModel.getUserLiveData().observe(getViewLifecycleOwner(), resource -> {

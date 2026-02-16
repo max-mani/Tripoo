@@ -11,18 +11,22 @@ import com.example.tripoo.databinding.ItemExpenseBinding;
 import com.example.tripoo.utils.DateFormatter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseViewHolder> {
     private List<Expense> expenses;
+    private Map<String, String> userIdToNameMap;
     private OnExpenseClickListener listener;
 
     public interface OnExpenseClickListener {
         void onExpenseClick(Expense expense);
     }
 
-    public ExpenseAdapter(List<Expense> expenses, OnExpenseClickListener listener) {
+    public ExpenseAdapter(List<Expense> expenses, Map<String, String> userIdToNameMap, OnExpenseClickListener listener) {
         this.expenses = expenses != null ? expenses : new ArrayList<>();
+        this.userIdToNameMap = userIdToNameMap != null ? userIdToNameMap : new HashMap<>();
         this.listener = listener;
     }
 
@@ -37,7 +41,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
     @Override
     public void onBindViewHolder(@NonNull ExpenseViewHolder holder, int position) {
         Expense expense = expenses.get(position);
-        holder.bind(expense);
+        holder.bind(expense, userIdToNameMap);
     }
 
     @Override
@@ -50,6 +54,11 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         notifyDataSetChanged();
     }
 
+    public void updateUserIdToNameMap(Map<String, String> userIdToNameMap) {
+        this.userIdToNameMap = userIdToNameMap != null ? userIdToNameMap : new HashMap<>();
+        notifyDataSetChanged();
+    }
+
     class ExpenseViewHolder extends RecyclerView.ViewHolder {
         private ItemExpenseBinding binding;
 
@@ -58,13 +67,27 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
             this.binding = binding;
         }
 
-        public void bind(Expense expense) {
+        public void bind(Expense expense, Map<String, String> userIdToNameMap) {
             binding.tvExpenseTitle.setText(expense.getTitle());
             binding.tvExpenseAmount.setText("₹ " + String.format("%.0f", expense.getAmount()));
-            binding.tvPaidBy.setText("Paid by: " + expense.getPaidBy());
+            
+            // Map user ID to name - use "Unknown" instead of showing user ID
+            String paidByName = userIdToNameMap.getOrDefault(expense.getPaidBy(), "Unknown");
+            if (paidByName == null || paidByName.isEmpty() || paidByName.equals(expense.getPaidBy())) {
+                paidByName = "Unknown";
+            }
+            binding.tvPaidBy.setText("Paid by: " + paidByName);
             
             if (expense.getSplitWith() != null && !expense.getSplitWith().isEmpty()) {
-                String splitWith = String.join(", ", expense.getSplitWith());
+                List<String> splitWithNames = new ArrayList<>();
+                for (String userId : expense.getSplitWith()) {
+                    String name = userIdToNameMap.getOrDefault(userId, "Unknown");
+                    if (name == null || name.isEmpty() || name.equals(userId)) {
+                        name = "Unknown";
+                    }
+                    splitWithNames.add(name);
+                }
+                String splitWith = String.join(", ", splitWithNames);
                 binding.tvSplitWith.setText("Split with: " + splitWith);
             }
             

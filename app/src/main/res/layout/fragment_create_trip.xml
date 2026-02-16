@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface">
+    android:background="?android:attr/colorBackground">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -32,6 +32,7 @@
                     android:text="Create New Trip"
                     android:textSize="24sp"
                     android:textStyle="bold"
+                    android:textColor="@color/text_primary"
                     tools:text="Create New Trip" />
 
                 <com.google.android.material.textfield.TextInputLayout

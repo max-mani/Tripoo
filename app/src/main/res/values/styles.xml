@@ -3,4 +3,9 @@
     <style name="ShapeAppearanceOverlay.App.CornerSize50Percent" parent="">
         <item name="cornerSize">50%</item>
     </style>
+
+    <!-- Transparent active indicator to remove the green/coloured box when a bottom nav item is selected -->
+    <style name="BottomNavActiveIndicatorTransparent" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@android:color/transparent</item>
+    </style>
 </resources>

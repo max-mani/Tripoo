@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface">
+    android:background="?android:attr/colorBackground">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -30,7 +30,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
                     android:layout_weight="1"
-                    app:cardBackgroundColor="?attr/colorErrorContainer"
+                    app:cardBackgroundColor="@color/md_theme_light_error"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="2dp">
 
@@ -45,7 +45,7 @@
                             android:layout_height="wrap_content"
                             android:text="You Owe"
                             android:textSize="14sp"
-                            android:textColor="?attr/colorOnErrorContainer" />
+                            android:textColor="@color/white" />
 
                         <TextView
                             android:id="@+id/tvYouOwe"
@@ -54,7 +54,7 @@
                             android:text="₹ 0"
                             android:textSize="20sp"
                             android:textStyle="bold"
-                            android:textColor="?attr/colorOnErrorContainer"
+                            android:textColor="@color/white"
                             tools:text="₹ 1,500" />
 
                     </LinearLayout>
@@ -67,7 +67,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_weight="1"
-                    app:cardBackgroundColor="?attr/colorPrimaryContainer"
+                    app:cardBackgroundColor="@color/success"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="2dp">
 
@@ -82,7 +82,7 @@
                             android:layout_height="wrap_content"
                             android:text="You Are Owed"
                             android:textSize="14sp"
-                            android:textColor="?attr/colorOnPrimaryContainer" />
+                            android:textColor="@color/white" />
 
                         <TextView
                             android:id="@+id/tvYouAreOwed"
@@ -91,7 +91,7 @@
                             android:text="₹ 0"
                             android:textSize="20sp"
                             android:textStyle="bold"
-                            android:textColor="?attr/colorOnPrimaryContainer"
+                            android:textColor="@color/white"
                             tools:text="₹ 2,000" />
 
                     </LinearLayout>
@@ -108,6 +108,7 @@
                 android:text="Expenses"
                 android:textSize="18sp"
                 android:textStyle="bold"
+                android:textColor="@color/text_primary"
                 tools:text="Expenses" />
 
             <androidx.recyclerview.widget.RecyclerView
@@ -127,6 +128,8 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:contentDescription="Add Expense"
+        app:backgroundTint="@color/md_theme_light_primary"
+        app:tint="@color/white"
         app:layout_anchor="@id/rvExpenses"
         app:layout_anchorGravity="bottom|end"
         app:srcCompat="@android:drawable/ic_input_add" />

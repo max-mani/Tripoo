@@ -50,6 +50,15 @@ public class Trip {
         return startDate;
     }
 
+    /**
+     * Returns trip start time as epoch millis for countdown/timestamp use.
+     * Firestore Timestamp is stored as seconds + nanoseconds.
+     */
+    public long getStartDateMillis() {
+        if (startDate == null) return 0L;
+        return startDate.getSeconds() * 1000L + startDate.getNanoseconds() / 1_000_000;
+    }
+
     public void setStartDate(Timestamp startDate) {
         this.startDate = startDate;
     }

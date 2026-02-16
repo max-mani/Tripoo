@@ -4,19 +4,25 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import android.graphics.Bitmap;
 import com.bumptech.glide.Glide;
 import com.example.tripoo.R;
 import com.example.tripoo.data.model.TripMember;
 import com.example.tripoo.databinding.ItemMemberCheckboxBinding;
+import com.example.tripoo.utils.ImageUtils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class MemberCheckboxAdapter extends RecyclerView.Adapter<MemberCheckboxAdapter.MemberViewHolder> {
     private List<TripMember> members;
+    private Set<String> selectedMemberIds;
 
     public MemberCheckboxAdapter(List<TripMember> members) {
         this.members = members != null ? members : new ArrayList<>();
+        this.selectedMemberIds = new HashSet<>();
     }
 
     @NonNull
@@ -39,16 +45,26 @@ public class MemberCheckboxAdapter extends RecyclerView.Adapter<MemberCheckboxAd
 
     public void updateMembers(List<TripMember> newMembers) {
         this.members = newMembers != null ? newMembers : new ArrayList<>();
+        // Preserve selected state for existing members
+        Set<String> newSelectedIds = new HashSet<>();
+        for (TripMember member : newMembers) {
+            if (selectedMemberIds.contains(member.getUserId())) {
+                newSelectedIds.add(member.getUserId());
+            }
+        }
+        selectedMemberIds = newSelectedIds;
         notifyDataSetChanged();
     }
 
-    public List<String> getSelectedMembers() {
-        List<String> selected = new ArrayList<>();
-        for (int i = 0; i < members.size(); i++) {
-            // This would need to track checkbox states - simplified for now
-            selected.add(members.get(i).getUserId());
+    public void selectMember(String userId) {
+        if (userId != null) {
+            selectedMemberIds.add(userId);
+            notifyDataSetChanged();
         }
-        return selected;
+    }
+
+    public List<String> getSelectedMembers() {
+        return new ArrayList<>(selectedMemberIds);
     }
 
     class MemberViewHolder extends RecyclerView.ViewHolder {
@@ -62,9 +78,42 @@ public class MemberCheckboxAdapter extends RecyclerView.Adapter<MemberCheckboxAd
         public void bind(TripMember member) {
             binding.tvMemberName.setText(member.getName());
             
+            boolean isSelected = selectedMemberIds.contains(member.getUserId());
+            binding.cbMember.setOnCheckedChangeListener(null);
+            binding.cbMember.setChecked(isSelected);
+            binding.cbMember.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isChecked) {
+                    selectedMemberIds.add(member.getUserId());
+                } else {
+                    selectedMemberIds.remove(member.getUserId());
+                }
+            });
+            
+            binding.getRoot().setOnClickListener(v -> {
+                binding.cbMember.setChecked(!binding.cbMember.isChecked());
+            });
+            
             if (member.getPhotoUrl() != null && !member.getPhotoUrl().isEmpty()) {
+                loadMemberPhoto(member.getPhotoUrl());
+            }
+        }
+        
+        private void loadMemberPhoto(String photoUrl) {
+            if (photoUrl == null || photoUrl.isEmpty()) return;
+            // Never pass base64 to Glide - decode first
+            if (photoUrl.startsWith("http://") || photoUrl.startsWith("https://")) {
                 Glide.with(binding.getRoot())
-                        .load(member.getPhotoUrl())
+                        .load(photoUrl)
+                        .circleCrop()
+                        .placeholder(R.drawable.ic_launcher_foreground)
+                        .into(binding.ivMemberPhoto);
+                return;
+            }
+            Bitmap bitmap = ImageUtils.base64ToBitmap(photoUrl);
+            if (bitmap != null) {
+                Glide.with(binding.getRoot())
+                        .load(bitmap)
+                        .circleCrop()
                         .placeholder(R.drawable.ic_launcher_foreground)
                         .into(binding.ivMemberPhoto);
             }

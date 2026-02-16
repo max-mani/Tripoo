@@ -1,6 +1,5 @@
 package com.example.tripoo.data.repository;
 
-import android.util.Log;
 import com.example.tripoo.data.model.Expense;
 import com.example.tripoo.utils.FirebaseHelper;
 import com.google.android.gms.tasks.Task;
@@ -11,7 +10,6 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 public class ExpenseRepository {
-    private static final String TAG = "ExpenseRepository";
     private FirebaseFirestore firestore;
     private static final String COLLECTION_TRIPS = "trips";
     private static final String COLLECTION_EXPENSES = "expenses";

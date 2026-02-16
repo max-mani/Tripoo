@@ -70,15 +70,14 @@ public class HomeFragment extends Fragment {
                 // Check if trip has started
                 Timestamp now = Timestamp.now();
                 if (trip.getStartDate() != null && trip.getStartDate().compareTo(now) > 0) {
-                    // Trip hasn't started yet - show countdown
-                    binding.tvCountdown.setVisibility(View.VISIBLE);
+                    // Trip hasn't started yet - show countdown (Days | Hours | Minutes | Seconds)
+                    binding.tripCountdownView.setVisibility(View.VISIBLE);
                     binding.llBudgetProgress.setVisibility(View.GONE);
-                    
-                    long daysUntil = (trip.getStartDate().getSeconds() - now.getSeconds()) / (24 * 60 * 60);
-                    binding.tvCountdown.setText(daysUntil + " days until trip starts");
+                    binding.tripCountdownView.bindTrip(trip);
                 } else {
                     // Trip has started - show budget progress
-                    binding.tvCountdown.setVisibility(View.GONE);
+                    binding.tripCountdownView.stop();
+                    binding.tripCountdownView.setVisibility(View.GONE);
                     binding.llBudgetProgress.setVisibility(View.VISIBLE);
                     
                     viewModel.getTotalExpensesLiveData().observe(getViewLifecycleOwner(), total -> {

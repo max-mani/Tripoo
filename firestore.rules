@@ -12,10 +12,14 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
     
-    // Users collection - users can read/write their own user document
+    // Users collection - authenticated users can read/write user documents
+    // This allows users to read other users' basic info (name, photo) for display purposes
+    // Users can only create/update/delete their own document
     match /users/{userId} {
-      allow read: if isOwner(userId);
-      allow write: if isOwner(userId);
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
     }
     
     // Trips collection

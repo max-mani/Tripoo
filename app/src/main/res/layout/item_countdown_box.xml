@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:paddingVertical="12dp"
+    android:paddingHorizontal="4dp">
+
+    <TextView
+        android:id="@+id/tvCountdownValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/countdown_value"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-medium"
+        tools:text="00" />
+
+    <TextView
+        android:id="@+id/tvCountdownLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/countdown_label"
+        android:textSize="11sp"
+        android:letterSpacing="0.05"
+        android:fontFamily="sans-serif"
+        tools:text="DAYS" />
+
+</LinearLayout>

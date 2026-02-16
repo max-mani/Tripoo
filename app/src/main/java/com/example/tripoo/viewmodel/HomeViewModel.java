@@ -103,30 +103,50 @@ public class HomeViewModel extends AndroidViewModel {
                                     .addOnCompleteListener(task -> {
                                         if (task.isSuccessful()) {
                                             String tripId = task.getResult().getId();
-                                            // Add user as member
-                                            com.example.tripoo.data.model.TripMember member = 
-                                                    new com.example.tripoo.data.model.TripMember(
-                                                            firebaseUser.getUid(),
-                                                            firebaseUser.getDisplayName() != null ? firebaseUser.getDisplayName() : "User",
-                                                            firebaseUser.getEmail(),
-                                                            firebaseUser.getPhotoUrl() != null ? firebaseUser.getPhotoUrl().toString() : null,
-                                                            true
-                                                    );
-                                            tripRepository.addMemberToTrip(tripId, firebaseUser.getUid(), member)
-                                                    .addOnCompleteListener(memberTask -> {
-                                                        if (memberTask.isSuccessful()) {
-                                                            // Update user's activeTripId
-                                                            userRepository.updateActiveTripId(firebaseUser.getUid(), tripId)
-                                                                    .addOnCompleteListener(updateTask -> {
-                                                                        if (updateTask.isSuccessful()) {
-                                                                            createTripLiveData.setValue(Resource.success(tripCode));
-                                                                        } else {
-                                                                            createTripLiveData.setValue(Resource.error("Failed to update user"));
-                                                                        }
-                                                                    });
+                                            // Get user name from User document
+                                            userRepository.getUser(firebaseUser.getUid())
+                                                    .addOnCompleteListener(userTask -> {
+                                                        String userName = "User";
+                                                        String userPhotoUrl = null;
+                                                        if (userTask.isSuccessful() && userTask.getResult().exists()) {
+                                                            DocumentSnapshot userDoc = userTask.getResult();
+                                                            userName = userDoc.getString("name");
+                                                            if (userName == null || userName.isEmpty()) {
+                                                                userName = firebaseUser.getDisplayName() != null ? firebaseUser.getDisplayName() : "User";
+                                                            }
+                                                            userPhotoUrl = userDoc.getString("photoUrl");
                                                         } else {
-                                                            createTripLiveData.setValue(Resource.error("Failed to add member"));
+                                                            userName = firebaseUser.getDisplayName() != null ? firebaseUser.getDisplayName() : "User";
                                                         }
+                                                        if (userPhotoUrl == null && firebaseUser.getPhotoUrl() != null) {
+                                                            userPhotoUrl = firebaseUser.getPhotoUrl().toString();
+                                                        }
+                                                        
+                                                        // Add user as member
+                                                        com.example.tripoo.data.model.TripMember member = 
+                                                                new com.example.tripoo.data.model.TripMember(
+                                                                        firebaseUser.getUid(),
+                                                                        userName,
+                                                                        firebaseUser.getEmail(),
+                                                                        userPhotoUrl,
+                                                                        true
+                                                                );
+                                                        tripRepository.addMemberToTrip(tripId, firebaseUser.getUid(), member)
+                                                                .addOnCompleteListener(memberTask -> {
+                                                                    if (memberTask.isSuccessful()) {
+                                                                        // Update user's activeTripId
+                                                                        userRepository.updateActiveTripId(firebaseUser.getUid(), tripId)
+                                                                                .addOnCompleteListener(updateTask -> {
+                                                                                    if (updateTask.isSuccessful()) {
+                                                                                        createTripLiveData.setValue(Resource.success(tripCode));
+                                                                                    } else {
+                                                                                        createTripLiveData.setValue(Resource.error("Failed to update user"));
+                                                                                    }
+                                                                                });
+                                                                    } else {
+                                                                        createTripLiveData.setValue(Resource.error("Failed to add member"));
+                                                                    }
+                                                                });
                                                     });
                                         } else {
                                             createTripLiveData.setValue(Resource.error(
@@ -154,30 +174,50 @@ public class HomeViewModel extends AndroidViewModel {
                         FirebaseUser firebaseUser = authRepository.getCurrentUser();
                         
                         if (firebaseUser != null) {
-                            // Add user as member
-                            com.example.tripoo.data.model.TripMember member = 
-                                    new com.example.tripoo.data.model.TripMember(
-                                            firebaseUser.getUid(),
-                                            firebaseUser.getDisplayName() != null ? firebaseUser.getDisplayName() : "User",
-                                            firebaseUser.getEmail(),
-                                            firebaseUser.getPhotoUrl() != null ? firebaseUser.getPhotoUrl().toString() : null,
-                                            false
-                                    );
-                            tripRepository.addMemberToTrip(tripId, firebaseUser.getUid(), member)
-                                    .addOnCompleteListener(memberTask -> {
-                                        if (memberTask.isSuccessful()) {
-                                            // Update user's activeTripId
-                                            userRepository.updateActiveTripId(firebaseUser.getUid(), tripId)
-                                                    .addOnCompleteListener(updateTask -> {
-                                                        if (updateTask.isSuccessful()) {
-                                                            joinTripLiveData.setValue(Resource.success(tripId));
-                                                        } else {
-                                                            joinTripLiveData.setValue(Resource.error("Failed to update user"));
-                                                        }
-                                                    });
+                            // Get user name from User document
+                            userRepository.getUser(firebaseUser.getUid())
+                                    .addOnCompleteListener(userTask -> {
+                                        String userName = "User";
+                                        String userPhotoUrl = null;
+                                        if (userTask.isSuccessful() && userTask.getResult().exists()) {
+                                            DocumentSnapshot userDoc = userTask.getResult();
+                                            userName = userDoc.getString("name");
+                                            if (userName == null || userName.isEmpty()) {
+                                                userName = firebaseUser.getDisplayName() != null ? firebaseUser.getDisplayName() : "User";
+                                            }
+                                            userPhotoUrl = userDoc.getString("photoUrl");
                                         } else {
-                                            joinTripLiveData.setValue(Resource.error("Failed to join trip"));
+                                            userName = firebaseUser.getDisplayName() != null ? firebaseUser.getDisplayName() : "User";
                                         }
+                                        if (userPhotoUrl == null && firebaseUser.getPhotoUrl() != null) {
+                                            userPhotoUrl = firebaseUser.getPhotoUrl().toString();
+                                        }
+                                        
+                                        // Add user as member
+                                        com.example.tripoo.data.model.TripMember member = 
+                                                new com.example.tripoo.data.model.TripMember(
+                                                        firebaseUser.getUid(),
+                                                        userName,
+                                                        firebaseUser.getEmail(),
+                                                        userPhotoUrl,
+                                                        false
+                                                );
+                                        tripRepository.addMemberToTrip(tripId, firebaseUser.getUid(), member)
+                                                .addOnCompleteListener(memberTask -> {
+                                                    if (memberTask.isSuccessful()) {
+                                                        // Update user's activeTripId
+                                                        userRepository.updateActiveTripId(firebaseUser.getUid(), tripId)
+                                                                .addOnCompleteListener(updateTask -> {
+                                                                    if (updateTask.isSuccessful()) {
+                                                                        joinTripLiveData.setValue(Resource.success(tripId));
+                                                                    } else {
+                                                                        joinTripLiveData.setValue(Resource.error("Failed to update user"));
+                                                                    }
+                                                                });
+                                                    } else {
+                                                        joinTripLiveData.setValue(Resource.error("Failed to join trip"));
+                                                    }
+                                                });
                                     });
                         }
                     } else {

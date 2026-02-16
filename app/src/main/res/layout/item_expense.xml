@@ -31,6 +31,7 @@
                     android:layout_height="wrap_content"
                     android:textSize="16sp"
                     android:textStyle="bold"
+                    android:textColor="@color/text_primary"
                     tools:text="Dinner" />
 
                 <TextView
@@ -39,7 +40,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:textSize="14sp"
-                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textColor="@color/text_secondary"
                     tools:text="Paid by: John" />
 
             </LinearLayout>
@@ -50,7 +51,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="?attr/colorPrimary"
+                android:textColor="@color/md_theme_light_primary"
                 tools:text="₹ 1,500" />
 
         </LinearLayout>
@@ -61,7 +62,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:textSize="12sp"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textColor="@color/text_secondary"
             tools:text="Split with: John, Jane" />
 
         <TextView
@@ -70,7 +71,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textSize="12sp"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textColor="@color/text_secondary"
             tools:text="2 hours ago" />
 
     </LinearLayout>

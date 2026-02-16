@@ -4,10 +4,12 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import android.graphics.Bitmap;
 import com.bumptech.glide.Glide;
 import com.example.tripoo.R;
 import com.example.tripoo.data.model.TripMember;
 import com.example.tripoo.databinding.ItemMemberBinding;
+import com.example.tripoo.utils.ImageUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,8 +63,26 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.MemberView
             }
             
             if (member.getPhotoUrl() != null && !member.getPhotoUrl().isEmpty()) {
+                loadMemberPhoto(member.getPhotoUrl());
+            }
+        }
+        
+        private void loadMemberPhoto(String photoUrl) {
+            if (photoUrl == null || photoUrl.isEmpty()) return;
+            // Never pass base64 to Glide - decode first
+            if (photoUrl.startsWith("http://") || photoUrl.startsWith("https://")) {
                 Glide.with(binding.getRoot())
-                        .load(member.getPhotoUrl())
+                        .load(photoUrl)
+                        .circleCrop()
+                        .placeholder(R.drawable.ic_launcher_foreground)
+                        .into(binding.ivMemberPhoto);
+                return;
+            }
+            Bitmap bitmap = ImageUtils.base64ToBitmap(photoUrl);
+            if (bitmap != null) {
+                Glide.with(binding.getRoot())
+                        .load(bitmap)
+                        .circleCrop()
                         .placeholder(R.drawable.ic_launcher_foreground)
                         .into(binding.ivMemberPhoto);
             }

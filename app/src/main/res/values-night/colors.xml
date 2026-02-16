@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Countdown card: lighter shades for visibility on dark background -->
+    <color name="countdown_value">#F48C25</color>
+    <color name="countdown_label">#D1D5DB</color>
+</resources>
