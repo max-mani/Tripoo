@@ -91,11 +91,11 @@ public class Task {
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("title", title);
-        map.put("category", category);
+        map.put("category", category != null ? category : CATEGORY_GENERAL);
         map.put("assignedTo", assignedTo != null ? assignedTo : "");
         map.put("completed", completed);
-        map.put("createdBy", createdBy);
-        map.put("dueDate", dueDate);
+        map.put("createdBy", createdBy != null ? createdBy : "");
+        map.put("dueDate", dueDate != null ? dueDate : Timestamp.now());
         return map;
     }
 }

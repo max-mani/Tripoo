@@ -24,6 +24,7 @@ import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.example.tripoo.databinding.ActivityMainBinding;
 import com.example.tripoo.data.model.User;
+import com.example.tripoo.data.repository.AuthRepository;
 import com.example.tripoo.utils.ImageUtils;
 import com.example.tripoo.utils.ProfileIconDrawable;
 import com.example.tripoo.utils.Resource;
@@ -36,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private NavController navController;
     private ProfileViewModel profileViewModel;
     private HomeViewModel homeViewModel;
+    private AuthRepository authRepository;
     /** Last known profile photo URL; re-applied when nav destination changes so NavigationUI doesn't overwrite our icon. */
     private String lastProfilePhotoUrl;
 
@@ -81,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
             bottomNav.setItemIconTintList(null);
 
             // Set up profile icon update observer from both ViewModels
+            authRepository = new AuthRepository();
             profileViewModel = new ViewModelProvider(MainActivity.this).get(ProfileViewModel.class);
             homeViewModel = new ViewModelProvider(MainActivity.this).get(HomeViewModel.class);
             
@@ -120,17 +123,27 @@ public class MainActivity extends AppCompatActivity {
             // Show/hide bottom navigation based on current destination
             navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
                 int destinationId = destination.getId();
-                
+
+                // When navigating to a main tab with a logged-in user, refresh activity-scoped ViewModels
+                if (destinationId == R.id.homeFragment || destinationId == R.id.expenseFragment
+                        || destinationId == R.id.tasksFragment || destinationId == R.id.groupsFragment
+                        || destinationId == R.id.profileFragment) {
+                    if (authRepository.getCurrentUser() != null) {
+                        homeViewModel.refreshUser();
+                        profileViewModel.refreshUser();
+                    }
+                }
+
                 // Always hide toolbar title
                 if (getSupportActionBar() != null) {
                     getSupportActionBar().setDisplayShowTitleEnabled(false);
                 }
                 binding.toolbar.setTitle("");
                 binding.toolbar.setSubtitle("");
-                
-                if (destinationId == R.id.splashFragment || 
-                    destinationId == R.id.authFragment || 
-                    destinationId == R.id.loginFragment || 
+
+                if (destinationId == R.id.splashFragment ||
+                    destinationId == R.id.authFragment ||
+                    destinationId == R.id.loginFragment ||
                     destinationId == R.id.signUpFragment ||
                     destinationId == R.id.createTripFragment ||
                     destinationId == R.id.joinTripFragment) {
@@ -142,6 +155,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         });
+    }
+
+    /** Call from ProfileFragment on sign-out so activity-scoped ViewModels clear previous user data. */
+    public void onUserSignedOut() {
+        lastProfilePhotoUrl = null;
+        homeViewModel.clearUser();
+        profileViewModel.clearUser();
     }
 
     private static final int PROFILE_ICON_SELECTED_BORDER_COLOR = 0xFFF48C25; // #F48C25

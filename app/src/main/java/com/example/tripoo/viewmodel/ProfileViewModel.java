@@ -48,6 +48,16 @@ public class ProfileViewModel extends AndroidViewModel {
         }
     }
 
+    /** Call when auth state may have changed (e.g. after login) to reload current user. */
+    public void refreshUser() {
+        loadUser();
+    }
+
+    /** Call on sign-out so UI does not show previous user's data. */
+    public void clearUser() {
+        userLiveData.setValue(Resource.error("Logged out"));
+    }
+
     public void updateProfile(String name, String photoUrl) {
         updateProfileLiveData.setValue(Resource.loading());
         

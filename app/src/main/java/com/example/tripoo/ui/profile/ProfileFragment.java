@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import com.bumptech.glide.Glide;
+import com.example.tripoo.MainActivity;
 import com.example.tripoo.R;
 import com.example.tripoo.data.model.User;
 import com.example.tripoo.databinding.FragmentProfileBinding;
@@ -66,6 +67,9 @@ public class ProfileFragment extends Fragment {
         
         binding.btnSignOut.setOnClickListener(v -> {
             viewModel.signOut();
+            if (requireActivity() instanceof MainActivity) {
+                ((MainActivity) requireActivity()).onUserSignedOut();
+            }
             Navigation.findNavController(view).navigate(R.id.action_profile_to_auth);
         });
         

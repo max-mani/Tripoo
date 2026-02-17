@@ -39,30 +39,52 @@ public class HomeViewModel extends AndroidViewModel {
 
     private void loadUser() {
         FirebaseUser firebaseUser = authRepository.getCurrentUser();
-        if (firebaseUser != null) {
-            userRepository.getUser(firebaseUser.getUid())
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful() && task.getResult().exists()) {
-                            DocumentSnapshot doc = task.getResult();
-                            User user = new User(
-                                    doc.getId(),
-                                    doc.getString("name"),
-                                    doc.getString("email"),
-                                    doc.getString("photoUrl"),
-                                    doc.getString("activeTripId")
-                            );
-                            userLiveData.setValue(Resource.success(user));
-                            
-                            // Load trip if user has active trip
-                            String activeTripId = user.getActiveTripId();
-                            if (activeTripId != null && !activeTripId.isEmpty()) {
-                                loadTrip(activeTripId);
-                            }
-                        } else {
-                            userLiveData.setValue(Resource.error("Failed to load user"));
-                        }
-                    });
+        if (firebaseUser == null) {
+            if (tripListener != null) {
+                tripListener.remove();
+                tripListener = null;
+            }
+            userLiveData.setValue(Resource.error("Logged out"));
+            tripLiveData.setValue(Resource.error("Logged out"));
+            return;
         }
+        userRepository.getUser(firebaseUser.getUid())
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult().exists()) {
+                        DocumentSnapshot doc = task.getResult();
+                        User user = new User(
+                                doc.getId(),
+                                doc.getString("name"),
+                                doc.getString("email"),
+                                doc.getString("photoUrl"),
+                                doc.getString("activeTripId")
+                        );
+                        userLiveData.setValue(Resource.success(user));
+
+                        // Load trip if user has active trip
+                        String activeTripId = user.getActiveTripId();
+                        if (activeTripId != null && !activeTripId.isEmpty()) {
+                            loadTrip(activeTripId);
+                        }
+                    } else {
+                        userLiveData.setValue(Resource.error("Failed to load user"));
+                    }
+                });
+    }
+
+    /** Call when auth state may have changed (e.g. after login) to reload current user and trip. */
+    public void refreshUser() {
+        loadUser();
+    }
+
+    /** Call on sign-out so UI does not show previous user's data. */
+    public void clearUser() {
+        if (tripListener != null) {
+            tripListener.remove();
+            tripListener = null;
+        }
+        userLiveData.setValue(Resource.error("Logged out"));
+        tripLiveData.setValue(Resource.error("Logged out"));
     }
 
     public void loadTrip(String tripId) {
@@ -221,7 +243,13 @@ public class HomeViewModel extends AndroidViewModel {
                                     });
                         }
                     } else {
-                        joinTripLiveData.setValue(Resource.error("Invalid trip code"));
+                        String message;
+                        if (!task.isSuccessful() && task.getException() != null) {
+                            message = "Could not check trip code. Try again.";
+                        } else {
+                            message = "Invalid trip code";
+                        }
+                        joinTripLiveData.setValue(Resource.error(message));
                     }
                 });
     }

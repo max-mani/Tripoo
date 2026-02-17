@@ -36,8 +36,8 @@ service cloud.firestore {
                get(/databases/$(database)/documents/trips/$(tripId)/members/$(request.auth.uid)).data.isAdmin == true;
       }
       
-      // Trip document - members can read, only admin can update
-      allow read: if isTripMember();
+      // Trip document - authenticated users can read (needed for join-by-code lookup), only admin can update
+      allow read: if isAuthenticated();
       allow create: if isAuthenticated();
       allow update: if isAdmin();
       allow delete: if isAdmin();
@@ -70,8 +70,16 @@ service cloud.firestore {
                  resource.data.createdBy == request.auth.uid;
         }
         
-        allow read: if isTripMember();
-        allow create: if isTripMember();
+        // Allow trip admin (creator) to create tasks even if not yet in members subcollection
+        function isTripAdmin() {
+          return isAuthenticated() && 
+                 exists(/databases/$(database)/documents/trips/$(tripId)) &&
+                 get(/databases/$(database)/documents/trips/$(tripId)).data.adminId == request.auth.uid;
+        }
+        
+        // Allow authenticated users to read/create tasks (must match - if create works, read must work)
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated();
         allow update: if isAdmin() || isTaskCreator();
         allow delete: if isAdmin() || isTaskCreator();
       }

@@ -64,7 +64,7 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
             tripId = getArguments().getString("tripId");
         }
         
-        taskViewModel = new ViewModelProvider(this).get(TaskViewModel.class);
+        taskViewModel = new ViewModelProvider(requireActivity()).get(TaskViewModel.class);
         groupsViewModel = new ViewModelProvider(requireActivity()).get(GroupsViewModel.class);
         homeViewModel = new ViewModelProvider(requireActivity()).get(HomeViewModel.class);
         
@@ -124,7 +124,8 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
             if (resource != null && resource.isSuccess()) {
                 dismiss();
             } else if (resource != null && resource.isError()) {
-                Toast.makeText(requireContext(), resource.getMessage(), Toast.LENGTH_SHORT).show();
+                String msg = resource.getMessage();
+                Toast.makeText(requireContext(), "Failed: " + (msg != null ? msg : "Unknown error"), Toast.LENGTH_LONG).show();
             }
         });
         taskViewModel.getUpdateTaskLiveData().observe(getViewLifecycleOwner(), resource -> {
@@ -147,6 +148,10 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         // Don't set default category - let user type or select from dialog
         
         binding.btnSaveTask.setOnClickListener(v -> {
+            if (tripId == null || tripId.isEmpty()) {
+                Toast.makeText(requireContext(), "No trip selected", Toast.LENGTH_SHORT).show();
+                return;
+            }
             String title = binding.etTitle.getText().toString().trim();
             String category = binding.etCategory.getText().toString().trim();
             String assignedTo = binding.etAssignedTo.getText().toString().trim();

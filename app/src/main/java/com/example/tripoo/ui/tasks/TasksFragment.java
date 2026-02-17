@@ -1,6 +1,7 @@
 package com.example.tripoo.ui.tasks;
 
 import android.os.Bundle;
+import android.widget.Toast;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,7 +39,7 @@ public class TasksFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         
-        viewModel = new ViewModelProvider(this).get(TaskViewModel.class);
+        viewModel = new ViewModelProvider(requireActivity()).get(TaskViewModel.class);
         homeViewModel = new ViewModelProvider(requireActivity()).get(HomeViewModel.class);
         
         adapter = new TaskAdapter(new HashMap<>(), task -> {
@@ -55,7 +56,11 @@ public class TasksFragment extends Fragment {
                 String tripId = user.getActiveTripId();
                 if (tripId != null && !tripId.isEmpty()) {
                     showAddTaskBottomSheet(tripId, null);
+                } else {
+                    Toast.makeText(requireContext(), "Select or create a trip first", Toast.LENGTH_SHORT).show();
                 }
+            } else {
+                Toast.makeText(requireContext(), "Select or create a trip first", Toast.LENGTH_SHORT).show();
             }
         });
         
@@ -70,9 +75,11 @@ public class TasksFragment extends Fragment {
         });
         
         viewModel.getTasksLiveData().observe(getViewLifecycleOwner(), resource -> {
-            if (resource.isSuccess() && resource.getData() != null) {
+            if (resource != null && resource.isSuccess() && resource.getData() != null) {
                 Map<String, List<Task>> tasksByCategory = resource.getData();
                 adapter.updateTasks(tasksByCategory);
+            } else if (resource != null && resource.isError()) {
+                Toast.makeText(requireContext(), "Failed to load tasks: " + resource.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
