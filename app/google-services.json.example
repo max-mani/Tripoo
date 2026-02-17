@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "442908467947",
-    "project_id": "tripoo-8fdc0",
-    "storage_bucket": "tripoo-8fdc0.firebasestorage.app"
+    "project_number": "YOUR_PROJECT_NUMBER",
+    "project_id": "YOUR_PROJECT_ID",
+    "storage_bucket": "YOUR_STORAGE_BUCKET"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:442908467947:android:27df9b5487e3e5a7f894ae",
+        "mobilesdk_app_id": "YOUR_MOBILESDK_APP_ID",
         "android_client_info": {
           "package_name": "com.example.tripoo"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAhqwf2EIOhum3XWzwfya-W46-y4iaAxEI"
+          "current_key": "YOUR_API_KEY"
         }
       ],
       "services": {
