@@ -6,7 +6,7 @@
     app:startDestination="@id/splashFragment">
 
     <fragment android:id="@+id/splashFragment"
-        android:name="com.example.tripoo.ui.splash.SplashFragment"
+        android:name="com.manikandan.tripoo.ui.splash.SplashFragment"
         android:label="Splash"
         tools:layout="@layout/fragment_splash">
         <action android:id="@+id/action_splash_to_auth"
@@ -18,7 +18,7 @@
     </fragment>
 
     <fragment android:id="@+id/authFragment"
-        android:name="com.example.tripoo.ui.auth.AuthFragment"
+        android:name="com.manikandan.tripoo.ui.auth.AuthFragment"
         android:label="Login"
         tools:layout="@layout/fragment_auth">
         <action android:id="@+id/action_auth_to_signup" app:destination="@id/signUpFragment"/>
@@ -29,7 +29,7 @@
     </fragment>
 
     <fragment android:id="@+id/signUpFragment"
-        android:name="com.example.tripoo.ui.auth.SignUpFragment"
+        android:name="com.manikandan.tripoo.ui.auth.SignUpFragment"
         android:label="Sign Up"
         tools:layout="@layout/fragment_sign_up">
         <action android:id="@+id/action_signup_to_dashboard"
@@ -38,7 +38,7 @@
     </fragment>
 
     <fragment android:id="@+id/loginFragment"
-        android:name="com.example.tripoo.ui.auth.LoginFragment"
+        android:name="com.manikandan.tripoo.ui.auth.LoginFragment"
         android:label="Login"
         tools:layout="@layout/fragment_login">
         <action android:id="@+id/action_login_to_dashboard"
@@ -47,7 +47,7 @@
     </fragment>
 
     <fragment android:id="@+id/tripDashboardFragment"
-        android:name="com.example.tripoo.ui.dashboard.TripDashboardFragment"
+        android:name="com.manikandan.tripoo.ui.dashboard.TripDashboardFragment"
         android:label="My Trips"
         tools:layout="@layout/fragment_trip_dashboard">
         <action android:id="@+id/action_dashboard_to_create" app:destination="@id/createTripFragment"/>
@@ -57,17 +57,16 @@
     </fragment>
 
     <fragment android:id="@+id/createTripFragment"
-        android:name="com.example.tripoo.ui.home.CreateTripFragment"
+        android:name="com.manikandan.tripoo.ui.home.CreateTripFragment"
         android:label="Create Trip"
         tools:layout="@layout/fragment_create_trip">
         <action android:id="@+id/action_create_to_home"
             app:destination="@id/homeFragment"
             app:popUpTo="@id/tripDashboardFragment"/>
-        <argument android:name="tripId" app:argType="string" android:defaultValue=""/>
     </fragment>
 
     <fragment android:id="@+id/joinTripFragment"
-        android:name="com.example.tripoo.ui.home.JoinTripFragment"
+        android:name="com.manikandan.tripoo.ui.home.JoinTripFragment"
         android:label="Join Trip"
         tools:layout="@layout/fragment_join_trip">
         <action android:id="@+id/action_join_to_create" app:destination="@id/createTripFragment" app:popUpTo="@id/joinTripFragment" app:popUpToInclusive="true"/>
@@ -77,7 +76,7 @@
     </fragment>
 
     <fragment android:id="@+id/homeFragment"
-        android:name="com.example.tripoo.ui.home.HomeFragment"
+        android:name="com.manikandan.tripoo.ui.home.HomeFragment"
         android:label="Home"
         tools:layout="@layout/fragment_home">
         <argument android:name="tripId" app:argType="string" android:defaultValue=""/>
@@ -89,28 +88,28 @@
     </fragment>
 
     <fragment android:id="@+id/expensesFragment"
-        android:name="com.example.tripoo.ui.expense.ExpenseFragment"
+        android:name="com.manikandan.tripoo.ui.expense.ExpenseFragment"
         android:label="Expenses"
         tools:layout="@layout/fragment_expense">
         <argument android:name="tripId" app:argType="string" android:defaultValue=""/>
     </fragment>
 
     <fragment android:id="@+id/tasksFragment"
-        android:name="com.example.tripoo.ui.tasks.TasksFragment"
+        android:name="com.manikandan.tripoo.ui.tasks.TasksFragment"
         android:label="Tasks"
         tools:layout="@layout/fragment_tasks">
         <argument android:name="tripId" app:argType="string" android:defaultValue=""/>
     </fragment>
 
     <fragment android:id="@+id/participantsFragment"
-        android:name="com.example.tripoo.ui.groups.GroupsFragment"
+        android:name="com.manikandan.tripoo.ui.groups.GroupsFragment"
         android:label="Participants"
         tools:layout="@layout/fragment_groups">
         <argument android:name="tripId" app:argType="string" android:defaultValue=""/>
     </fragment>
 
     <fragment android:id="@+id/profileFragment"
-        android:name="com.example.tripoo.ui.profile.ProfileFragment"
+        android:name="com.manikandan.tripoo.ui.profile.ProfileFragment"
         android:label="Profile"
         tools:layout="@layout/fragment_profile">
         <action android:id="@+id/action_profile_to_auth"

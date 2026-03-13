@@ -216,7 +216,7 @@
                         android:textStyle="bold"
                         tools:ignore="HardcodedText" />
 
-                    <com.example.tripoo.view.TripCountdownView
+                    <com.manikandan.tripoo.view.TripCountdownView
                         android:id="@+id/tripCountdownView"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

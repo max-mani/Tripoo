@@ -16,3 +16,8 @@ local.properties
 
 # Google Services (contains API keys)
 app/google-services.json
+
+# Keystore and signing (never commit)
+key.properties
+*.jks
+upload-keystore.jks

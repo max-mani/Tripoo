@@ -30,14 +30,12 @@
                 android:background="@drawable/bg_circle_orange_12"
                 android:clickable="true"
                 android:focusable="true">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_gravity="center"
-                    style="@style/Tripoo.Icon"
-                    android:text="arrow_back"
-                    android:textColor="@color/tripoo_orange"
-                    android:textSize="20sp" />
+                    android:src="@drawable/ic_arrow_back"
+                    android:tint="@color/tripoo_orange" />
             </FrameLayout>
 
             <LinearLayout
@@ -76,28 +74,41 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <TextView
+            <FrameLayout
                 android:layout_width="28dp"
                 android:layout_height="28dp"
-                android:background="@drawable/bg_avatar_circle_orange"
-                android:gravity="center"
-                android:text="FN"
-                android:textColor="@color/tripoo_surface"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                tools:ignore="HardcodedText" />
+                android:background="@drawable/bg_avatar_circle_orange">
+                <ImageView
+                    android:id="@+id/ivJoinIdentityAvatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
+                <TextView
+                    android:id="@+id/tvJoinIdentityAvatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="FN"
+                    android:textColor="@color/tripoo_surface"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    tools:ignore="HardcodedText" />
+            </FrameLayout>
 
             <TextView
+                android:id="@+id/tvJoinIdentityName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="9dp"
-                android:text="Joining as Faizal Noor"
+                android:text="Joining as "
                 android:textColor="@color/tripoo_text_primary"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 tools:ignore="HardcodedText" />
 
             <TextView
+                android:id="@+id/tvJoinChange"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -139,14 +150,12 @@
                             android:layout_height="58dp"
                             android:background="#33FFFFFF"
                             android:layout_marginBottom="11dp">
-                            <TextView
-                                style="@style/Tripoo.Icon"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                            <ImageView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
                                 android:layout_gravity="center"
-                                android:text="add_link"
-                                android:textColor="@color/tripoo_surface"
-                                android:textSize="30sp" />
+                                android:src="@drawable/ic_add_link"
+                                android:tint="@color/tripoo_surface" />
                         </FrameLayout>
 
                         <TextView
@@ -266,14 +275,12 @@
                             android:layout_height="38dp"
                             android:background="@color/tripoo_blue_bg">
 
-                            <TextView
-                                style="@style/Tripoo.Icon"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
                                 android:layout_gravity="center"
-                                android:text="beach_access"
-                                android:textColor="@color/tripoo_blue"
-                                android:textSize="20sp" />
+                                android:src="@drawable/ic_rocket_launch"
+                                android:tint="@color/tripoo_blue" />
                         </FrameLayout>
                         <LinearLayout
                             android:layout_width="0dp"
@@ -301,15 +308,15 @@
                             android:id="@+id/btnAcceptInvite"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@color/tripoo_orange_12"
+                            android:background="@drawable/bg_join_invite_button"
                             android:text="Join"
                             android:textColor="@color/tripoo_orange"
                             android:textSize="11sp"
                             android:textStyle="bold"
-                            android:paddingStart="11dp"
-                            android:paddingEnd="11dp"
-                            android:paddingTop="5dp"
-                            android:paddingBottom="5dp"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:paddingTop="6dp"
+                            android:paddingBottom="6dp"
                             tools:ignore="HardcodedText" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>

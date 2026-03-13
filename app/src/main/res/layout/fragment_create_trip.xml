@@ -30,14 +30,12 @@
                 android:background="@drawable/bg_circle_orange_12"
                 android:clickable="true"
                 android:focusable="true">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_gravity="center"
-                    style="@style/Tripoo.Icon"
-                    android:text="arrow_back"
-                    android:textColor="@color/tripoo_orange"
-                    android:textSize="20sp" />
+                    android:src="@drawable/ic_arrow_back"
+                    android:tint="@color/tripoo_orange" />
             </FrameLayout>
 
             <LinearLayout
@@ -76,28 +74,41 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <TextView
+            <FrameLayout
                 android:layout_width="28dp"
                 android:layout_height="28dp"
-                android:background="@drawable/bg_avatar_circle_orange"
-                android:gravity="center"
-                android:text="FN"
-                android:textColor="@color/tripoo_surface"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                tools:ignore="HardcodedText" />
+                android:background="@drawable/bg_avatar_circle_orange">
+                <ImageView
+                    android:id="@+id/ivCreateIdentityAvatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
+                <TextView
+                    android:id="@+id/tvCreateIdentityAvatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="FN"
+                    android:textColor="@color/tripoo_surface"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    tools:ignore="HardcodedText" />
+            </FrameLayout>
 
             <TextView
+                android:id="@+id/tvCreateIdentityName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="9dp"
-                android:text="Creating as Faizal Noor"
+                android:text="Creating as "
                 android:textColor="@color/tripoo_text_primary"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 tools:ignore="HardcodedText" />
 
             <TextView
+                android:id="@+id/tvCreateChange"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="0dp"
@@ -138,15 +149,13 @@
                     android:layout_height="50dp"
                     android:layout_marginBottom="14dp"
                     android:background="@drawable/bg_input_outline">
-                    <TextView
-                        style="@style/Tripoo.Icon"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
                         android:layout_gravity="start|center_vertical"
                         android:layout_marginStart="13dp"
-                        android:text="luggage"
-                        android:textColor="@color/tripoo_text_secondary"
-                        android:textSize="20sp" />
+                        android:src="@drawable/ic_luggage"
+                        android:tint="@color/tripoo_text_secondary" />
                     <EditText
                         android:id="@+id/etTripName"
                         android:layout_width="match_parent"
@@ -177,15 +186,13 @@
                     android:layout_height="50dp"
                     android:layout_marginBottom="14dp"
                     android:background="@drawable/bg_input_outline">
-                    <TextView
-                        style="@style/Tripoo.Icon"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
                         android:layout_gravity="start|center_vertical"
                         android:layout_marginStart="13dp"
-                        android:text="location_on"
-                        android:textColor="@color/tripoo_text_secondary"
-                        android:textSize="20sp" />
+                        android:src="@drawable/ic_location"
+                        android:tint="@color/tripoo_text_secondary" />
                     <EditText
                         android:id="@+id/etPlace"
                         android:layout_width="match_parent"
@@ -277,15 +284,13 @@
                     android:layout_height="50dp"
                     android:layout_marginBottom="14dp"
                     android:background="@drawable/bg_input_outline">
-                    <TextView
-                        style="@style/Tripoo.Icon"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
                         android:layout_gravity="start|center_vertical"
                         android:layout_marginStart="13dp"
-                        android:text="account_balance_wallet"
-                        android:textColor="@color/tripoo_text_secondary"
-                        android:textSize="20sp" />
+                        android:src="@drawable/ic_wallet"
+                        android:tint="@color/tripoo_text_secondary" />
                     <EditText
                         android:id="@+id/etBudget"
                         android:layout_width="match_parent"
@@ -355,14 +360,12 @@
                                 android:layout_height="40dp"
                                 android:background="@color/tripoo_orange"
                                 android:layout_marginEnd="10dp">
-                                <TextView
-                                    style="@style/Tripoo.Icon"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
+                                <ImageView
+                                    android:layout_width="22dp"
+                                    android:layout_height="22dp"
                                     android:layout_gravity="center"
-                                    android:text="group_add"
-                                    android:textColor="@color/tripoo_surface"
-                                    android:textSize="22sp" />
+                                    android:src="@drawable/ic_group"
+                                    android:tint="@color/tripoo_surface" />
                             </FrameLayout>
 
                             <LinearLayout
@@ -407,14 +410,11 @@
                             android:padding="11dp"
                             android:layout_marginTop="4dp">
 
-                            <TextView
-                                style="@style/Tripoo.Icon"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
                                 android:layout_marginEnd="10dp"
-                                android:text="lock"
-                                android:textColor="#80F48C25"
-                                android:textSize="20sp" />
+                                android:src="@drawable/ic_lock_tripoo" />
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
@@ -465,7 +465,7 @@
                     android:layout_marginTop="14dp"
                     android:text="Create Trip"
                     android:textSize="16sp"
-                    app:icon="@drawable/ic_rocket_launch"
+                    app:icon="@drawable/ic_logo_rocket"
                     app:iconGravity="textStart"
                     app:iconTint="@color/tripoo_surface"
                     app:iconPadding="8dp"
