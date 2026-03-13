@@ -16,10 +16,6 @@ import com.example.tripoo.databinding.FragmentHomeBinding;
 import com.example.tripoo.utils.DateFormatter;
 import com.example.tripoo.utils.Resource;
 import com.example.tripoo.viewmodel.HomeViewModel;
-import com.google.firebase.Timestamp;
-
-import java.util.Calendar;
-import java.util.Date;
 
 public class HomeFragment extends Fragment {
     private FragmentHomeBinding binding;
@@ -41,11 +37,52 @@ public class HomeFragment extends Fragment {
                 Navigation.findNavController(view).navigate(R.id.action_home_to_create_trip));
         binding.btnJoinTrip.setOnClickListener(v -> 
                 Navigation.findNavController(view).navigate(R.id.action_home_to_join_trip));
+
+        if (binding.qaExpenses != null) {
+            binding.qaExpenses.setOnClickListener(v -> {
+                String tripId = getTripIdFromUser();
+                if (tripId != null) {
+                    Bundle args = new Bundle();
+                    args.putString("tripId", tripId);
+                    Navigation.findNavController(view).navigate(R.id.action_home_to_expenses, args);
+                }
+            });
+        }
+        if (binding.qaTasks != null) {
+            binding.qaTasks.setOnClickListener(v -> {
+                String tripId = getTripIdFromUser();
+                if (tripId != null) {
+                    Bundle args = new Bundle();
+                    args.putString("tripId", tripId);
+                    Navigation.findNavController(view).navigate(R.id.action_home_to_tasks, args);
+                }
+            });
+        }
+        if (binding.qaGroups != null) {
+            binding.qaGroups.setOnClickListener(v -> {
+                String tripId = getTripIdFromUser();
+                if (tripId != null) {
+                    Bundle args = new Bundle();
+                    args.putString("tripId", tripId);
+                    Navigation.findNavController(view).navigate(R.id.action_home_to_participants, args);
+                }
+            });
+        }
+        if (binding.btnBudgetDetails != null) {
+            binding.btnBudgetDetails.setOnClickListener(v -> {
+                String tripId = getTripIdFromUser();
+                if (tripId != null) {
+                    Bundle args = new Bundle();
+                    args.putString("tripId", tripId);
+                    Navigation.findNavController(view).navigate(R.id.action_home_to_expenses, args);
+                }
+            });
+        }
         
         viewModel.getUserLiveData().observe(getViewLifecycleOwner(), resource -> {
             if (resource.isSuccess() && resource.getData() != null) {
                 User user = resource.getData();
-                String activeTripId = user.getActiveTripId();
+                String activeTripId = user.getLastActiveTripId();
                 
                 if (activeTripId != null && !activeTripId.isEmpty()) {
                     viewModel.loadTrip(activeTripId);
@@ -61,15 +98,15 @@ public class HomeFragment extends Fragment {
         viewModel.getTripLiveData().observe(getViewLifecycleOwner(), resource -> {
             if (resource.isSuccess() && resource.getData() != null) {
                 Trip trip = resource.getData();
-                binding.tvTripPlace.setText(trip.getPlace());
+                binding.tvTripPlace.setText(trip.getDestination());
                 
                 String dates = DateFormatter.formatDate(trip.getStartDate()) + " - " + 
                               DateFormatter.formatDate(trip.getEndDate());
                 binding.tvTripDates.setText(dates);
                 
                 // Check if trip has started
-                Timestamp now = Timestamp.now();
-                if (trip.getStartDate() != null && trip.getStartDate().compareTo(now) > 0) {
+                long now = System.currentTimeMillis();
+                if (trip.getStartDate() > now) {
                     // Trip hasn't started yet - show countdown (Days | Hours | Minutes | Seconds)
                     binding.tripCountdownView.setVisibility(View.VISIBLE);
                     binding.llBudgetProgress.setVisibility(View.GONE);
@@ -96,15 +133,23 @@ public class HomeFragment extends Fragment {
         viewModel.getCreateTripLiveData().observe(getViewLifecycleOwner(), resource -> {
             if (resource.isSuccess()) {
                 // Show trip code dialog or navigate
-                Navigation.findNavController(view).navigate(R.id.action_create_trip_to_home);
+                Navigation.findNavController(view).navigate(R.id.action_create_to_home);
             }
         });
         
         viewModel.getJoinTripLiveData().observe(getViewLifecycleOwner(), resource -> {
             if (resource.isSuccess()) {
-                Navigation.findNavController(view).navigate(R.id.action_join_trip_to_home);
+                Navigation.findNavController(view).navigate(R.id.action_join_to_home);
             }
         });
+    }
+
+    private String getTripIdFromUser() {
+        Resource<User> r = viewModel.getUserLiveData().getValue();
+        if (r != null && r.isSuccess() && r.getData() != null) {
+            return r.getData().getLastActiveTripId();
+        }
+        return null;
     }
 
     @Override

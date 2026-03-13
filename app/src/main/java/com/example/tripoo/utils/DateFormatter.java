@@ -39,4 +39,14 @@ public class DateFormatter {
         if (date == null) return "";
         return TIME_FORMAT.format(date);
     }
+
+    public static String formatDate(long epochMillis) {
+        if (epochMillis <= 0) return "";
+        return DATE_FORMAT.format(new Date(epochMillis));
+    }
+
+    public static String formatDateTime(long epochMillis) {
+        if (epochMillis <= 0) return "";
+        return DATE_TIME_FORMAT.format(new Date(epochMillis));
+    }
 }

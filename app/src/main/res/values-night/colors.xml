@@ -1,6 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Countdown card: lighter shades for visibility on dark background -->
-    <color name="countdown_value">#F48C25</color>
-    <color name="countdown_label">#D1D5DB</color>
+    <color name="tripoo_orange">#F48C25</color>
+    <color name="tripoo_orange_dark">#C45E1A</color>
+    <color name="tripoo_orange_12">#1FF48C25</color>
+    <color name="tripoo_orange_08">#14F48C25</color>
+    <color name="tripoo_orange_glow">#47F48C25</color>
+    <color name="tripoo_bg">#F8F7F5</color>
+    <color name="tripoo_surface">#FFFFFF</color>
+    <color name="tripoo_text_primary">#181411</color>
+    <color name="tripoo_text_secondary">#8A7560</color>
+    <color name="tripoo_text_hint">#9CA3AF</color>
+    <color name="tripoo_border">#E6E0DB</color>
+    <color name="tripoo_border_light">#14F48C25</color>
+    <color name="tripoo_red">#DC2626</color>
+    <color name="tripoo_red_bg">#FEF2F2</color>
+    <color name="tripoo_red_border">#FEE2E2</color>
+    <color name="tripoo_green">#16A34A</color>
+    <color name="tripoo_green_bg">#DCFCE7</color>
+    <color name="tripoo_blue">#2563EB</color>
+    <color name="tripoo_blue_bg">#DBEAFE</color>
+    <color name="tripoo_yellow_bg">#FEF9C3</color>
+    <color name="tripoo_yellow_text">#CA8A04</color>
+    <color name="tripoo_purple_bg">#F3E8FF</color>
+    <color name="tripoo_purple_text">#9333EA</color>
+    <color name="tripoo_status_active_bg">#E8F5EA</color>
+    <color name="tripoo_status_active_text">#2A5E35</color>
+    <color name="tripoo_status_active_bar">#2A5E35</color>
+    <color name="tripoo_status_upcoming_bg">#DDEEFF</color>
+    <color name="tripoo_status_upcoming_text">#1A5FA8</color>
+    <color name="tripoo_status_upcoming_bar">#1A5FA8</color>
+    <color name="tripoo_status_past_bg">#F3F4F6</color>
+    <color name="tripoo_status_past_text">#6B7280</color>
+    <color name="tripoo_status_past_bar">#9CA3AF</color>
+    <color name="tripoo_divider">#F3F4F6</color>
+    <color name="tripoo_section_bg">#F9FAFB</color>
 </resources>

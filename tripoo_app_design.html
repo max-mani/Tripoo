@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Tripoo · v3 Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0" rel="stylesheet">
+<style>
+/* ── TOKENS ── */
+:root{
+  --or:#F48C25;--or-dk:#C45E1A;--or-lt:rgba(244,140,37,.12);--or-glow:rgba(244,140,37,.28);
+  --bg:#F8F7F5;--sfc:#fff;
+  --t1:#181411;--t2:#8A7560;--t3:#9CA3AF;
+  --bd:#E6E0DB;--bd-lt:rgba(244,140,37,.08);
+  --red:#DC2626;--red-bg:#FEF2F2;--red-bd:#FEE2E2;
+  --green:#16A34A;--green-bg:#DCFCE7;
+  --blue:#2563EB;--blue-bg:#DBEAFE;
+  --sh-sm:0 1px 3px rgba(0,0,0,.06);
+  --sh-md:0 4px 16px rgba(0,0,0,.09);
+  --sh-or:0 8px 24px var(--or-glow);
+  --r:12px;--rl:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Inter',sans-serif;background:#0f0f0f;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:28px 16px 44px;}
+
+/* ── DEVICE ── */
+.device-label{color:rgba(255,255,255,.3);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;margin-bottom:14px;}
+.phone{width:390px;height:844px;background:var(--bg);border-radius:48px;overflow:hidden;position:relative;
+  box-shadow:0 0 0 9px #1e1e1e,0 0 0 10px #2c2c2c,0 0 0 12px #181818,0 50px 120px rgba(0,0,0,.75);}
+
+/* ── SCREENS ── */
+.screen{position:absolute;inset:0;display:none;flex-direction:column;background:var(--bg);overflow:hidden;}
+.screen.active{display:flex;}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.scroll::-webkit-scrollbar{display:none;}
+
+/* ── TRANSITIONS ── */
+@keyframes sR{from{transform:translateX(100%);opacity:.8}to{transform:translateX(0);opacity:1}}
+@keyframes sL{from{transform:translateX(-100%);opacity:.8}to{transform:translateX(0);opacity:1}}
+@keyframes sU{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.ar{animation:sR .25s cubic-bezier(.4,0,.2,1) forwards;}
+.al{animation:sL .25s cubic-bezier(.4,0,.2,1) forwards;}
+.au{animation:sU .3s cubic-bezier(.4,0,.2,1) forwards;}
+
+/* ── ICON ── */
+.ic{font-family:'Material Symbols Outlined';font-weight:300;font-style:normal;font-size:24px;line-height:1;display:inline-flex;align-items:center;justify-content:center;user-select:none;flex-shrink:0;}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--sfc);border-bottom:1px solid var(--bd-lt);padding:50px 16px 13px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.tp-title{font-size:17px;font-weight:700;color:var(--t1);}
+.tp-sub{font-size:11px;color:var(--t2);margin-top:1px;}
+.tp-center{flex:1;text-align:center;}
+.ibtn{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .12s;flex-shrink:0;}
+.ibtn:active{background:var(--bg);}
+.back{background:var(--or-lt);}
+.back .ic{color:var(--or);font-size:20px;}
+
+/* ── BOTTOM NAV ── */
+.bnav{height:76px;background:rgba(255,255,255,.93);backdrop-filter:blur(14px);border-top:1px solid rgba(244,140,37,.1);display:flex;align-items:flex-start;padding:9px 4px 0;flex-shrink:0;position:relative;z-index:10;}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0;}
+.ni .ic{font-size:22px;transition:color .15s;}
+.nlbl{font-size:9px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;transition:color .15s;}
+.ni.on .ic,.ni.on .nlbl{color:var(--or);}
+.ni:not(.on) .ic,.ni:not(.on) .nlbl{color:var(--t3);}
+
+/* ── FAB ── */
+.fab{position:absolute;bottom:86px;right:18px;width:56px;height:56px;background:var(--or);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:var(--sh-or);cursor:pointer;z-index:20;transition:transform .12s;}
+.fab:active{transform:scale(.93);}
+.fab .ic{color:#fff;font-size:28px;}
+
+/* ── CARD ── */
+.card{background:var(--sfc);border-radius:var(--r);border:1px solid var(--bd-lt);box-shadow:var(--sh-sm);padding:16px;}
+
+/* ── BUTTONS ── */
+.btn{height:50px;border:none;border-radius:11px;font-size:15px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;transition:opacity .12s,transform .1s;}
+.btn:active{opacity:.86;transform:scale(.98);}
+.btn-p{background:var(--or);color:#fff;box-shadow:0 8px 20px var(--or-glow);}
+.btn-o{background:#fff;color:var(--t1);border:1px solid var(--bd);}
+.btn-g{background:transparent;color:var(--or);border:2px solid rgba(244,140,37,.22);border-radius:999px;height:44px;}
+.btn-d{background:#fff;color:var(--red);border:1.5px solid #FCA5A5;}
+.btn-sm{height:41px;font-size:13px;border-radius:9px;}
+
+/* ── INPUTS ── */
+.lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--t2);display:block;margin-bottom:6px;}
+.inp{width:100%;height:50px;border:1.5px solid var(--bd);border-radius:11px;padding:0 14px;font-size:15px;font-family:'Inter',sans-serif;color:var(--t1);background:#fff;outline:none;transition:border-color .18s;}
+.inp:focus{border-color:var(--or);}
+.inp::placeholder{color:#BBA898;}
+textarea.inp{height:auto;padding:12px 14px;resize:none;}
+.iw{position:relative;}
+.iw .inp{padding-left:44px;}
+.iw>.ic{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--t2);font-size:20px;pointer-events:none;}
+.ig{display:flex;flex-direction:column;gap:6px;}
+
+/* ── CHIPS ── */
+.chip{display:inline-flex;align-items:center;gap:4px;padding:5px 13px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
+.con{background:var(--or);color:#fff;}
+.cof{background:var(--bg);color:var(--t2);border:1px solid var(--bd);}
+.s-active{background:#E8F5EA;color:#2A5E35;font-size:11px;padding:3px 9px;border-radius:5px;}
+.s-upcoming{background:#DDEEFF;color:#1A5FA8;font-size:11px;padding:3px 9px;border-radius:5px;}
+.s-past{background:#F3F4F6;color:#6B7280;font-size:11px;padding:3px 9px;border-radius:5px;}
+
+/* ── PROGRESS ── */
+.pt{height:8px;background:var(--or-lt);border-radius:999px;overflow:hidden;}
+.pf{height:100%;background:var(--or);border-radius:999px;}
+
+/* ── DIVIDER ── */
+.divtxt{display:flex;align-items:center;gap:10px;color:var(--t2);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;}
+.divtxt::before,.divtxt::after{content:'';flex:1;height:1px;background:var(--bd);}
+
+/* ── TOAST ── */
+.toast{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);background:#1C1410;color:#fff;padding:9px 16px;border-radius:8px;font-size:12px;font-weight:600;white-space:nowrap;z-index:300;opacity:0;transition:opacity .2s;pointer-events:none;}
+.toast.show{opacity:1;}
+
+/* ═══════════════════════════
+   SPLASH
+═══════════════════════════ */
+#s-splash{align-items:center;justify-content:center;background:linear-gradient(155deg,#F48C25,#C45E1A);}
+.spl-box{width:84px;height:84px;background:rgba(255,255,255,.2);border-radius:26px;display:flex;align-items:center;justify-content:center;margin-bottom:22px;animation:beat 2.2s ease-in-out infinite;}
+.spl-t{font-size:42px;font-weight:900;color:#fff;letter-spacing:-1.5px;margin-bottom:8px;}
+.spl-s{font-size:15px;color:rgba(255,255,255,.72);font-weight:500;margin-bottom:54px;}
+.spl-spin{width:36px;height:36px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .85s linear infinite;}
+
+/* ═══════════════════════════
+   WELCOME (with inline login)
+═══════════════════════════ */
+#s-welcome{background:var(--bg);}
+.wl-hero{background:linear-gradient(155deg,#F48C25,#C45E1A);height:260px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 24px 28px;position:relative;overflow:hidden;flex-shrink:0;}
+.wl-hero-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Material Symbols Outlined';font-size:260px;color:rgba(255,255,255,.07);line-height:1;pointer-events:none;}
+.wl-logo{display:flex;align-items:center;gap:10px;margin-bottom:10px;position:relative;z-index:1;}
+.wl-icon{width:52px;height:52px;background:rgba(255,255,255,.22);border-radius:16px;display:flex;align-items:center;justify-content:center;}
+.wl-icon .ic{font-size:28px;color:#fff;}
+.wl-name{font-size:32px;font-weight:900;color:#fff;letter-spacing:-1px;}
+.wl-tag{font-size:14px;color:rgba(255,255,255,.8);font-weight:500;text-align:center;position:relative;z-index:1;}
+
+/* Login card embedded in welcome */
+.wl-login-card{margin:18px 20px 0;background:#fff;border-radius:18px;border:1px solid var(--bd-lt);box-shadow:0 6px 28px rgba(0,0,0,.08);padding:22px 20px 20px;display:flex;flex-direction:column;gap:14px;}
+.wl-login-title{font-size:16px;font-weight:800;color:var(--t1);margin-bottom:4px;}
+.wl-login-sub{font-size:12px;color:var(--t2);}
+.wl-footer{text-align:center;padding:8px 0 4px;}
+.wl-footer span{font-size:12px;color:var(--t2);}
+.wl-footer a{font-size:12px;color:var(--or);font-weight:700;cursor:pointer;margin-left:4px;}
+.wl-note{font-size:10px;color:var(--t3);text-align:center;line-height:1.6;padding:0 4px;}
+
+/* ═══════════════════════════
+   SIGN UP
+═══════════════════════════ */
+.av-wrap{display:flex;flex-direction:column;align-items:center;gap:9px;padding:4px 0 6px;}
+.av-ring{width:86px;height:86px;border-radius:50%;background:var(--or-lt);border:3px dashed rgba(244,140,37,.35);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;transition:border-color .15s,background .15s;}
+.av-ring:active{border-color:var(--or);}
+.av-ring .ic{font-size:30px;color:var(--or);}
+.av-init{font-size:26px;font-weight:900;color:#fff;display:none;}
+.av-hint{font-size:12px;color:var(--t2);font-weight:500;}
+
+/* ═══════════════════════════
+   DASHBOARD (v1 style)
+═══════════════════════════ */
+.dash-hd{background:var(--sfc);padding:50px 16px 12px;border-bottom:1px solid var(--bd-lt);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.dash-logo{display:flex;align-items:center;gap:8px;}
+.dash-logo .ic{color:var(--or);font-size:23px;}
+.dash-nm{font-size:21px;font-weight:900;color:var(--t1);letter-spacing:-.5px;}
+.uav{width:36px;height:36px;border-radius:50%;background:var(--or);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:900;cursor:pointer;overflow:hidden;flex-shrink:0;}
+
+/* Section label */
+.section-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--t2);padding:14px 16px 8px;}
+
+/* Trip cards (v1 style with v2 polish) */
+.trip-card{background:var(--sfc);border-radius:14px;border:1px solid var(--bd-lt);box-shadow:var(--sh-sm);overflow:hidden;margin:0 16px 11px;cursor:pointer;display:flex;transition:transform .12s,box-shadow .12s;}
+.trip-card:active{transform:scale(.98);box-shadow:var(--sh-md);}
+.trip-card.faded{opacity:.6;}
+.ta{width:4px;flex-shrink:0;}
+.ta-a{background:#2A5E35;}.ta-u{background:#1A5FA8;}.ta-p{background:#9CA3AF;}
+.tcb-inner{flex:1;padding:13px 13px 13px 11px;}
+.tcr1{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.tcnm{font-size:15px;font-weight:700;color:var(--t1);}
+.tcm{font-size:11px;color:var(--t2);display:flex;align-items:center;gap:5px;margin-bottom:5px;}
+.tcm .ic{font-size:12px;}
+
+/* ═══════════════════════════
+   HOME
+═══════════════════════════ */
+.hm-hd{background:var(--sfc);padding:50px 16px 13px;border-bottom:1px solid var(--bd-lt);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.hm-cntr{flex:1;text-align:center;}
+.hm-tnm{font-size:17px;font-weight:800;color:var(--t1);}
+.hm-tdt{font-size:11px;color:var(--or);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
+
+.cd-card{margin:14px 16px;background:var(--or);border-radius:14px;padding:17px 19px;position:relative;overflow:hidden;box-shadow:var(--sh-or);}
+.cd-bg{position:absolute;right:-14px;top:-14px;font-family:'Material Symbols Outlined';font-size:110px;color:rgba(255,255,255,.1);line-height:1;pointer-events:none;}
+.cd-lbl{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.88);font-size:12px;font-weight:500;margin-bottom:13px;}
+.cd-tiles{display:flex;gap:7px;}
+.cdt{flex:1;background:rgba(255,255,255,.2);border-radius:8px;padding:9px 4px;text-align:center;}
+.cdt.hi{border:1px solid rgba(255,255,255,.35);}
+.cdn{font-size:20px;font-weight:900;color:#fff;line-height:1;}
+.cdu{font-size:8px;font-weight:700;color:rgba(255,255,255,.72);text-transform:uppercase;letter-spacing:.8px;margin-top:3px;}
+
+.bi{width:38px;height:38px;background:var(--or-lt);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.bi .ic{color:var(--or);}
+.stitle{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--t1);padding:14px 16px 10px;}
+
+.qgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:0 16px;}
+.qi{background:var(--sfc);border:1px solid var(--bd-lt);border-radius:12px;display:flex;flex-direction:column;align-items:center;padding:13px 6px;gap:8px;cursor:pointer;box-shadow:var(--sh-sm);transition:transform .1s;}
+.qi:active{transform:scale(.93);}
+.qii{width:42px;height:42px;background:var(--or-lt);border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.qii .ic{color:var(--or);font-size:20px;}
+.qil{font-size:10px;font-weight:700;color:var(--t1);text-align:center;}
+
+.map-card{margin:14px 16px;background:var(--sfc);border-radius:14px;border:1px solid var(--bd-lt);overflow:hidden;box-shadow:var(--sh-sm);}
+.map-hd{padding:12px 14px;border-bottom:1px solid rgba(244,140,37,.06);display:flex;align-items:center;justify-content:space-between;}
+.map-prev{height:128px;background:linear-gradient(140deg,#B8D4E8,#7EA8C0,#5B8FA8);display:flex;align-items:center;justify-content:center;position:relative;}
+.map-r1{position:absolute;left:0;right:0;top:44%;height:2px;background:rgba(255,255,255,.5);}
+.map-r2{position:absolute;left:36%;width:2px;top:0;bottom:0;background:rgba(255,255,255,.3);}
+.map-chip{background:rgba(255,255,255,.92);backdrop-filter:blur(6px);border-radius:999px;padding:6px 12px;display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--t1);}
+.map-chip .ic{color:var(--or);font-size:13px;}
+
+/* ═══════════════════════════
+   EXPENSES
+═══════════════════════════ */
+.bgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 16px;background:var(--sfc);flex-shrink:0;}
+.bc{border-radius:12px;padding:13px;}
+.bc.owe{background:var(--red-bg);border:1px solid var(--red-bd);}
+.bc.owed{background:var(--or-lt);border:1px solid rgba(244,140,37,.2);}
+.blbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.owe .blbl{color:#B91C1C;}.owed .blbl{color:var(--or);}
+.bamt{font-size:22px;font-weight:900;color:var(--t1);margin-bottom:5px;}
+.btr{display:flex;align-items:center;gap:3px;font-size:10px;font-weight:600;}
+.btr .ic{font-size:13px;}
+.tdn{color:var(--red);}.tup{color:var(--green);}
+
+.ftabs{background:var(--sfc);border-bottom:1px solid #F3F4F6;display:flex;padding:0 16px;flex-shrink:0;overflow-x:auto;}
+.ftabs::-webkit-scrollbar{display:none;}
+.ftb{padding:12px 0;font-size:12px;font-weight:700;color:var(--t3);cursor:pointer;margin-right:20px;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;flex-shrink:0;}
+.ftb.on{color:var(--or);border-bottom-color:var(--or);}
+
+.dsep{padding:14px 16px 6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#6B7280;background:#F9FAFB;}
+.erow{background:#fff;border-bottom:1px solid #F9FAFB;padding:12px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;}
+.erow:active{background:var(--bg);}
+.eic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.eic .ic{font-size:21px;}
+.einf{flex:1;}
+.enm{font-size:14px;font-weight:600;color:var(--t1);}
+.esub{font-size:11px;color:#6B7280;margin-top:2px;}
+.esub b{color:#374151;font-weight:600;}
+.eamt{text-align:right;}
+.etot{font-size:14px;font-weight:700;color:var(--t1);}
+.esh{font-size:10px;font-weight:600;margin-top:2px;}
+.sh-owe{color:var(--blue);}.sh-owd{color:var(--green);}
+
+/* ═══════════════════════════
+   TASKS (v1 style)
+═══════════════════════════ */
+.tasks-header-inner{background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-bottom:1px solid #F5F2F0;padding:50px 16px 15px;flex-shrink:0;}
+.tasks-trip-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.tasks-trip-name{display:flex;align-items:center;gap:8px;}
+.tasks-avatars{display:flex;}
+.tasks-avatar{width:26px;height:26px;border-radius:50%;border:2px solid #fff;margin-left:-5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;}
+.tasks-avatar:first-child{margin-left:0;}
+.tasks-avatar-more{background:rgba(244,140,37,.2);color:var(--or);}
+.tasks-progress-row{display:flex;justify-content:space-between;margin-bottom:5px;}
+.task-section-header{display:flex;align-items:center;justify-content:space-between;padding:15px 16px 8px;}
+.task-section-title{display:flex;align-items:center;gap:7px;}
+.task-section-title .ic{color:var(--or);}
+.task-section-title span{font-size:16px;font-weight:700;color:var(--t1);}
+.task-count-badge{background:#F5F2F0;padding:2px 9px;border-radius:5px;font-size:10px;font-weight:600;color:var(--t2);}
+.task-group{background:#fff;border-radius:12px;margin:0 16px 4px;overflow:hidden;border:1px solid var(--bd-lt);}
+.task-row{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;cursor:pointer;}
+.task-row:active{background:var(--bg);}
+.task-row-left{display:flex;align-items:center;gap:11px;flex:1;}
+.task-checkbox{width:21px;height:21px;border:2px solid var(--bd);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+.task-checkbox.checked{background:var(--or);border-color:var(--or);}
+.task-checkbox.checked .ic{color:#fff;font-size:13px;}
+.task-text{font-size:14px;font-weight:500;color:var(--t1);}
+.task-text.done{text-decoration:line-through;color:var(--t2);}
+.task-assigned{font-size:10px;color:var(--t2);}
+.task-assigned.done{text-decoration:line-through;}
+.task-assignee-avatar{width:23px;height:23px;border-radius:50%;background:var(--or-lt);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:var(--or);}
+.task-divider{height:1px;background:var(--bg);margin:0 12px;}
+
+/* ═══════════════════════════
+   PARTICIPANTS
+═══════════════════════════ */
+.jcc{margin:13px 16px;background:var(--or);border-radius:14px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--sh-or);}
+.jclbl{font-size:11px;color:rgba(255,255,255,.78);font-weight:500;margin-bottom:3px;}
+.jcval{font-size:26px;font-weight:900;color:#fff;letter-spacing:3px;}
+.cpybtn{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:6px 12px;display:flex;align-items:center;gap:5px;color:#fff;font-size:12px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;}
+.cpybtn .ic{font-size:14px;}
+.cpybtn:active{background:rgba(255,255,255,.35);}
+.ml-hd{padding:4px 16px 7px;display:flex;align-items:center;justify-content:space-between;}
+.ml-hd span{font-size:14px;font-weight:700;color:var(--t1);}
+.inv-chip{display:flex;align-items:center;gap:4px;background:var(--or-lt);padding:4px 11px;border-radius:999px;cursor:pointer;}
+.inv-chip .ic{color:var(--or);font-size:14px;}
+.inv-chip span{font-size:11px;font-weight:700;color:var(--or);}
+.msfc{background:#fff;border-top:1px solid var(--bg);border-bottom:1px solid var(--bg);margin-top:8px;}
+.mrow{display:flex;align-items:center;padding:13px 16px;cursor:pointer;}
+.mrow:active{background:var(--bg);}
+.mav{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;flex-shrink:0;margin-right:11px;position:relative;}
+.adot{position:absolute;bottom:-1px;right:-1px;width:15px;height:15px;background:var(--or);border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.adot .ic{font-size:8px;color:#fff;}
+.mnm{font-size:14px;font-weight:600;color:var(--t1);}
+.mrl{font-size:11px;color:var(--t2);margin-top:2px;}
+.atag{background:var(--or-lt);color:var(--or);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-left:5px;}
+.mdiv{height:1px;background:var(--bg);margin:0 16px;}
+
+/* ═══════════════════════════
+   PROFILE
+═══════════════════════════ */
+.ph-hero{background:linear-gradient(150deg,#F48C25,#C45E1A);padding:50px 20px 26px;display:flex;flex-direction:column;align-items:center;flex-shrink:0;position:relative;overflow:hidden;}
+.ph-hero-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Material Symbols Outlined';font-size:240px;color:rgba(255,255,255,.06);pointer-events:none;}
+.ph-av{width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.24);border:3px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;color:#fff;margin-bottom:12px;position:relative;z-index:1;overflow:hidden;cursor:pointer;}
+.ph-av-cam{position:absolute;bottom:0;left:0;right:0;height:28px;background:rgba(0,0,0,.38);display:flex;align-items:center;justify-content:center;}
+.ph-nm{font-size:22px;font-weight:900;color:#fff;letter-spacing:-.4px;z-index:1;}
+.ph-em{font-size:12px;color:rgba(255,255,255,.76);margin-top:3px;z-index:1;}
+.ph-stats{display:flex;gap:28px;margin-top:18px;z-index:1;}
+.pst{text-align:center;}
+.pstv{font-size:22px;font-weight:900;color:#fff;}
+.pstl{font-size:9px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.8px;font-weight:700;}
+.psec{padding:16px 16px 0;}
+.psec-t{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.6px;color:var(--t2);margin-bottom:10px;}
+.ptile{background:#fff;border-radius:12px;border:1px solid var(--bd-lt);overflow:hidden;margin-bottom:12px;}
+.prow{display:flex;align-items:center;padding:13px 14px;cursor:pointer;transition:background .12s;}
+.prow:active{background:var(--bg);}
+.pricon{width:36px;height:36px;border-radius:10px;background:var(--or-lt);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:12px;}
+.pricon .ic{color:var(--or);font-size:20px;}
+.pricon.r{background:#FEF2F2;}.pricon.r .ic{color:var(--red);}
+.pricon.g{background:#E8F5EA;}.pricon.g .ic{color:#2A5E35;}
+.pricon.y{background:#FEF9C3;}.pricon.y .ic{color:#CA8A04;}
+.prt{flex:1;}
+.prlbl{font-size:14px;font-weight:600;color:var(--t1);}
+.prlbl.red{color:var(--red);}
+.prsub{font-size:11px;color:var(--t2);margin-top:1px;}
+.prval{font-size:12px;color:var(--t2);font-weight:500;margin-right:4px;}
+.prchev{color:var(--t3);font-size:18px;}
+.prdiv{height:1px;background:var(--bg);margin:0 14px;}
+.tog{width:42px;height:23px;background:var(--or);border-radius:999px;position:relative;cursor:pointer;flex-shrink:0;}
+.tog-knob{width:19px;height:19px;background:#fff;border-radius:50%;position:absolute;right:2px;top:2px;box-shadow:0 1px 3px rgba(0,0,0,.18);}
+
+/* ═══════════════════════════
+   JOIN TRIP
+═══════════════════════════ */
+.jh{background:var(--or);border-radius:16px;padding:22px;text-align:center;position:relative;overflow:hidden;margin-bottom:2px;}
+.jh-bg{position:absolute;right:-14px;top:-14px;font-family:'Material Symbols Outlined';font-size:110px;color:rgba(255,255,255,.12);line-height:1;pointer-events:none;}
+.jh-ic{width:58px;height:58px;background:rgba(255,255,255,.2);border-radius:15px;display:flex;align-items:center;justify-content:center;margin:0 auto 11px;}
+.jh-t{font-size:20px;font-weight:800;color:#fff;margin-bottom:5px;}
+.jh-s{font-size:13px;color:rgba(255,255,255,.78);line-height:1.5;}
+
+/* ═══════════════════════════
+   CONTROLS
+═══════════════════════════ */
+.ctrl{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:18px;max-width:530px;}
+.cb{background:rgba(255,255,255,.07);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:6px 11px;font-size:10px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;letter-spacing:.3px;transition:all .15s;}
+.cb:hover,.cb.on{background:rgba(244,140,37,.2);color:#F48C25;border-color:rgba(244,140,37,.4);}
+.chint{color:rgba(255,255,255,.22);font-size:10px;margin-top:8px;text-align:center;letter-spacing:.3px;}
+
+/* ══════════════════════════════════════
+   BOTTOM SHEETS
+══════════════════════════════════════ */
+.sheet-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.48);z-index:200;opacity:0;pointer-events:none;transition:opacity .28s;}
+.sheet-backdrop.open{opacity:1;pointer-events:all;}
+.sheet{position:absolute;bottom:0;left:0;right:0;background:#fff;border-radius:22px 22px 0 0;z-index:201;transform:translateY(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);max-height:90%;display:flex;flex-direction:column;overflow:hidden;}
+.sheet.open{transform:translateY(0);}
+.sheet-handle{width:36px;height:4px;background:#E0DAD4;border-radius:2px;margin:12px auto 0;flex-shrink:0;}
+.sheet-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 12px;border-bottom:1px solid var(--bd-lt);flex-shrink:0;}
+.sheet-title{font-size:17px;font-weight:800;color:var(--t1);}
+.sheet-close{width:30px;height:30px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;}
+.sheet-close .ic{font-size:18px;color:var(--t2);}
+.sheet-body{overflow-y:auto;padding:18px 18px 32px;display:flex;flex-direction:column;gap:15px;-webkit-overflow-scrolling:touch;}
+.sheet-body::-webkit-scrollbar{display:none;}
+.slbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--t2);margin-bottom:7px;}
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.cat-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;border-radius:11px;border:2px solid transparent;cursor:pointer;transition:all .15s;background:var(--bg);}
+.cat-item.sel{border-color:var(--or);background:var(--or-lt);}
+.cat-item:active{transform:scale(.94);}
+.cat-ic{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.cat-ic .ic{font-size:20px;}
+.cat-lbl{font-size:10px;font-weight:700;color:var(--t1);text-align:center;}
+.cat-item.sel .cat-lbl{color:var(--or);}
+.split-row{display:flex;gap:8px;}
+.split-opt{flex:1;height:42px;border:1.5px solid var(--bd);border-radius:9px;display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:700;color:var(--t2);cursor:pointer;transition:all .15s;background:#fff;user-select:none;}
+.split-opt.sel{border-color:var(--or);background:var(--or-lt);color:var(--or);}
+.split-opt .ic{font-size:16px;}
+.assign-wrap{display:flex;flex-wrap:wrap;gap:8px;}
+.assign-chip{display:flex;align-items:center;gap:6px;padding:6px 11px 6px 6px;border-radius:999px;border:1.5px solid var(--bd);background:#fff;cursor:pointer;transition:all .15s;user-select:none;}
+.assign-chip.sel{border-color:var(--or);background:var(--or-lt);}
+.a-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;}
+.a-nm{font-size:12px;font-weight:600;color:var(--t1);}
+.assign-chip.sel .a-nm{color:var(--or);}
+.prio-row{display:flex;gap:8px;}
+.prio-btn{flex:1;height:40px;border-radius:9px;border:1.5px solid var(--bd);display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;background:#fff;color:var(--t2);user-select:none;}
+.prio-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.prio-low .prio-dot{background:#16A34A;}.prio-mid .prio-dot{background:#D97706;}.prio-high .prio-dot{background:#DC2626;}
+.prio-btn.prio-low.sel{border-color:#16A34A;background:#DCFCE7;color:#16A34A;}
+.prio-btn.prio-mid.sel{border-color:#D97706;background:#FEF3C7;color:#D97706;}
+.prio-btn.prio-high.sel{border-color:#DC2626;background:#FEF2F2;color:#DC2626;}
+</style>
+</head>
+<body>
+
+<div class="device-label">Tripoo · v3 Prototype · 11 Screens</div>
+
+<div class="phone" id="phone">
+
+<!-- ══════════════════ SPLASH ══════════════════ -->
+<div class="screen active" id="s-splash">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;background:linear-gradient(155deg,#F48C25,#C45E1A);">
+    <div class="spl-box"><span class="ic" style="font-size:40px;color:#fff">rocket_launch</span></div>
+    <div class="spl-t">Tripoo</div>
+    <div class="spl-s">Plan together. Travel better.</div>
+    <div class="spl-spin"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ WELCOME (inline login) ══════════════════ -->
+<div class="screen" id="s-welcome">
+  <!-- Hero banner -->
+  <div class="wl-hero">
+    <div class="wl-hero-bg">travel_explore</div>
+    <div class="wl-logo">
+      <div class="wl-icon"><span class="ic" style="font-size:28px;color:#fff">rocket_launch</span></div>
+      <div class="wl-name">Tripoo</div>
+    </div>
+    <div class="wl-tag">Plan trips together. Split expenses. Never lose track.</div>
+  </div>
+
+  <div class="scroll" style="padding-bottom:24px;">
+    <!-- Inline login card -->
+    <div class="wl-login-card">
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <div class="wl-login-title">Welcome back 👋</div>
+        <div class="wl-login-sub">Sign in to continue your adventures</div>
+      </div>
+
+      <div class="ig">
+        <label class="lbl">Email Address</label>
+        <div class="iw"><span class="ic">mail</span><input class="inp" type="email" placeholder="Enter your email"></div>
+      </div>
+      <div class="ig">
+        <label class="lbl">Password</label>
+        <div class="iw"><span class="ic">lock</span><input class="inp" type="password" placeholder="Enter your password"></div>
+      </div>
+      <div style="text-align:right;margin-top:-6px;">
+        <span style="font-size:12px;color:var(--or);font-weight:700;cursor:pointer;">Forgot password?</span>
+      </div>
+
+      <button class="btn btn-p" onclick="nav('s-dashboard')">
+        <span class="ic" style="color:#fff">login</span>Log In
+      </button>
+
+      <div class="wl-footer">
+        <span>Don't have an account?</span>
+        <a onclick="nav('s-signup')">Sign Up</a>
+      </div>
+      <div class="wl-note">By continuing you agree to our Terms of Service &amp; Privacy Policy.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ SIGN UP ══════════════════ -->
+<div class="screen" id="s-signup">
+  <div class="topbar">
+    <div class="ibtn back" onclick="back()"><span class="ic">arrow_back</span></div>
+    <div><div class="tp-title">Create Account</div><div class="tp-sub">Set up your Tripoo profile</div></div>
+  </div>
+  <div class="scroll" style="padding:20px 20px 36px;display:flex;flex-direction:column;gap:15px;">
+    <div class="av-wrap">
+      <div class="av-ring" id="av-ring" onclick="showToast('Photo picker opens here')">
+        <span class="ic" id="av-ic" style="font-size:30px;color:var(--or)">add_a_photo</span>
+        <div class="av-init" id="av-init"></div>
+      </div>
+      <div class="av-hint">Add your profile photo</div>
+    </div>
+    <div class="ig">
+      <label class="lbl">Full Name</label>
+      <div class="iw"><span class="ic">person</span>
+        <input class="inp" type="text" placeholder="e.g. Faizal Noor" id="su-name" oninput="onNameInput(this.value)">
+      </div>
+    </div>
+    <div class="ig">
+      <label class="lbl">Email Address</label>
+      <div class="iw"><span class="ic">mail</span><input class="inp" type="email" placeholder="faizal@email.com"></div>
+    </div>
+    <div class="ig">
+      <label class="lbl">Password</label>
+      <div class="iw"><span class="ic">lock</span><input class="inp" type="password" placeholder="At least 8 characters"></div>
+    </div>
+    <div class="ig">
+      <label class="lbl">Confirm Password</label>
+      <div class="iw"><span class="ic">lock</span><input class="inp" type="password" placeholder="Repeat password"></div>
+    </div>
+    <div style="background:var(--or-lt);border:1px solid rgba(244,140,37,.2);border-radius:12px;padding:13px 14px;">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;">
+        <span class="ic" style="color:var(--or);font-size:18px">info</span>
+        <span style="font-size:13px;font-weight:700;color:var(--t1)">Why we need this</span>
+      </div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.55">Your name and photo are visible to trip members so everyone knows who paid for what and who's assigned each task.</div>
+    </div>
+    <button class="btn btn-p" onclick="doSignup()">
+      <span class="ic" style="color:#fff">check_circle</span>Create Account
+    </button>
+    <div style="text-align:center;">
+      <span style="font-size:13px;color:var(--t2)">Already have an account?</span>
+      <span style="font-size:13px;color:var(--or);font-weight:700;cursor:pointer;margin-left:4px" onclick="nav('s-welcome')">Log In</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ DASHBOARD (v1 style) ══════════════════ -->
+<div class="screen" id="s-dashboard">
+  <div class="dash-hd">
+    <div class="dash-logo">
+      <span class="ic" style="color:var(--or)">rocket_launch</span>
+      <span class="dash-nm">Tripoo</span>
+    </div>
+    <div class="uav" id="dash-av" onclick="nav('s-profile')">FN</div>
+  </div>
+
+  <div class="scroll" style="background:var(--bg);">
+    <!-- Greeting -->
+    <div style="padding:14px 16px 4px;">
+      <div style="font-size:20px;font-weight:800;color:var(--t1);letter-spacing:-.4px;" id="dash-greet">Hey Faizal 👋</div>
+      <div style="font-size:13px;color:var(--t2);margin-top:3px;">You have 2 active trips</div>
+    </div>
+
+    <!-- Filter chips -->
+    <div style="padding:10px 16px 4px;display:flex;gap:7px;overflow-x:auto;" class="scroll" style="flex:none;">
+      <div class="chip con">All Trips</div>
+      <div class="chip cof">Active</div>
+      <div class="chip cof">Upcoming</div>
+      <div class="chip cof">Past</div>
+    </div>
+
+    <div class="section-label">Your Trips</div>
+
+    <!-- Active trip card -->
+    <div class="trip-card" onclick="nav('s-home')">
+      <div class="ta ta-a"></div>
+      <div class="tcb-inner">
+        <div class="tcr1">
+          <div class="tcnm">Summer in Bali 🌴</div>
+          <div class="s-active">Active</div>
+        </div>
+        <div class="tcm"><span class="ic" style="font-size:12px;color:var(--t3)">location_on</span>Bali, Indonesia</div>
+        <div class="tcm" style="margin-bottom:8px;">
+          <span class="ic" style="font-size:12px;color:var(--t3)">calendar_today</span>Jul 15 – Jul 30, 2025
+          &nbsp;·&nbsp;
+          <span class="ic" style="font-size:12px;color:var(--t3)">group</span>8 members
+        </div>
+        <div class="pt"><div class="pf" style="width:49%;"></div></div>
+        <div style="display:flex;justify-content:space-between;margin-top:5px;">
+          <span style="font-size:11px;color:var(--t2);">₹2,450 / ₹5,000 budget</span>
+          <span style="font-size:11px;color:var(--or);font-weight:700;">51% left</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming trip card -->
+    <div class="trip-card" onclick="nav('s-home')">
+      <div class="ta ta-u"></div>
+      <div class="tcb-inner">
+        <div class="tcr1">
+          <div class="tcnm">Goa Weekend 🏖️</div>
+          <div class="s-upcoming">Upcoming</div>
+        </div>
+        <div class="tcm"><span class="ic" style="font-size:12px;color:var(--t3)">location_on</span>Goa, India</div>
+        <div class="tcm" style="margin-bottom:8px;">
+          <span class="ic" style="font-size:12px;color:var(--t3)">calendar_today</span>Aug 10 – Aug 13, 2025
+          &nbsp;·&nbsp;
+          <span class="ic" style="font-size:12px;color:var(--t3)">group</span>5 members
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="ic" style="color:#1A5FA8;font-size:14px;">schedule</span>
+          <span style="font-size:12px;color:#1A5FA8;font-weight:600;">Starts in 26 days</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Past trip card -->
+    <div class="trip-card faded" onclick="nav('s-home')">
+      <div class="ta ta-p"></div>
+      <div class="tcb-inner">
+        <div class="tcr1">
+          <div class="tcnm">Coorg Trek 🏔️</div>
+          <div class="s-past">Past</div>
+        </div>
+        <div class="tcm"><span class="ic" style="font-size:12px;color:var(--t3)">location_on</span>Coorg, Karnataka</div>
+        <div class="tcm">
+          <span class="ic" style="font-size:12px;color:var(--t3)">calendar_today</span>May 1 – May 5, 2025
+          &nbsp;·&nbsp;
+          <span class="ic" style="font-size:12px;color:var(--t3)">group</span>6 members
+        </div>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div style="padding:8px 16px 32px;display:flex;gap:10px;">
+      <button class="btn btn-o btn-sm" style="flex:1;border-color:var(--or);color:var(--or);" onclick="nav('s-join')">
+        <span class="ic" style="color:var(--or);font-size:18px">add_link</span>Join Trip
+      </button>
+      <button class="btn btn-p btn-sm" style="flex:1;" onclick="nav('s-create')">
+        <span class="ic" style="color:#fff;font-size:18px">add</span>New Trip
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ CREATE TRIP ══════════════════ -->
+<div class="screen" id="s-create">
+  <div class="topbar">
+    <div class="ibtn back" onclick="back()"><span class="ic">arrow_back</span></div>
+    <div><div class="tp-title">Create Trip</div><div class="tp-sub">Fill in your trip details</div></div>
+  </div>
+  <div style="background:var(--or-lt);border-bottom:1px solid rgba(244,140,37,.15);padding:10px 16px;display:flex;align-items:center;gap:9px;flex-shrink:0;">
+    <div style="width:28px;height:28px;background:var(--or);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;" id="create-av">
+      <span style="color:#fff;font-size:11px;font-weight:900;" id="create-av-txt">FN</span>
+    </div>
+    <span style="font-size:12px;color:var(--t1);font-weight:600;">Creating as <span id="create-user-name">Faizal Noor</span></span>
+    <span style="margin-left:auto;font-size:11px;color:var(--t2);cursor:pointer;" onclick="nav('s-profile')">Change ›</span>
+  </div>
+  <div class="scroll" style="padding:18px 16px 36px;display:flex;flex-direction:column;gap:14px;">
+    <div class="ig">
+      <label class="lbl">Trip Name</label>
+      <div class="iw"><span class="ic">luggage</span><input class="inp" type="text" placeholder="e.g. Summer in Bali"></div>
+    </div>
+    <div class="ig">
+      <label class="lbl">Destination</label>
+      <div class="iw"><span class="ic">location_on</span><input class="inp" type="text" placeholder="e.g. Bali, Indonesia"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="ig"><label class="lbl">Start Date</label><input class="inp" type="date"></div>
+      <div class="ig"><label class="lbl">End Date</label><input class="inp" type="date"></div>
+    </div>
+    <div class="ig">
+      <label class="lbl">Budget (₹)</label>
+      <div class="iw"><span class="ic">account_balance_wallet</span><input class="inp" type="number" placeholder="e.g. 50000"></div>
+    </div>
+    <div class="ig">
+      <label class="lbl">Description (optional)</label>
+      <textarea class="inp" rows="3" placeholder="Tell your group about this trip..."></textarea>
+    </div>
+    <!-- Invite Members — polished v1 style -->
+    <div style="background:var(--or-lt);border:1.5px solid rgba(244,140,37,0.25);border-radius:14px;padding:16px 16px 14px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <div style="width:40px;height:40px;background:var(--or);border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 10px rgba(244,140,37,0.35);">
+          <span class="ic" style="color:#fff;font-size:22px;">group_add</span>
+        </div>
+        <div>
+          <div style="font-size:15px;font-weight:800;color:var(--t1);letter-spacing:-0.2px;">Invite Members</div>
+          <div style="font-size:11px;color:var(--t2);margin-top:1px;">Share the code with your group</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--t2);margin-bottom:12px;line-height:1.6;">A unique join code will be generated after creating the trip. Share it with your group to let them join instantly!</div>
+      <div style="display:flex;align-items:center;gap:10px;background:white;border-radius:10px;padding:11px 14px;border:1px solid rgba(244,140,37,0.2);">
+        <span class="ic" style="color:rgba(244,140,37,0.5);font-size:20px;">lock</span>
+        <div>
+          <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:2px;">Join Code</div>
+          <div style="font-size:14px;font-weight:700;color:var(--t3);letter-spacing:2px;font-style:italic;">TRP-???</div>
+        </div>
+        <div style="margin-left:auto;font-size:10px;font-weight:700;color:var(--or);background:var(--or-lt);padding:4px 10px;border-radius:6px;">Auto-generated</div>
+      </div>
+    </div>
+
+    <!-- Create Trip button — prominent v1 style -->
+    <button class="btn btn-p" style="height:52px;font-size:16px;font-weight:800;border-radius:13px;letter-spacing:-0.2px;flex-shrink:0;" onclick="nav('s-home')">
+      <span class="ic" style="color:#fff;font-size:22px;">rocket_launch</span>
+      Create Trip
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════ JOIN TRIP ══════════════════ -->
+<div class="screen" id="s-join">
+  <div class="topbar">
+    <div class="ibtn back" onclick="back()"><span class="ic">arrow_back</span></div>
+    <div><div class="tp-title">Join a Trip</div><div class="tp-sub">Enter the code from your group</div></div>
+  </div>
+  <div style="background:var(--or-lt);border-bottom:1px solid rgba(244,140,37,.15);padding:10px 16px;display:flex;align-items:center;gap:9px;flex-shrink:0;">
+    <div style="width:28px;height:28px;background:var(--or);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <span style="color:#fff;font-size:11px;font-weight:900;" id="join-av-txt">FN</span>
+    </div>
+    <span style="font-size:12px;color:var(--t1);font-weight:600;">Joining as <span id="join-user-name">Faizal Noor</span></span>
+    <span style="margin-left:auto;font-size:11px;color:var(--t2);cursor:pointer;" onclick="nav('s-profile')">Change ›</span>
+  </div>
+  <div class="scroll" style="padding:20px;display:flex;flex-direction:column;gap:18px;">
+    <div class="jh">
+      <div class="jh-bg">group</div>
+      <div class="jh-ic"><span class="ic" style="font-size:30px;color:#fff">add_link</span></div>
+      <div class="jh-t">Got an invite code?</div>
+      <div class="jh-s">Enter the code shared by your trip organiser to join instantly.</div>
+    </div>
+    <div class="ig">
+      <label class="lbl">Trip Join Code</label>
+      <input class="inp" type="text" placeholder="TRP-123" style="text-align:center;font-size:22px;font-weight:900;letter-spacing:4px;text-transform:uppercase;">
+    </div>
+    <button class="btn btn-p" onclick="nav('s-home')">
+      <span class="ic" style="color:#fff">check_circle</span>Join Trip
+    </button>
+    <div style="text-align:center;">
+      <span style="font-size:13px;color:var(--t2);">Don't have a code?</span>
+      <span style="font-size:13px;color:var(--or);font-weight:700;cursor:pointer;margin-left:4px;" onclick="nav('s-create')">Create a new trip</span>
+    </div>
+    <div>
+      <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.4px;color:var(--t2);margin-bottom:10px;">Pending Invites</div>
+      <div class="card" style="display:flex;align-items:center;gap:11px;padding:12px 13px;">
+        <div style="width:38px;height:38px;background:#DBEAFE;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span class="ic" style="color:var(--blue)">beach_access</span></div>
+        <div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--t1)">Goa Weekend</div><div style="font-size:11px;color:var(--t2)">Mani invited you</div></div>
+        <div style="background:var(--or-lt);color:var(--or);font-size:11px;font-weight:700;padding:5px 11px;border-radius:7px;cursor:pointer;" onclick="nav('s-home')">Join</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ HOME ══════════════════ -->
+<div class="screen" id="s-home">
+  <div class="hm-hd">
+    <div class="ibtn" onclick="nav('s-dashboard')"><span class="ic" style="color:var(--or)">arrow_back</span></div>
+    <div class="hm-cntr"><div class="hm-tnm">Summer in Bali</div><div class="hm-tdt">July 15 – July 30, 2025</div></div>
+    <div class="ibtn"><span class="ic">more_horiz</span></div>
+  </div>
+  <div class="scroll">
+    <div class="cd-card">
+      <div class="cd-bg">beach_access</div>
+      <div class="cd-lbl"><span class="ic" style="font-size:13px;color:rgba(255,255,255,.88)">schedule</span>Countdown to Adventure</div>
+      <div class="cd-tiles">
+        <div class="cdt"><div class="cdn">12</div><div class="cdu">Days</div></div>
+        <div class="cdt"><div class="cdn">04</div><div class="cdu">Hours</div></div>
+        <div class="cdt"><div class="cdn">22</div><div class="cdu">Mins</div></div>
+        <div class="cdt hi"><div class="cdn">15</div><div class="cdu">Secs</div></div>
+      </div>
+    </div>
+    <div style="margin:6px 16px;">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:11px;">
+            <div class="bi"><span class="ic">account_balance_wallet</span></div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:var(--t1);line-height:1.3">Group Budget<br>Status</div>
+              <div style="font-size:10px;color:var(--t2);margin-top:2px">Shared across 8 people</div>
+            </div>
+          </div>
+          <div style="font-size:13px;font-weight:800;color:var(--or);text-align:right;line-height:1.4">₹2,450 /<br>₹5,000</div>
+        </div>
+        <div class="pt" style="margin-bottom:7px;"><div class="pf" style="width:49%;"></div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:11px;color:var(--t2);">51% remaining</span>
+          <div style="display:flex;align-items:center;gap:2px;cursor:pointer;" onclick="nav('s-expenses')">
+            <span style="font-size:11px;font-weight:700;color:var(--or);">Details</span>
+            <span class="ic" style="color:var(--or);font-size:15px;">chevron_right</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="stitle">Quick Access</div>
+    <div class="qgrid">
+      <div class="qi" onclick="nav('s-expenses')"><div class="qii"><span class="ic">payments</span></div><div class="qil">Expenses</div></div>
+      <div class="qi" onclick="nav('s-tasks')"><div class="qii"><span class="ic">checklist</span></div><div class="qil">To-Do List</div></div>
+      <div class="qi" onclick="nav('s-participants')"><div class="qii"><span class="ic">group</span></div><div class="qil">Participants</div></div>
+    </div>
+    <div class="map-card">
+      <div class="map-hd">
+        <div style="font-size:13px;font-weight:700;color:var(--t1);">Destination: Uluwatu</div>
+        <div style="font-size:11px;font-weight:600;color:var(--or);">Day 1 Location</div>
+      </div>
+      <div class="map-prev">
+        <div class="map-r1"></div><div class="map-r2"></div>
+        <div class="map-chip"><span class="ic">location_on</span>View in Maps</div>
+      </div>
+    </div>
+    <div style="height:12px;"></div>
+  </div>
+  <div class="bnav">
+    <div class="ni on" onclick="nav('s-home')"><span class="ic">home</span><span class="nlbl">Home</span></div>
+    <div class="ni" onclick="nav('s-expenses')"><span class="ic">receipt_long</span><span class="nlbl">Expenses</span></div>
+    <div class="ni" onclick="nav('s-tasks')"><span class="ic">format_list_bulleted</span><span class="nlbl">Tasks</span></div>
+    <div class="ni" onclick="nav('s-participants')"><span class="ic">group</span><span class="nlbl">Groups</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════ EXPENSES ══════════════════ -->
+<div class="screen" id="s-expenses">
+  <div class="topbar">
+    <div class="ibtn back" onclick="back()"><span class="ic">arrow_back</span></div>
+    <div class="tp-center"><div class="tp-title">Bali Trip</div><div class="tp-sub">8 participants · Jul 15–30</div></div>
+    <div style="display:flex;"><div class="ibtn"><span class="ic">search</span></div><div class="ibtn"><span class="ic">more_vert</span></div></div>
+  </div>
+  <div class="bgrid">
+    <div class="bc owe"><div class="blbl">You Owe</div><div class="bamt">₹1,200</div><div class="btr tdn"><span class="ic">trending_down</span>-5% last week</div></div>
+    <div class="bc owed"><div class="blbl">You Are Owed</div><div class="bamt">₹250</div><div class="btr tup"><span class="ic">trending_up</span>+12% last week</div></div>
+  </div>
+  <div class="ftabs">
+    <div class="ftb on">All Expenses</div>
+    <div class="ftb">My Spending</div>
+    <div class="ftb">Settled</div>
+    <div class="ftb">Stats</div>
+  </div>
+  <div class="scroll" style="background:#F9FAFB;padding-bottom:90px;">
+    <div class="dsep">Recent Activity</div>
+    <div class="erow"><div class="eic" style="background:#DBEAFE"><span class="ic" style="color:#2563EB">home</span></div><div class="einf"><div class="enm">Villa Booking</div><div class="esub">Paid by <b>Alex</b> · Split with Everyone</div></div><div class="eamt"><div class="etot">₹500.00</div><div class="esh sh-owe">Your share: ₹62.50</div></div></div>
+    <div class="erow"><div class="eic" style="background:#FFEDD5"><span class="ic" style="color:#EA580C">restaurant</span></div><div class="einf"><div class="enm">Dinner at La Favela</div><div class="esub">Paid by <b>Sam</b> · Split with You, Alex</div></div><div class="eamt"><div class="etot">₹80.00</div><div class="esh" style="color:#EA580C">Your share: ₹26.66</div></div></div>
+    <div class="dsep">July 14</div>
+    <div class="erow"><div class="eic" style="background:#F3E8FF"><span class="ic" style="color:#9333EA">directions_car</span></div><div class="einf"><div class="enm">Airport Transfer</div><div class="esub">Paid by <b>You</b> · Split with 4 others</div></div><div class="eamt"><div class="etot">₹45.00</div><div class="esh sh-owd">You're owed: ₹36</div></div></div>
+    <div class="erow"><div class="eic" style="background:#DCFCE7"><span class="ic" style="color:#16A34A">local_bar</span></div><div class="einf"><div class="enm">Beach Club Drinks</div><div class="esub">Paid by <b>Alex</b> · Split with Everyone</div></div><div class="eamt"><div class="etot">₹125</div><div class="esh sh-owe">Your share: ₹15.68</div></div></div>
+    <div class="erow"><div class="eic" style="background:#FEF9C3"><span class="ic" style="color:#CA8A04">surfing</span></div><div class="einf"><div class="enm">Surf Lessons</div><div class="esub">Paid by <b>Jordan</b> · Split with You</div></div><div class="eamt"><div class="etot">₹60.00</div><div class="esh sh-owe">Your share: ₹30.00</div></div></div>
+  </div>
+  <div class="fab" onclick="openSheet('expense-sheet')"><span class="ic">add</span></div>
+  <div class="bnav">
+    <div class="ni" onclick="nav('s-home')"><span class="ic">home</span><span class="nlbl">Home</span></div>
+    <div class="ni on"><span class="ic">receipt_long</span><span class="nlbl">Expenses</span></div>
+    <div class="ni" onclick="nav('s-tasks')"><span class="ic">format_list_bulleted</span><span class="nlbl">Tasks</span></div>
+    <div class="ni" onclick="nav('s-participants')"><span class="ic">group</span><span class="nlbl">Groups</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════ TASKS (v1 style) ══════════════════ -->
+<div class="screen" id="s-tasks">
+  <div class="tasks-header-inner">
+    <div class="tasks-trip-row">
+      <div class="tasks-trip-name">
+        <span class="ic" style="font-size:23px;color:var(--or)">flight_takeoff</span>
+        <div style="font-size:18px;font-weight:700;color:var(--t1);letter-spacing:-0.3px;">Summer in Bali</div>
+      </div>
+      <div class="tasks-avatars">
+        <div class="tasks-avatar" style="background:#DBEAFE;color:#2563EB;">F</div>
+        <div class="tasks-avatar" style="background:#DCFCE7;color:#16A34A;">M</div>
+        <div class="tasks-avatar tasks-avatar-more">+2</div>
+      </div>
+    </div>
+    <div>
+      <div class="tasks-progress-row">
+        <span style="font-size:13px;color:var(--t2);font-weight:500;">Trip Completion</span>
+        <span style="font-size:13px;color:var(--or);font-weight:700;">35%</span>
+      </div>
+      <div class="pt" style="margin-bottom:6px;"><div class="pf" style="width:35%;"></div></div>
+      <div style="font-size:11px;color:var(--t2);">12 of 34 tasks completed · Last synced 2m ago</div>
+    </div>
+  </div>
+
+  <div class="scroll" style="background:var(--bg);padding-bottom:90px;">
+    <!-- General -->
+    <div class="task-section-header">
+      <div class="task-section-title"><span class="ic">list</span><span>General</span></div>
+      <div class="task-count-badge">3 Tasks</div>
+    </div>
+    <div class="task-group">
+      <div class="task-row">
+        <div class="task-row-left">
+          <div class="task-checkbox checked"><span class="ic" style="color:white;font-size:13px;">check</span></div>
+          <div><div class="task-text done">Check Passports</div><div class="task-assigned done">Assigned to Sarah</div></div>
+        </div>
+        <div class="task-assignee-avatar">S</div>
+      </div>
+      <div class="task-divider"></div>
+      <div class="task-row">
+        <div class="task-row-left">
+          <div class="task-checkbox"></div>
+          <div><div class="task-text">Notify Bank</div><div class="task-assigned">Assigned to Everyone</div></div>
+        </div>
+        <span class="ic" style="color:var(--t3);font-size:15px;">group</span>
+      </div>
+      <div class="task-divider"></div>
+      <div class="task-row">
+        <div class="task-row-left">
+          <div class="task-checkbox"></div>
+          <div><div class="task-text">Buy Travel Insurance</div><div class="task-assigned">Assigned to Mike</div></div>
+        </div>
+        <div class="task-assignee-avatar">M</div>
+      </div>
+    </div>
+
+    <!-- Bookings -->
+    <div class="task-section-header">
+      <div class="task-section-title"><span class="ic">confirmation_number</span><span>Bookings</span></div>
+      <div class="task-count-badge">3 Tasks</div>
+    </div>
+    <div class="task-group">
+      <div class="task-row">
+        <div class="task-row-left">
+          <div class="task-checkbox checked"><span class="ic" style="color:white;font-size:13px;">check</span></div>
+          <div><div class="task-text done">Book Flights</div><div class="task-assigned done">Assigned to Mike</div></div>
+        </div>
+        <div class="task-assignee-avatar">M</div>
+      </div>
+      <div class="task-divider"></div>
+      <div class="task-row">
+        <div class="task-row-left">
+          <div class="task-checkbox"></div>
+          <div><div class="task-text">Reserve Airbnb</div><div class="task-assigned">Assigned to Sarah</div></div>
+        </div>
+        <div class="task-assignee-avatar">S</div>
+      </div>
+      <div class="task-divider"></div>
+      <div class="task-row">
+        <div class="task-row-left">
+          <div class="task-checkbox"></div>
+          <div><div class="task-text">Rent Car</div><div class="task-assigned">Assigned to Mike</div></div>
+        </div>
+        <div class="task-assignee-avatar">M</div>
+      </div>
+    </div>
+
+    <!-- Packing -->
+    <div class="task-section-header">
+      <div class="task-section-title"><span class="ic">backpack</span><span>Packing</span></div>
+      <div class="task-count-badge">3 Tasks</div>
+    </div>
+    <div class="task-group">
+      <div class="task-row">
+        <div class="task-row-left">
+          <div class="task-checkbox"></div>
+          <div><div class="task-text">Toiletries</div><div class="task-assigned">Assigned to Everyone</div></div>
+        </div>
+        <span class="ic" style="color:var(--t3);font-size:15px;">group</span>
+      </div>
+      <div class="task-divider"></div>
+      <div class="task-row">
+        <div class="task-row-left">
+          <div class="task-checkbox"></div>
+          <div><div class="task-text">Hiking Boots</div><div class="task-assigned">Assigned to Mike</div></div>
+        </div>
+        <div class="task-assignee-avatar">M</div>
+      </div>
+      <div class="task-divider"></div>
+      <div class="task-row">
+        <div class="task-row-left">
+          <div class="task-checkbox"></div>
+          <div><div class="task-text">Power Adapters</div><div class="task-assigned">Assigned to Sarah</div></div>
+        </div>
+        <div class="task-assignee-avatar">S</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <div class="fab" onclick="openSheet('task-sheet')"><span class="ic">add</span></div>
+
+  <div class="bnav">
+    <div class="ni" onclick="nav('s-home')"><span class="ic">home</span><span class="nlbl">Home</span></div>
+    <div class="ni" onclick="nav('s-expenses')"><span class="ic">receipt_long</span><span class="nlbl">Expenses</span></div>
+    <div class="ni on"><span class="ic">format_list_bulleted</span><span class="nlbl">Tasks</span></div>
+    <div class="ni" onclick="nav('s-participants')"><span class="ic">group</span><span class="nlbl">Groups</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════ PARTICIPANTS ══════════════════ -->
+<div class="screen" id="s-participants">
+  <div class="topbar">
+    <div class="ibtn back" onclick="back()"><span class="ic">arrow_back</span></div>
+    <div class="tp-center"><div class="tp-title">Participants</div></div>
+    <div class="ibtn"><span class="ic">more_vert</span></div>
+  </div>
+  <div class="scroll" style="padding-bottom:8px;">
+    <div class="jcc"><div><div class="jclbl">Trip Join Code</div><div class="jcval">TRP-482</div></div><button class="cpybtn" onclick="showToast('Copied!')"><span class="ic">content_copy</span>Copy</button></div>
+    <div class="ml-hd"><span>Members (4)</span><div class="inv-chip"><span class="ic">person_add</span><span>Invite</span></div></div>
+    <div class="msfc">
+      <div class="mrow"><div class="mav" style="background:#FFEDD5;color:#C05C00">F<div class="adot"><span class="ic" style="font-size:7px;color:#fff">star</span></div></div><div style="flex:1"><div class="mnm">Faizal N <span class="atag">Admin</span></div><div class="mrl">Trip organiser</div></div><span class="ic" style="color:var(--t3)">more_horiz</span></div>
+      <div class="mdiv"></div>
+      <div class="mrow"><div class="mav" style="background:#DCFCE7;color:#16A34A">M</div><div style="flex:1"><div class="mnm">Mani</div><div class="mrl">Member</div></div><span class="ic" style="color:var(--t3)">more_horiz</span></div>
+      <div class="mdiv"></div>
+      <div class="mrow"><div class="mav" style="background:#DBEAFE;color:#2563EB">P</div><div style="flex:1"><div class="mnm">Prethivraj</div><div class="mrl">Member</div></div><span class="ic" style="color:var(--t3)">more_horiz</span></div>
+      <div class="mdiv"></div>
+      <div class="mrow"><div class="mav" style="background:#F3E8FF;color:#9333EA">P</div><div style="flex:1"><div class="mnm">Prithivi</div><div class="mrl">Member</div></div><span class="ic" style="color:var(--t3)">more_horiz</span></div>
+    </div>
+    <div style="padding:14px 16px 4px;">
+      <button class="btn btn-d" onclick="showToast('Leave trip dialog')"><span class="ic">logout</span>Leave Trip</button>
+    </div>
+  </div>
+  <div class="bnav">
+    <div class="ni" onclick="nav('s-home')"><span class="ic">home</span><span class="nlbl">Home</span></div>
+    <div class="ni" onclick="nav('s-expenses')"><span class="ic">receipt_long</span><span class="nlbl">Expenses</span></div>
+    <div class="ni" onclick="nav('s-tasks')"><span class="ic">format_list_bulleted</span><span class="nlbl">Tasks</span></div>
+    <div class="ni on"><span class="ic">group</span><span class="nlbl">Groups</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════ PROFILE ══════════════════ -->
+<div class="screen" id="s-profile">
+  <div class="ph-hero">
+    <div class="ph-hero-bg">account_circle</div>
+    <div class="ph-av" id="ph-av" onclick="showToast('Photo picker opens here')">
+      <span id="ph-av-txt">FN</span>
+      <div class="ph-av-cam"><span class="ic" style="font-size:14px;color:#fff">photo_camera</span></div>
+    </div>
+    <div class="ph-nm" id="ph-nm">Faizal Noor</div>
+    <div class="ph-em"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c4a2a5adbea5a884b0b6adb4ababeaa5b4b4">[email&#160;protected]</a></div>
+    <div class="ph-stats">
+      <div class="pst"><div class="pstv">3</div><div class="pstl">Trips</div></div>
+      <div class="pst"><div class="pstv">₹8.4k</div><div class="pstl">Spent</div></div>
+      <div class="pst"><div class="pstv">12</div><div class="pstl">Friends</div></div>
+    </div>
+  </div>
+  <div class="scroll" style="padding-bottom:32px;">
+    <div class="psec">
+      <div class="psec-t">Account</div>
+      <div class="ptile">
+        <div class="prow"><div class="pricon"><span class="ic">person</span></div><div class="prt"><div class="prlbl">Full Name</div><div class="prsub" id="prf-nm">Faizal Noor</div></div><span class="ic prchev">chevron_right</span></div>
+        <div class="prdiv"></div>
+        <div class="prow"><div class="pricon"><span class="ic">mail</span></div><div class="prt"><div class="prlbl">Email</div><div class="prsub"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f19790988b909db1858398819e9edf908181">[email&#160;protected]</a></div></div><span class="ic prchev">chevron_right</span></div>
+        <div class="prdiv"></div>
+        <div class="prow"><div class="pricon"><span class="ic">phone</span></div><div class="prt"><div class="prlbl">Phone Number</div><div class="prsub">+91 98765 43210</div></div><span class="ic prchev">chevron_right</span></div>
+        <div class="prdiv"></div>
+        <div class="prow"><div class="pricon"><span class="ic">lock</span></div><div class="prt"><div class="prlbl">Change Password</div></div><span class="ic prchev">chevron_right</span></div>
+      </div>
+    </div>
+    <div class="psec">
+      <div class="psec-t">Trip History</div>
+      <div class="ptile">
+        <div class="prow" onclick="nav('s-dashboard')"><div class="pricon g"><span class="ic">luggage</span></div><div class="prt"><div class="prlbl">My Trips</div><div class="prsub">3 trips · 2 active</div></div><span class="ic prchev">chevron_right</span></div>
+        <div class="prdiv"></div>
+        <div class="prow"><div class="pricon y"><span class="ic">payments</span></div><div class="prt"><div class="prlbl">Total Spent</div><div class="prsub">₹8,450 across all trips</div></div><span class="ic prchev">chevron_right</span></div>
+      </div>
+    </div>
+    <div class="psec">
+      <div class="psec-t">Preferences</div>
+      <div class="ptile">
+        <div class="prow">
+          <div class="pricon"><span class="ic">notifications</span></div>
+          <div class="prt"><div class="prlbl">Notifications</div><div class="prsub">Expenses, tasks, trip updates</div></div>
+          <div class="tog"><div class="tog-knob"></div></div>
+        </div>
+        <div class="prdiv"></div>
+        <div class="prow"><div class="pricon"><span class="ic">language</span></div><div class="prt"><div class="prlbl">Language</div></div><span class="prval">English</span><span class="ic prchev">chevron_right</span></div>
+        <div class="prdiv"></div>
+        <div class="prow"><div class="pricon"><span class="ic">currency_rupee</span></div><div class="prt"><div class="prlbl">Default Currency</div></div><span class="prval">INR (₹)</span><span class="ic prchev">chevron_right</span></div>
+      </div>
+    </div>
+    <div class="psec">
+      <div class="psec-t">Support</div>
+      <div class="ptile">
+        <div class="prow"><div class="pricon"><span class="ic">help</span></div><div class="prt"><div class="prlbl">Help &amp; FAQ</div></div><span class="ic prchev">chevron_right</span></div>
+        <div class="prdiv"></div>
+        <div class="prow"><div class="pricon"><span class="ic">feedback</span></div><div class="prt"><div class="prlbl">Send Feedback</div></div><span class="ic prchev">chevron_right</span></div>
+        <div class="prdiv"></div>
+        <div class="prow"><div class="pricon"><span class="ic">shield</span></div><div class="prt"><div class="prlbl">Privacy Policy</div></div><span class="ic prchev">chevron_right</span></div>
+      </div>
+    </div>
+    <div class="psec">
+      <div class="ptile">
+        <div class="prow" onclick="nav('s-welcome')"><div class="pricon r"><span class="ic">logout</span></div><div class="prt"><div class="prlbl red">Log Out</div></div><span class="ic prchev">chevron_right</span></div>
+        <div class="prdiv"></div>
+        <div class="prow"><div class="pricon r"><span class="ic">delete_forever</span></div><div class="prt"><div class="prlbl red">Delete Account</div></div><span class="ic prchev">chevron_right</span></div>
+      </div>
+    </div>
+    <div style="padding:10px 16px 12px;">
+      <button class="btn btn-o btn-sm" onclick="nav('s-dashboard')">
+        <span class="ic" style="font-size:18px">arrow_back</span>Back to Dashboard
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════ ADD EXPENSE SHEET ══════════════════ -->
+<div class="sheet-backdrop" id="expense-backdrop" onclick="closeSheet('expense-sheet')"></div>
+<div class="sheet" id="expense-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-hd">
+    <div class="sheet-title">Add Expense</div>
+    <button class="sheet-close" onclick="closeSheet('expense-sheet')"><span class="ic">close</span></button>
+  </div>
+  <div class="sheet-body">
+    <div class="ig">
+      <div class="slbl">Amount</div>
+      <div style="position:relative;">
+        <div style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:20px;font-weight:800;color:var(--t2);z-index:1;">₹</div>
+        <input class="inp" type="number" placeholder="0.00" style="padding-left:32px;font-size:22px;font-weight:800;color:var(--t1);">
+      </div>
+    </div>
+    <div class="ig">
+      <div class="slbl">Description</div>
+      <div class="iw"><span class="ic">receipt</span><input class="inp" type="text" placeholder="e.g. Villa Booking"></div>
+    </div>
+    <div class="ig">
+      <div class="slbl">Category</div>
+      <div class="cat-grid">
+        <div class="cat-item sel" onclick="selCat(this)">
+          <div class="cat-ic" style="background:#DBEAFE;"><span class="ic" style="color:#2563EB;">home</span></div>
+          <div class="cat-lbl">Accommodation</div>
+        </div>
+        <div class="cat-item" onclick="selCat(this)">
+          <div class="cat-ic" style="background:#FFEDD5;"><span class="ic" style="color:#EA580C;">restaurant</span></div>
+          <div class="cat-lbl">Food</div>
+        </div>
+        <div class="cat-item" onclick="selCat(this)">
+          <div class="cat-ic" style="background:#F3E8FF;"><span class="ic" style="color:#9333EA;">directions_car</span></div>
+          <div class="cat-lbl">Transport</div>
+        </div>
+        <div class="cat-item" onclick="selCat(this)">
+          <div class="cat-ic" style="background:#DCFCE7;"><span class="ic" style="color:#16A34A;">local_bar</span></div>
+          <div class="cat-lbl">Drinks</div>
+        </div>
+        <div class="cat-item" onclick="selCat(this)">
+          <div class="cat-ic" style="background:#FEF9C3;"><span class="ic" style="color:#CA8A04;">surfing</span></div>
+          <div class="cat-lbl">Activities</div>
+        </div>
+        <div class="cat-item" onclick="selCat(this)">
+          <div class="cat-ic" style="background:var(--bg);"><span class="ic" style="color:var(--t2);">more_horiz</span></div>
+          <div class="cat-lbl">Other</div>
+        </div>
+      </div>
+    </div>
+    <div class="ig">
+      <div class="slbl">Paid By</div>
+      <div style="position:relative;">
+        <div class="iw"><span class="ic">person</span>
+          <select class="inp" style="padding-left:44px;appearance:none;cursor:pointer;">
+            <option>Faizal (You)</option><option>Mani</option><option>Prethivraj</option><option>Prithivi</option>
+          </select>
+        </div>
+        <span class="ic" style="position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--t2);font-size:18px;pointer-events:none;">expand_more</span>
+      </div>
+    </div>
+    <div class="ig">
+      <div class="slbl">Split</div>
+      <div class="split-row">
+        <div class="split-opt sel" onclick="selSplit(this)"><span class="ic">group</span>Equally</div>
+        <div class="split-opt" onclick="selSplit(this)"><span class="ic">tune</span>Custom</div>
+        <div class="split-opt" onclick="selSplit(this)"><span class="ic">person</span>Just Me</div>
+      </div>
+    </div>
+    <div class="ig">
+      <div class="slbl">Split With</div>
+      <div class="assign-wrap">
+        <div class="assign-chip sel" onclick="this.classList.toggle('sel')">
+          <div class="a-av" style="background:#FFEDD5;color:#C05C00;">F</div><span class="a-nm">Faizal</span>
+        </div>
+        <div class="assign-chip sel" onclick="this.classList.toggle('sel')">
+          <div class="a-av" style="background:#DCFCE7;color:#16A34A;">M</div><span class="a-nm">Mani</span>
+        </div>
+        <div class="assign-chip sel" onclick="this.classList.toggle('sel')">
+          <div class="a-av" style="background:#DBEAFE;color:#2563EB;">P</div><span class="a-nm">Prethivraj</span>
+        </div>
+        <div class="assign-chip sel" onclick="this.classList.toggle('sel')">
+          <div class="a-av" style="background:#F3E8FF;color:#9333EA;">P</div><span class="a-nm">Prithivi</span>
+        </div>
+      </div>
+    </div>
+    <div class="ig">
+      <div class="slbl">Date</div>
+      <div class="iw"><span class="ic">calendar_today</span><input class="inp" type="date"></div>
+    </div>
+    <div class="ig">
+      <div class="slbl">Note (optional)</div>
+      <textarea class="inp" rows="2" placeholder="Any extra details..."></textarea>
+    </div>
+    <button class="btn btn-p" onclick="closeSheet('expense-sheet');showToast('Expense added!')">
+      <span class="ic" style="color:#fff;">check_circle</span>Add Expense
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════ ADD TASK SHEET ══════════════════ -->
+<div class="sheet-backdrop" id="task-backdrop" onclick="closeSheet('task-sheet')"></div>
+<div class="sheet" id="task-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-hd">
+    <div class="sheet-title">Add Task</div>
+    <button class="sheet-close" onclick="closeSheet('task-sheet')"><span class="ic">close</span></button>
+  </div>
+  <div class="sheet-body">
+    <div class="ig">
+      <div class="slbl">Task Name</div>
+      <div class="iw"><span class="ic">checklist</span><input class="inp" type="text" placeholder="e.g. Book Airport Transfer"></div>
+    </div>
+    <div class="ig">
+      <div class="slbl">Category</div>
+      <div style="position:relative;">
+        <div class="iw"><span class="ic">label</span>
+          <select class="inp" style="padding-left:44px;appearance:none;cursor:pointer;">
+            <option>General</option><option>Bookings</option><option>Packing</option><option>Documents</option><option>Other</option>
+          </select>
+        </div>
+        <span class="ic" style="position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--t2);font-size:18px;pointer-events:none;">expand_more</span>
+      </div>
+    </div>
+    <div class="ig">
+      <div class="slbl">Assign To</div>
+      <div class="assign-wrap">
+        <div class="assign-chip sel" onclick="selAssign(this)" style="width:100%;border-radius:10px;padding:9px 12px;">
+          <div class="a-av" style="background:var(--or-lt);color:var(--or);width:28px;height:28px;"><span class="ic" style="font-size:14px;">group</span></div>
+          <span class="a-nm" style="font-size:13px;">Everyone</span>
+        </div>
+        <div class="assign-chip" onclick="selAssign(this)">
+          <div class="a-av" style="background:#FFEDD5;color:#C05C00;">F</div><span class="a-nm">Faizal</span>
+        </div>
+        <div class="assign-chip" onclick="selAssign(this)">
+          <div class="a-av" style="background:#DCFCE7;color:#16A34A;">M</div><span class="a-nm">Mani</span>
+        </div>
+        <div class="assign-chip" onclick="selAssign(this)">
+          <div class="a-av" style="background:#DBEAFE;color:#2563EB;">P</div><span class="a-nm">Prethivraj</span>
+        </div>
+        <div class="assign-chip" onclick="selAssign(this)">
+          <div class="a-av" style="background:#F3E8FF;color:#9333EA;">P</div><span class="a-nm">Prithivi</span>
+        </div>
+      </div>
+    </div>
+    <div class="ig">
+      <div class="slbl">Due Date (optional)</div>
+      <div class="iw"><span class="ic">event</span><input class="inp" type="date"></div>
+    </div>
+    <div class="ig">
+      <div class="slbl">Priority</div>
+      <div class="prio-row">
+        <div class="prio-btn prio-low" onclick="selPrio(this)"><div class="prio-dot"></div>Low</div>
+        <div class="prio-btn prio-mid sel" onclick="selPrio(this)"><div class="prio-dot"></div>Medium</div>
+        <div class="prio-btn prio-high" onclick="selPrio(this)"><div class="prio-dot"></div>High</div>
+      </div>
+    </div>
+    <div class="ig">
+      <div class="slbl">Notes (optional)</div>
+      <textarea class="inp" rows="2" placeholder="Any details or reminders..."></textarea>
+    </div>
+    <button class="btn btn-p" onclick="closeSheet('task-sheet');showToast('Task added!')">
+      <span class="ic" style="color:#fff;">add_task</span>Add Task
+    </button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toastEl"></div>
+
+</div><!-- /phone -->
+
+<!-- ═══════ CONTROLS ═══════ -->
+<div class="ctrl">
+  <button class="cb" id="cb-s-splash"       onclick="nav('s-splash')">① Splash</button>
+  <button class="cb" id="cb-s-welcome"      onclick="nav('s-welcome')">② Welcome</button>
+  <button class="cb" id="cb-s-signup"       onclick="nav('s-signup')">③ Sign Up</button>
+  <button class="cb" id="cb-s-dashboard"    onclick="nav('s-dashboard')">④ Dashboard</button>
+  <button class="cb" id="cb-s-create"       onclick="nav('s-create')">⑤ Create Trip</button>
+  <button class="cb" id="cb-s-join"         onclick="nav('s-join')">⑥ Join Trip</button>
+  <button class="cb" id="cb-s-home"         onclick="nav('s-home')">⑦ Home</button>
+  <button class="cb" id="cb-s-expenses"     onclick="nav('s-expenses')">⑧ Expenses</button>
+  <button class="cb" id="cb-s-tasks"        onclick="nav('s-tasks')">⑨ Tasks</button>
+  <button class="cb" id="cb-s-participants" onclick="nav('s-participants')">⑩ Participants</button>
+  <button class="cb" id="cb-s-profile"      onclick="nav('s-profile')">⑪ Profile</button>
+</div>
+<div class="chint">Tap any button to jump · Navigate naturally inside the phone</div>
+
+<script>
+const ORDER=['s-splash','s-welcome','s-signup','s-dashboard','s-create','s-join','s-home','s-expenses','s-tasks','s-participants','s-profile'];
+let cur='s-splash', hist=['s-splash'];
+let userName='Faizal Noor', userInitials='FN';
+
+function nav(id){
+  if(id===cur)return;
+  const fe=document.getElementById(cur), te=document.getElementById(id);
+  if(!fe||!te)return;
+  const fi=ORDER.indexOf(cur), ti=ORDER.indexOf(id);
+  fe.classList.remove('active');
+  te.classList.add('active', ti>=fi?'ar':'al');
+  setTimeout(()=>te.classList.remove('ar','al'),280);
+  const sc=te.querySelector('.scroll');
+  if(sc)sc.scrollTop=0;
+  hist.push(id); cur=id;
+  sync();
+}
+
+function back(){
+  if(hist.length<2)return;
+  hist.pop();
+  const prev=hist[hist.length-1];
+  const fe=document.getElementById(cur), te=document.getElementById(prev);
+  if(!fe||!te)return;
+  fe.classList.remove('active');
+  te.classList.add('active','al');
+  setTimeout(()=>te.classList.remove('al'),280);
+  cur=prev; sync();
+}
+
+function sync(){
+  document.querySelectorAll('.cb').forEach(b=>b.classList.remove('on'));
+  const b=document.getElementById('cb-'+cur);
+  if(b)b.classList.add('on');
+}
+
+function showToast(msg){
+  const el=document.getElementById('toastEl');
+  el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+/* Name input on sign-up */
+function onNameInput(val){
+  const parts=val.trim().split(/\s+/);
+  const initials=parts.length>=2
+    ?(parts[0][0]+parts[parts.length-1][0]).toUpperCase()
+    :val.slice(0,2).toUpperCase()||'?';
+  const ring=document.getElementById('av-ring');
+  const ic=document.getElementById('av-ic');
+  const init=document.getElementById('av-init');
+  if(val.length>0){
+    ic.style.display='none';
+    init.style.display='flex'; init.style.alignItems='center'; init.style.justifyContent='center';
+    init.textContent=initials;
+    ring.style.background='var(--or)'; ring.style.borderStyle='solid'; ring.style.borderColor='rgba(244,140,37,.5)';
+  } else {
+    ic.style.display=''; init.style.display='none';
+    ring.style.background='var(--or-lt)'; ring.style.borderStyle='dashed'; ring.style.borderColor='rgba(244,140,37,.35)';
+  }
+  if(val.trim().length>0){
+    userName=val.trim(); userInitials=initials;
+    document.getElementById('dash-av').textContent=initials;
+    document.getElementById('dash-greet').textContent='Hey '+parts[0]+' 👋';
+    document.getElementById('create-av-txt').textContent=initials;
+    document.getElementById('create-user-name').textContent=userName;
+    document.getElementById('join-av-txt').textContent=initials;
+    document.getElementById('join-user-name').textContent=userName;
+    document.getElementById('ph-av-txt').textContent=initials;
+    document.getElementById('ph-nm').textContent=userName;
+    document.getElementById('prf-nm').textContent=userName;
+  }
+}
+
+function doSignup(){ nav('s-dashboard'); }
+
+/* Filter chips */
+document.querySelectorAll('.chip').forEach(c=>{
+  c.addEventListener('click',function(){
+    const p=this.parentElement; if(!p)return;
+    p.querySelectorAll('.chip').forEach(x=>{x.classList.remove('con');x.classList.add('cof');});
+    this.classList.remove('cof'); this.classList.add('con');
+  });
+});
+
+/* Expense filter tabs */
+document.querySelectorAll('.ftb').forEach(t=>{
+  t.addEventListener('click',function(){
+    this.closest('.ftabs').querySelectorAll('.ftb').forEach(x=>x.classList.remove('on'));
+    this.classList.add('on');
+  });
+});
+
+/* Task checkboxes */
+document.querySelectorAll('.task-checkbox').forEach(cb=>{
+  cb.addEventListener('click',function(e){
+    e.stopPropagation();
+    this.classList.toggle('checked');
+    this.innerHTML=this.classList.contains('checked')
+      ?'<span class="ic" style="color:white;font-size:13px;">check</span>':'';
+    const row=this.closest('.task-row'); if(!row)return;
+    const nm=row.querySelector('.task-text'), asn=row.querySelector('.task-assigned');
+    if(nm)nm.classList.toggle('done',this.classList.contains('checked'));
+    if(asn)asn.classList.toggle('done',this.classList.contains('checked'));
+  });
+});
+
+/* Notification toggle */
+document.querySelectorAll('.tog').forEach(t=>{
+  t.addEventListener('click',function(){
+    if(!this.dataset.off){
+      this.style.background='#D1D5DB';
+      this.querySelector('.tog-knob').style.right='auto';
+      this.querySelector('.tog-knob').style.left='2px';
+      this.dataset.off='1';
+    } else {
+      this.style.background='var(--or)';
+      this.querySelector('.tog-knob').style.left='auto';
+      this.querySelector('.tog-knob').style.right='2px';
+      delete this.dataset.off;
+    }
+  });
+});
+
+/* ── Bottom sheet helpers ── */
+function openSheet(id){
+  document.getElementById(id).classList.add('open');
+  document.getElementById(id.replace('-sheet','-backdrop')).classList.add('open');
+}
+function closeSheet(id){
+  document.getElementById(id).classList.remove('open');
+  document.getElementById(id.replace('-sheet','-backdrop')).classList.remove('open');
+}
+function selCat(el){
+  el.closest('.cat-grid').querySelectorAll('.cat-item').forEach(i=>i.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function selSplit(el){
+  el.closest('.split-row').querySelectorAll('.split-opt').forEach(i=>i.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function selAssign(el){
+  const wrap=el.closest('.assign-wrap');
+  const everyoneChip=wrap.querySelector('.assign-chip');
+  const isEveryone=(el===everyoneChip);
+  if(isEveryone){
+    wrap.querySelectorAll('.assign-chip').forEach(c=>c.classList.remove('sel'));
+    el.classList.add('sel');
+  } else {
+    everyoneChip.classList.remove('sel');
+    el.classList.toggle('sel');
+  }
+}
+function selPrio(el){
+  el.closest('.prio-row').querySelectorAll('.prio-btn').forEach(i=>i.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+/* Auto-advance splash */
+setTimeout(()=>nav('s-welcome'), 2000);
+sync();
+</script>
+</body>
+</html>

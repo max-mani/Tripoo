@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.tripoo.R;
 import com.example.tripoo.data.model.Trip;
@@ -55,11 +56,19 @@ public class GroupsFragment extends Fragment {
             clipboard.setPrimaryClip(clip);
             Toast.makeText(requireContext(), "Trip code copied!", Toast.LENGTH_SHORT).show();
         });
+
+        if (binding.btnBack != null) {
+            binding.btnBack.setOnClickListener(v -> Navigation.findNavController(view).popBackStack());
+        }
+        if (binding.btnLeaveTrip != null) {
+            binding.btnLeaveTrip.setOnClickListener(v ->
+                    Toast.makeText(requireContext(), "Leave trip dialog", Toast.LENGTH_SHORT).show());
+        }
         
         homeViewModel.getUserLiveData().observe(getViewLifecycleOwner(), resource -> {
             if (resource.isSuccess() && resource.getData() != null) {
                 User user = resource.getData();
-                String tripId = user.getActiveTripId();
+                String tripId = user.getLastActiveTripId();
                 if (tripId != null && !tripId.isEmpty()) {
                     groupsViewModel.loadTripAndMembers(tripId);
                 }
@@ -69,7 +78,7 @@ public class GroupsFragment extends Fragment {
         groupsViewModel.getTripLiveData().observe(getViewLifecycleOwner(), resource -> {
             if (resource.isSuccess() && resource.getData() != null) {
                 Trip trip = resource.getData();
-                binding.tvTripCode.setText(trip.getTripCode());
+                binding.tvTripCode.setText(trip.getJoinCode());
             }
         });
         

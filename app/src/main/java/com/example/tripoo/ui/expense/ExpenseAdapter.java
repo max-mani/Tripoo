@@ -91,9 +91,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
                 binding.tvSplitWith.setText("Split with: " + splitWith);
             }
             
-            if (expense.getTimestamp() != null) {
-                binding.tvTimestamp.setText(DateFormatter.formatDateTime(expense.getTimestamp()));
-            }
+            binding.tvTimestamp.setText(DateFormatter.formatDateTime(expense.getTimestamp()));
             
             binding.getRoot().setOnClickListener(v -> {
                 if (listener != null) {

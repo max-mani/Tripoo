@@ -16,7 +16,6 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import com.bumptech.glide.Glide;
-import com.example.tripoo.MainActivity;
 import com.example.tripoo.R;
 import com.example.tripoo.data.model.User;
 import com.example.tripoo.databinding.FragmentProfileBinding;
@@ -67,17 +66,21 @@ public class ProfileFragment extends Fragment {
         
         binding.btnSignOut.setOnClickListener(v -> {
             viewModel.signOut();
-            if (requireActivity() instanceof MainActivity) {
-                ((MainActivity) requireActivity()).onUserSignedOut();
-            }
             Navigation.findNavController(view).navigate(R.id.action_profile_to_auth);
         });
+
+        if (binding.btnBackToDashboard != null) {
+            binding.btnBackToDashboard.setOnClickListener(v ->
+                    Navigation.findNavController(view).navigate(R.id.action_profile_to_dashboard));
+        }
         
         viewModel.getUserLiveData().observe(getViewLifecycleOwner(), resource -> {
             if (resource.isSuccess() && resource.getData() != null) {
                 User user = resource.getData();
                 binding.etName.setText(user.getName());
                 binding.etEmail.setText(user.getEmail());
+                if (binding.tvProfileName != null) binding.tvProfileName.setText(user.getName());
+                if (binding.tvProfileEmail != null) binding.tvProfileEmail.setText(user.getEmail());
                 
                 if (user.getPhotoUrl() != null && !user.getPhotoUrl().isEmpty()) {
                     loadImage(user.getPhotoUrl());

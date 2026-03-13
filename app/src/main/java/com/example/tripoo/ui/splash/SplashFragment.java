@@ -9,17 +9,15 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import com.example.tripoo.R;
 import com.example.tripoo.databinding.FragmentSplashBinding;
-import com.example.tripoo.utils.Resource;
-import com.example.tripoo.viewmodel.SplashViewModel;
-import com.google.firebase.auth.FirebaseUser;
+import com.example.tripoo.viewmodel.SplashNavigationState;
+import com.example.tripoo.viewmodel.SplashViewModelKt;
 
 public class SplashFragment extends Fragment {
     private FragmentSplashBinding binding;
-    private SplashViewModel viewModel;
+    private SplashViewModelKt viewModel;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -31,19 +29,14 @@ public class SplashFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         
-        viewModel = new ViewModelProvider(this).get(SplashViewModel.class);
-        
-        viewModel.getUserLiveData().observe(getViewLifecycleOwner(), resource -> {
-            if (resource.isSuccess() && resource.getData() != null) {
-                // User is logged in, navigate to home
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    Navigation.findNavController(view).navigate(R.id.action_splash_to_home);
-                }, 1500);
-            } else {
-                // User is not logged in, navigate to auth
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    Navigation.findNavController(view).navigate(R.id.action_splash_to_auth);
-                }, 1500);
+        viewModel = new androidx.lifecycle.ViewModelProvider(this).get(SplashViewModelKt.class);
+
+        viewModel.getNavigation().observe(getViewLifecycleOwner(), state -> {
+            if (state == null) return;
+            if (state == SplashNavigationState.TO_AUTH) {
+                Navigation.findNavController(view).navigate(R.id.action_splash_to_auth);
+            } else if (state == SplashNavigationState.TO_DASHBOARD) {
+                Navigation.findNavController(view).navigate(R.id.action_splash_to_dashboard);
             }
         });
     }

@@ -33,13 +33,14 @@ public class AddExpenseBottomSheet extends BottomSheetDialogFragment {
     private String tripId;
     private Expense expense;
     private String currentUserId;
+    private int selectedCategoryIndex = 0;
 
     public static AddExpenseBottomSheet newInstance(String tripId, Expense expense) {
         AddExpenseBottomSheet fragment = new AddExpenseBottomSheet();
         Bundle args = new Bundle();
         args.putString("tripId", tripId);
         if (expense != null) {
-            args.putString("expenseId", expense.getExpenseId());
+            args.putString("expenseId", expense.getId());
             args.putString("title", expense.getTitle());
             args.putDouble("amount", expense.getAmount());
             args.putString("paidBy", expense.getPaidBy());
@@ -47,6 +48,12 @@ public class AddExpenseBottomSheet extends BottomSheetDialogFragment {
         }
         fragment.setArguments(args);
         return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setStyle(BottomSheetDialogFragment.STYLE_NORMAL, R.style.Theme_Tripoo_BottomSheet);
     }
 
     @Override
@@ -68,10 +75,10 @@ public class AddExpenseBottomSheet extends BottomSheetDialogFragment {
                         expenseId,
                         args.getString("title"),
                         args.getDouble("amount", 0),
+                        "other",
                         args.getString("paidBy"),
-                        args.getStringArrayList("splitWith"),
-                        null,
-                        null
+                        args.getStringArrayList("splitWith") != null ? args.getStringArrayList("splitWith") : new ArrayList<>(),
+                        System.currentTimeMillis()
                 );
             } else {
                 expense = null;
@@ -126,13 +133,31 @@ public class AddExpenseBottomSheet extends BottomSheetDialogFragment {
             }
         });
         
+        if (binding.btnClose != null) {
+            binding.btnClose.setOnClickListener(v -> dismiss());
+        }
+
+        View[] cats = {binding.catAccommodation, binding.catFood, binding.catTransport, binding.catDrinks, binding.catActivities, binding.catOther};
+        for (int i = 0; i < cats.length; i++) {
+            cats[i].setSelected(i == 0);
+            cats[i].setBackgroundResource(i == 0 ? R.drawable.bg_chip_on : R.drawable.bg_chip_off);
+            final int idx = i;
+            cats[i].setOnClickListener(v -> {
+                selectedCategoryIndex = idx;
+                for (int j = 0; j < cats.length; j++) {
+                    cats[j].setSelected(j == idx);
+                    cats[j].setBackgroundResource(j == idx ? R.drawable.bg_chip_on : R.drawable.bg_chip_off);
+                }
+            });
+        }
+
         if (expense != null) {
-            binding.etTitle.setText(expense.getTitle());
+            binding.etDescription.setText(expense.getTitle());
             binding.etAmount.setText(String.valueOf(expense.getAmount()));
         }
-        
+
         binding.btnSaveExpense.setOnClickListener(v -> {
-            String title = binding.etTitle.getText().toString().trim();
+            String title = binding.etDescription.getText().toString().trim();
             String amountStr = binding.etAmount.getText().toString().trim();
             
             if (TextUtils.isEmpty(title) || TextUtils.isEmpty(amountStr)) {
@@ -154,10 +179,12 @@ public class AddExpenseBottomSheet extends BottomSheetDialogFragment {
                         ? currentUserId 
                         : selectedMembers.get(0);
                 
+                String[] catIds = {"accommodation", "food", "transport", "drinks", "activities", "other"};
+                String category = catIds[selectedCategoryIndex];
                 if (expense != null) {
-                    expenseViewModel.updateExpense(tripId, expense.getExpenseId(), title, amount, paidBy, selectedMembers);
+                    expenseViewModel.updateExpense(tripId, expense.getId(), title, amount, paidBy, selectedMembers);
                 } else {
-                    expenseViewModel.addExpense(tripId, title, amount, paidBy, selectedMembers);
+                    expenseViewModel.addExpense(tripId, title, amount, category, paidBy, selectedMembers);
                 }
             } catch (NumberFormatException e) {
                 Toast.makeText(requireContext(), "Invalid amount", Toast.LENGTH_SHORT).show();

@@ -3,6 +3,7 @@ package com.example.tripoo.ui.tasks;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.widget.ArrayAdapter;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +28,8 @@ import com.example.tripoo.viewmodel.TaskViewModel;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.firebase.Timestamp;
 
+import android.widget.ArrayAdapter;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -40,6 +43,7 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
     private Task task;
     private Calendar dueCalendar = Calendar.getInstance();
     private List<TripMember> members = new ArrayList<>();
+    private String selectedPriority = "medium";
 
     public static AddTaskBottomSheet newInstance(String tripId, Task task) {
         AddTaskBottomSheet fragment = new AddTaskBottomSheet();
@@ -48,6 +52,12 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         fragment.setArguments(args);
         fragment.task = task;
         return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setStyle(BottomSheetDialogFragment.STYLE_NORMAL, R.style.Theme_Tripoo_BottomSheet);
     }
 
     @Override
@@ -97,7 +107,7 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
                             if (userResource.isSuccess() && userResource.getData() != null) {
                                 User currentUser = userResource.getData();
                                 TripMember currentUserMember = new TripMember(
-                                        currentUser.getUserId(),
+                                        currentUser.getUid(),
                                         currentUser.getName() != null ? currentUser.getName() : "User",
                                         currentUser.getEmail(),
                                         currentUser.getPhotoUrl(),
@@ -111,14 +121,37 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
             }
         });
         
-        // Category field is now editable - remove onClick listener that prevents typing
-        // Keep dialog as optional via long press or button if needed
-        binding.etCategory.setOnLongClickListener(v -> {
-            showCategoryDialog();
-            return true;
-        });
-        binding.etAssignedTo.setOnClickListener(v -> showMemberDialog());
-        binding.etDueDate.setOnClickListener(v -> showDatePicker());
+        if (binding.btnClose != null) {
+            binding.btnClose.setOnClickListener(v -> dismiss());
+        }
+
+        ArrayAdapter<CharSequence> categoryAdapter = ArrayAdapter.createFromResource(requireContext(),
+                R.array.task_categories, android.R.layout.simple_spinner_item);
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        binding.spinnerCategory.setAdapter(categoryAdapter);
+
+        if (binding.assignContainer != null) {
+            binding.assignContainer.setOnClickListener(v -> showMemberDialog());
+        } else if (binding.etAssignedTo != null) {
+            binding.etAssignedTo.setOnClickListener(v -> showMemberDialog());
+        }
+        if (binding.dateContainer != null) {
+            binding.dateContainer.setOnClickListener(v -> showDatePicker());
+        } else if (binding.etDueDate != null) {
+            binding.etDueDate.setOnClickListener(v -> showDatePicker());
+        }
+
+        View[] prioViews = {binding.prioLow, binding.prioMedium, binding.prioHigh};
+        String[] prios = {"low", "medium", "high"};
+        for (int i = 0; i < prioViews.length; i++) {
+            final int idx = i;
+            prioViews[i].setOnClickListener(v -> {
+                selectedPriority = prios[idx];
+                for (int j = 0; j < prioViews.length; j++) {
+                    prioViews[j].setBackgroundResource(j == idx ? R.drawable.bg_chip_on : R.drawable.bg_input_outline);
+                }
+            });
+        }
 
         taskViewModel.getAddTaskLiveData().observe(getViewLifecycleOwner(), resource -> {
             if (resource != null && resource.isSuccess()) {
@@ -136,13 +169,23 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
             }
         });
         
+        binding.etAssignedTo.setText("Everyone");
         if (task != null) {
             binding.etTitle.setText(task.getTitle());
-            binding.etCategory.setText(task.getCategory());
+            String cat = task.getCategory();
+            if (cat != null) {
+                String[] cats = getResources().getStringArray(R.array.task_categories);
+                for (int i = 0; i < cats.length; i++) {
+                    if (cats[i].equalsIgnoreCase(cat)) {
+                        binding.spinnerCategory.setSelection(i);
+                        break;
+                    }
+                }
+            }
             binding.etAssignedTo.setText(task.getAssignedTo());
             if (task.getDueDate() != null) {
                 binding.etDueDate.setText(DateFormatter.formatDate(task.getDueDate()));
-                dueCalendar.setTime(task.getDueDate().toDate());
+                dueCalendar.setTimeInMillis(task.getDueDate());
             }
         }
         // Don't set default category - let user type or select from dialog
@@ -153,60 +196,40 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
                 return;
             }
             String title = binding.etTitle.getText().toString().trim();
-            String category = binding.etCategory.getText().toString().trim();
-            String assignedTo = binding.etAssignedTo.getText().toString().trim();
+            String catStr = binding.spinnerCategory.getSelectedItem() != null ? binding.spinnerCategory.getSelectedItem().toString() : "General";
+            String category = "general";
+            if ("Bookings".equalsIgnoreCase(catStr)) category = Task.CATEGORY_BOOKING;
+            else if ("Packing".equalsIgnoreCase(catStr)) category = Task.CATEGORY_PACKING;
+            else if ("Documents".equalsIgnoreCase(catStr) || "Other".equalsIgnoreCase(catStr)) category = catStr.toLowerCase();
+            String assignedTo = binding.etAssignedTo.getText() != null ? binding.etAssignedTo.getText().toString().trim() : "Everyone";
             
-            if (TextUtils.isEmpty(title) || TextUtils.isEmpty(category)) {
-                Toast.makeText(requireContext(), "Please fill required fields", Toast.LENGTH_SHORT).show();
+            if (TextUtils.isEmpty(title)) {
+                Toast.makeText(requireContext(), "Please enter task name", Toast.LENGTH_SHORT).show();
                 return;
             }
             
             Timestamp dueDate = new Timestamp(dueCalendar.getTime());
             
             if (task != null) {
-                taskViewModel.updateTask(tripId, task.getTaskId(), title, category, assignedTo, task.isCompleted(), dueDate);
+                taskViewModel.updateTask(tripId, task.getId(), title, category, assignedTo, task.getCompleted(), dueDate);
             } else {
                 taskViewModel.addTask(tripId, title, category, assignedTo, dueDate);
             }
         });
     }
 
-    private void showCategoryDialog() {
-        String[] categories = {Task.CATEGORY_BOOKING, Task.CATEGORY_PACKING, Task.CATEGORY_GENERAL};
-        int currentSelection = 0;
-        String currentCategory = binding.etCategory.getText().toString().trim();
-        for (int i = 0; i < categories.length; i++) {
-            if (categories[i].equals(currentCategory)) {
-                currentSelection = i;
-                break;
-            }
-        }
-        
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Select Category")
-                .setSingleChoiceItems(categories, currentSelection, (dialog, which) -> {
-                    binding.etCategory.setText(categories[which]);
-                    dialog.dismiss();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
     private void showMemberDialog() {
-        if (members.isEmpty()) {
-            Toast.makeText(requireContext(), "Loading members...", Toast.LENGTH_SHORT).show();
-            return;
+        List<String> options = new ArrayList<>();
+        options.add("Everyone");
+        for (TripMember m : members) {
+            options.add(m.getName());
         }
+        String[] memberNames = options.toArray(new String[0]);
         
-        String[] memberNames = new String[members.size()];
-        for (int i = 0; i < members.size(); i++) {
-            memberNames[i] = members.get(i).getName();
-        }
-        
-        String currentAssignedTo = binding.etAssignedTo.getText().toString().trim();
-        int currentSelection = -1;
-        for (int i = 0; i < members.size(); i++) {
-            if (members.get(i).getName().equals(currentAssignedTo)) {
+        String currentAssignedTo = binding.etAssignedTo.getText() != null ? binding.etAssignedTo.getText().toString().trim() : "Everyone";
+        int currentSelection = 0;
+        for (int i = 0; i < memberNames.length; i++) {
+            if (memberNames[i].equals(currentAssignedTo)) {
                 currentSelection = i;
                 break;
             }
@@ -215,7 +238,7 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Assign To")
                 .setSingleChoiceItems(memberNames, currentSelection, (dialog, which) -> {
-                    binding.etAssignedTo.setText(members.get(which).getName());
+                    binding.etAssignedTo.setText(memberNames[which]);
                     dialog.dismiss();
                 })
                 .setNegativeButton("Cancel", null)

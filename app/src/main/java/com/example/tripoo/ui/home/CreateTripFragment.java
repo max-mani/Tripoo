@@ -38,6 +38,10 @@ public class CreateTripFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         
         viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+
+        if (binding.btnBack != null) {
+            binding.btnBack.setOnClickListener(v -> Navigation.findNavController(view).popBackStack());
+        }
         
         binding.etStartDate.setOnClickListener(v -> showDatePicker(true));
         binding.etEndDate.setOnClickListener(v -> showDatePicker(false));
@@ -80,7 +84,7 @@ public class CreateTripFragment extends Fragment {
                 
                 if (resource.isSuccess()) {
                     Toast.makeText(requireContext(), "Trip created! Code: " + resource.getData(), Toast.LENGTH_LONG).show();
-                    Navigation.findNavController(view).navigate(R.id.action_create_trip_to_home);
+                    Navigation.findNavController(view).navigate(R.id.action_create_to_home);
                 } else if (resource.isError()) {
                     Toast.makeText(requireContext(), resource.getMessage(), Toast.LENGTH_SHORT).show();
                 }

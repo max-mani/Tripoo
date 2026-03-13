@@ -78,7 +78,7 @@ public class TripCountdownView extends FrameLayout {
             stop();
             return;
         }
-        long millis = trip.getStartDateMillis();
+        long millis = trip.getStartDate();
         setTripStartTime(millis);
         start();
     }

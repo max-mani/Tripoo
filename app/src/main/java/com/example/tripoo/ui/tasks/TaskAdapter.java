@@ -109,7 +109,7 @@ public class TaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         public void bind(Task task) {
             binding.tvTaskTitle.setText(task.getTitle());
-            binding.cbCompleted.setChecked(task.isCompleted());
+            binding.cbCompleted.setChecked(task.getCompleted());
             
             if (task.getAssignedTo() != null && !task.getAssignedTo().isEmpty()) {
                 binding.tvAssignedTo.setText("Assigned to: " + task.getAssignedTo());
@@ -118,7 +118,7 @@ public class TaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
             
             if (task.getDueDate() != null) {
-                binding.tvDueDate.setText("Due: " + DateFormatter.formatDate(task.getDueDate()));
+                binding.tvDueDate.setText("Due: " + DateFormatter.formatDate(task.getDueDate().longValue()));
             }
             
             binding.cbCompleted.setOnCheckedChangeListener((buttonView, isChecked) -> {

@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.tripoo.R;
 import com.example.tripoo.data.model.Expense;
@@ -52,7 +53,7 @@ public class ExpenseFragment extends Fragment {
         homeViewModel.getUserLiveData().observe(getViewLifecycleOwner(), resource -> {
             if (resource.isSuccess() && resource.getData() != null) {
                 User user = resource.getData();
-                String tripId = user.getActiveTripId();
+                String tripId = user.getLastActiveTripId();
                 if (tripId != null && !tripId.isEmpty()) {
                     groupsViewModel.loadTripAndMembers(tripId);
                 }
@@ -76,9 +77,9 @@ public class ExpenseFragment extends Fragment {
                 // Also add current user to the map if not already present
                 if (currentUserRef[0] != null) {
                     User currentUser = currentUserRef[0];
-                    if (!userIdToNameMap.containsKey(currentUser.getUserId()) && 
+                    if (!userIdToNameMap.containsKey(currentUser.getUid()) && 
                         currentUser.getName() != null && !currentUser.getName().isEmpty()) {
-                        userIdToNameMap.put(currentUser.getUserId(), currentUser.getName());
+                        userIdToNameMap.put(currentUser.getUid(), currentUser.getName());
                     }
                 }
                 adapter.updateUserIdToNameMap(userIdToNameMap);
@@ -89,18 +90,22 @@ public class ExpenseFragment extends Fragment {
             Resource<User> resource = homeViewModel.getUserLiveData().getValue();
             if (resource != null && resource.isSuccess() && resource.getData() != null) {
                 User user = resource.getData();
-                String tripId = user.getActiveTripId();
+                String tripId = user.getLastActiveTripId();
                 if (tripId != null && !tripId.isEmpty()) {
                     showAddExpenseBottomSheet(tripId, null);
                 }
             }
         });
+
+        if (binding.btnBack != null) {
+            binding.btnBack.setOnClickListener(v -> Navigation.findNavController(view).popBackStack());
+        }
         
         // Load expenses when user has active trip
         homeViewModel.getUserLiveData().observe(getViewLifecycleOwner(), resource -> {
             if (resource.isSuccess() && resource.getData() != null) {
                 User user = resource.getData();
-                String tripId = user.getActiveTripId();
+                String tripId = user.getLastActiveTripId();
                 if (tripId != null && !tripId.isEmpty()) {
                     expenseViewModel.loadExpenses(tripId);
                 }

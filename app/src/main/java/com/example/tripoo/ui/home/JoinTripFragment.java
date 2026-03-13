@@ -31,7 +31,20 @@ public class JoinTripFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         
         viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
-        
+
+        if (binding.btnBack != null) {
+            binding.btnBack.setOnClickListener(v -> Navigation.findNavController(view).popBackStack());
+        }
+        if (binding.tvCreateTrip != null) {
+            binding.tvCreateTrip.setOnClickListener(v -> Navigation.findNavController(view).navigate(R.id.action_join_to_create));
+        }
+        if (binding.btnAcceptInvite != null) {
+            binding.btnAcceptInvite.setOnClickListener(v -> {
+                Toast.makeText(requireContext(), "Accept invite - would join trip", Toast.LENGTH_SHORT).show();
+                Navigation.findNavController(view).navigate(R.id.action_join_to_home);
+            });
+        }
+
         binding.btnJoinTrip.setOnClickListener(v -> {
             String tripCode = binding.etTripCode.getText().toString().trim().toUpperCase();
             
@@ -58,7 +71,7 @@ public class JoinTripFragment extends Fragment {
                 
                 if (resource.isSuccess()) {
                     Toast.makeText(requireContext(), "Successfully joined trip!", Toast.LENGTH_SHORT).show();
-                    Navigation.findNavController(view).navigate(R.id.action_join_trip_to_home);
+                    Navigation.findNavController(view).navigate(R.id.action_join_to_home);
                 } else if (resource.isError()) {
                     Toast.makeText(requireContext(), resource.getMessage(), Toast.LENGTH_SHORT).show();
                 }

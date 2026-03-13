@@ -4,8 +4,112 @@
         <item name="cornerSize">50%</item>
     </style>
 
-    <!-- Transparent active indicator to remove the green/coloured box when a bottom nav item is selected -->
-    <style name="BottomNavActiveIndicatorTransparent" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
-        <item name="android:color">@android:color/transparent</item>
+    <!-- Buttons -->
+    <style name="Tripoo.Button.Primary" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/tripoo_orange</item>
+        <item name="android:textColor">@color/tripoo_surface</item>
+        <item name="cornerRadius">11dp</item>
+        <item name="android:minHeight">@dimen/btn_height</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Tripoo.Button.Primary.Small" parent="Tripoo.Button.Primary">
+        <item name="android:minHeight">@dimen/btn_height_sm</item>
+        <item name="android:textSize">13sp</item>
+        <item name="cornerRadius">9dp</item>
+    </style>
+
+    <style name="Tripoo.Button.Outline" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="strokeColor">@color/tripoo_border</item>
+        <item name="cornerRadius">11dp</item>
+        <item name="android:minHeight">@dimen/btn_height</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Tripoo.Button.Outline.Small" parent="Tripoo.Button.Outline">
+        <item name="android:minHeight">@dimen/btn_height_sm</item>
+        <item name="android:textSize">13sp</item>
+        <item name="cornerRadius">9dp</item>
+    </style>
+
+    <style name="Tripoo.Button.Destructive" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="strokeColor">#FCA5A5</item>
+        <item name="android:textColor">@color/tripoo_red</item>
+        <item name="cornerRadius">11dp</item>
+        <item name="android:minHeight">@dimen/btn_height</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Input fields -->
+    <style name="Tripoo.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/tripoo_border</item>
+        <item name="hintTextColor">@color/tripoo_text_hint</item>
+        <item name="boxCornerRadiusTopStart">11dp</item>
+        <item name="boxCornerRadiusTopEnd">11dp</item>
+        <item name="boxCornerRadiusBottomStart">11dp</item>
+        <item name="boxCornerRadiusBottomEnd">11dp</item>
+        <item name="android:minHeight">@dimen/input_height</item>
+    </style>
+
+    <!-- Cards -->
+    <style name="Tripoo.Card" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardBackgroundColor">@color/tripoo_surface</item>
+        <item name="cardCornerRadius">@dimen/card_radius</item>
+        <item name="cardElevation">1dp</item>
+        <item name="strokeColor">@color/tripoo_border_light</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <style name="Tripoo.Card.Large" parent="Tripoo.Card">
+        <item name="cardCornerRadius">@dimen/card_radius_lg</item>
+    </style>
+
+    <!-- Bottom nav -->
+    <style name="Tripoo.BottomNav" parent="Widget.Material3.BottomNavigationView">
+        <item name="itemIconTint">@color/bottom_nav_color</item>
+        <item name="itemTextColor">@color/bottom_nav_color</item>
+        <item name="itemActiveIndicatorStyle">@style/Tripoo.BottomNav.Indicator</item>
+        <item name="labelVisibilityMode">labeled</item>
+    </style>
+
+    <style name="Tripoo.BottomNav.Indicator">
+        <item name="shapeAppearance">@style/ShapeAppearance.Rounded</item>
+        <item name="android:color">@color/tripoo_orange_12</item>
+    </style>
+
+    <style name="ShapeAppearance.Rounded" parent="ShapeAppearance.Material3.Corner.Full"/>
+
+    <!-- Typography -->
+    <style name="Tripoo.Text" parent="TextAppearance.Material3.BodyLarge"/>
+    <style name="Tripoo.Text.SectionLabel" parent="Tripoo.Text">
+        <item name="android:textSize">10sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.15</item>
+        <item name="android:textColor">@color/tripoo_text_secondary</item>
+    </style>
+
+    <style name="Tripoo.Text.CardTitle" parent="Tripoo.Text">
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/tripoo_text_primary</item>
+    </style>
+
+    <style name="Tripoo.Text.Body" parent="Tripoo.Text">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/tripoo_text_secondary</item>
+    </style>
+
+    <!-- Icon font (Material Symbols Outlined via ligatures) -->
+    <style name="Tripoo.Icon" parent="">
+        <item name="android:fontFamily">@font/material_symbols_outlined</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">24sp</item>
+        <!-- Required for ligatures so text like "mail" renders as icon -->
+        <item name="android:fontFeatureSettings">liga</item>
+        <item name="android:textColor">@color/tripoo_text_primary</item>
     </style>
 </resources>

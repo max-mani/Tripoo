@@ -53,7 +53,7 @@ public class TasksFragment extends Fragment {
             Resource<User> resource = homeViewModel.getUserLiveData().getValue();
             if (resource != null && resource.isSuccess() && resource.getData() != null) {
                 User user = resource.getData();
-                String tripId = user.getActiveTripId();
+                String tripId = user.getLastActiveTripId();
                 if (tripId != null && !tripId.isEmpty()) {
                     showAddTaskBottomSheet(tripId, null);
                 } else {
@@ -67,7 +67,7 @@ public class TasksFragment extends Fragment {
         homeViewModel.getUserLiveData().observe(getViewLifecycleOwner(), resource -> {
             if (resource.isSuccess() && resource.getData() != null) {
                 User user = resource.getData();
-                String tripId = user.getActiveTripId();
+                String tripId = user.getLastActiveTripId();
                 if (tripId != null && !tripId.isEmpty()) {
                     viewModel.loadTasks(tripId);
                 }

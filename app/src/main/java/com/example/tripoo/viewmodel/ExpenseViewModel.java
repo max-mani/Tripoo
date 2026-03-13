@@ -9,22 +9,19 @@ import com.example.tripoo.data.model.Expense;
 import com.example.tripoo.data.repository.AuthRepository;
 import com.example.tripoo.data.repository.ExpenseRepository;
 import com.example.tripoo.utils.Resource;
-import com.google.firebase.Timestamp;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.QuerySnapshot;
+import kotlin.Unit;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ExpenseViewModel extends AndroidViewModel {
-    private ExpenseRepository expenseRepository;
-    private AuthRepository authRepository;
-    private MutableLiveData<Resource<List<Expense>>> expensesLiveData = new MutableLiveData<>();
-    private MutableLiveData<Resource<String>> addExpenseLiveData = new MutableLiveData<>();
-    private MutableLiveData<Resource<String>> updateExpenseLiveData = new MutableLiveData<>();
-    private MutableLiveData<Double> youOweLiveData = new MutableLiveData<>();
-    private MutableLiveData<Double> youAreOwedLiveData = new MutableLiveData<>();
+    private final ExpenseRepository expenseRepository;
+    private final AuthRepository authRepository;
+    private final MutableLiveData<Resource<List<Expense>>> expensesLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Resource<String>> addExpenseLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Resource<String>> updateExpenseLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Double> youOweLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Double> youAreOwedLiveData = new MutableLiveData<>();
     private ListenerRegistration expensesListener;
     private String currentTripId;
 
@@ -37,88 +34,64 @@ public class ExpenseViewModel extends AndroidViewModel {
     public void loadExpenses(String tripId) {
         currentTripId = tripId;
         expensesLiveData.setValue(Resource.loading());
-        
+
         if (expensesListener != null) {
             expensesListener.remove();
         }
-        
-        expensesListener = expenseRepository.listenToExpenses(tripId, (snapshot, e) -> {
+
+        expensesListener = expenseRepository.listenToExpenses(tripId, (expenses, e) -> {
             if (e != null) {
                 expensesLiveData.setValue(Resource.error(e.getMessage()));
-                return;
+                return Unit.INSTANCE;
             }
-            
-            if (snapshot != null) {
-                List<Expense> expenses = new ArrayList<>();
-                for (DocumentSnapshot doc : snapshot.getDocuments()) {
-                    Expense expense = doc.toObject(Expense.class);
-                    if (expense != null) {
-                        expense.setExpenseId(doc.getId());
-                        expenses.add(expense);
-                    }
-                }
+            if (expenses != null) {
                 expensesLiveData.setValue(Resource.success(expenses));
                 calculateOwedAmounts(expenses);
             }
+            return Unit.INSTANCE;
         });
     }
 
-    public void addExpense(String tripId, String title, double amount, String paidBy, List<String> splitWith) {
+    public void addExpense(String tripId, String title, double amount, String category, String paidBy, List<String> splitWith) {
         addExpenseLiveData.setValue(Resource.loading());
-        
-        String currentUserId = authRepository.getCurrentUser() != null ? 
-                authRepository.getCurrentUser().getUid() : null;
-        
-        Expense expense = new Expense(null, title, amount, paidBy, splitWith, currentUserId, Timestamp.now());
-        expenseRepository.addExpense(tripId, expense)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        addExpenseLiveData.setValue(Resource.success("Expense added successfully"));
-                    } else {
-                        addExpenseLiveData.setValue(Resource.error(
-                                task.getException() != null ? task.getException().getMessage() : "Failed to add expense"));
-                    }
-                });
+        if (category == null) category = "other";
+        Expense expense = new Expense("", title, amount, category, paidBy, splitWith != null ? splitWith : java.util.Collections.emptyList(), System.currentTimeMillis());
+        expenseRepository.addExpense(tripId, expense, err -> {
+            if (err == null) {
+                addExpenseLiveData.setValue(Resource.success("Expense added successfully"));
+            } else {
+                addExpenseLiveData.setValue(Resource.error(err.getMessage() != null ? err.getMessage() : "Failed to add expense"));
+            }
+            return Unit.INSTANCE;
+        });
     }
 
     public void updateExpense(String tripId, String expenseId, String title, double amount, String paidBy, List<String> splitWith) {
         updateExpenseLiveData.setValue(Resource.loading());
-        
-        String currentUserId = authRepository.getCurrentUser() != null ? 
-                authRepository.getCurrentUser().getUid() : null;
-        
-        Expense expense = new Expense(expenseId, title, amount, paidBy, splitWith, currentUserId, Timestamp.now());
-        expenseRepository.updateExpense(tripId, expenseId, expense)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        updateExpenseLiveData.setValue(Resource.success("Expense updated successfully"));
-                    } else {
-                        updateExpenseLiveData.setValue(Resource.error(
-                                task.getException() != null ? task.getException().getMessage() : "Failed to update expense"));
-                    }
-                });
+        Expense expense = new Expense(expenseId, title, amount, "other", paidBy, splitWith != null ? splitWith : java.util.Collections.emptyList(), System.currentTimeMillis());
+        expenseRepository.updateExpense(tripId, expenseId, expense, err -> {
+            if (err == null) {
+                updateExpenseLiveData.setValue(Resource.success("Expense updated successfully"));
+            } else {
+                updateExpenseLiveData.setValue(Resource.error(err.getMessage() != null ? err.getMessage() : "Failed to update expense"));
+            }
+            return Unit.INSTANCE;
+        });
     }
 
     public void deleteExpense(String tripId, String expenseId) {
-        expenseRepository.deleteExpense(tripId, expenseId)
-                .addOnCompleteListener(task -> {
-                    // Expense will be removed from list via listener
-                });
+        expenseRepository.deleteExpense(tripId, expenseId, err -> Unit.INSTANCE);
     }
 
     private void calculateOwedAmounts(List<Expense> expenses) {
-        String currentUserId = authRepository.getCurrentUser() != null ? 
-                authRepository.getCurrentUser().getUid() : null;
-        
+        String currentUserId = authRepository.getCurrentUser() != null ? authRepository.getCurrentUser().getUid() : null;
         if (currentUserId == null) {
             youOweLiveData.setValue(0.0);
             youAreOwedLiveData.setValue(0.0);
             return;
         }
-        
         double youOwe = 0.0;
         double youAreOwed = 0.0;
-        
         for (Expense expense : expenses) {
             if (expense.getSplitWith() != null && expense.getSplitWith().contains(currentUserId)) {
                 double splitAmount = expense.getAmount() / expense.getSplitWith().size();
@@ -129,7 +102,6 @@ public class ExpenseViewModel extends AndroidViewModel {
                 }
             }
         }
-        
         youOweLiveData.setValue(youOwe);
         youAreOwedLiveData.setValue(youAreOwed);
     }

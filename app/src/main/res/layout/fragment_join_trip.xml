@@ -4,65 +4,325 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface">
+    android:background="@color/tripoo_bg">
 
-    <com.google.android.material.card.MaterialCardView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="24dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="4dp"
-        android:layout_gravity="center">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
+        <!-- Topbar -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="24dp">
+            android:background="@color/tripoo_surface"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="50dp"
+            android:paddingBottom="13dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <FrameLayout
+                android:id="@+id/btnBack"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/bg_circle_orange_12"
+                android:clickable="true"
+                android:focusable="true">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    style="@style/Tripoo.Icon"
+                    android:text="arrow_back"
+                    android:textColor="@color/tripoo_orange"
+                    android:textSize="20sp" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Join a Trip"
+                    android:textColor="@color/tripoo_text_primary"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    tools:ignore="HardcodedText" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:text="Enter the code from your group"
+                    android:textColor="@color/tripoo_text_secondary"
+                    android:textSize="11sp"
+                    tools:ignore="HardcodedText" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Joining as row (visual) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/tripoo_orange_12"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="@drawable/bg_avatar_circle_orange"
+                android:gravity="center"
+                android:text="FN"
+                android:textColor="@color/tripoo_surface"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="32dp"
-                android:text="Join Trip"
-                android:textSize="24sp"
+                android:layout_marginStart="9dp"
+                android:text="Joining as Faizal Noor"
+                android:textColor="@color/tripoo_text_primary"
+                android:textSize="12sp"
                 android:textStyle="bold"
-                tools:text="Join Trip" />
+                tools:ignore="HardcodedText" />
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                android:hint="Trip Code"
-                app:startIconDrawable="@android:drawable/ic_menu_edit">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etTripCode"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="text"
-                    android:maxLength="7"
-                    tools:text="TRP-123" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnJoinTrip"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Join Trip" />
-
-            <ProgressBar
-                android:id="@+id/progressBar"
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="16dp"
-                android:visibility="gone" />
-
+                android:layout_weight="1"
+                android:gravity="end"
+                android:text="Change ›"
+                android:textColor="@color/tripoo_text_secondary"
+                android:textSize="11sp"
+                tools:ignore="HardcodedText" />
         </LinearLayout>
 
-    </com.google.android.material.card.MaterialCardView>
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@color/tripoo_orange">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="22dp"
+                        android:gravity="center_horizontal">
+
+                        <FrameLayout
+                            android:layout_width="58dp"
+                            android:layout_height="58dp"
+                            android:background="#33FFFFFF"
+                            android:layout_marginBottom="11dp">
+                            <TextView
+                                style="@style/Tripoo.Icon"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:text="add_link"
+                                android:textColor="@color/tripoo_surface"
+                                android:textSize="30sp" />
+                        </FrameLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Got an invite code?"
+                            android:textColor="@color/tripoo_surface"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            tools:ignore="HardcodedText" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:text="Enter the code shared by your trip organiser to join instantly."
+                            android:textColor="#C7FFFFFF"
+                            android:textSize="13sp"
+                            android:gravity="center"
+                            android:lineSpacingExtra="4dp"
+                            tools:ignore="HardcodedText" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/Tripoo.Text.SectionLabel"
+                    android:text="Trip Join Code"
+                    android:layout_marginTop="18dp"
+                    android:layout_marginBottom="6dp"
+                    tools:ignore="HardcodedText" />
+
+                <EditText
+                    android:id="@+id/etTripCode"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:background="@drawable/bg_input_outline"
+                    android:gravity="center"
+                    android:hint="TRP-123"
+                    android:inputType="text"
+                    android:maxLength="7"
+                    android:textAllCaps="true"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.35"
+                    android:textColor="@color/tripoo_text_primary"
+                    android:textColorHint="#BBA898"
+                    tools:ignore="HardcodedText" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnJoinTrip"
+                    style="@style/Tripoo.Button.Primary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="Join Trip"
+                    app:icon="@drawable/ic_check_circle"
+                    app:iconGravity="textStart"
+                    app:iconTint="@color/tripoo_surface"
+                    app:iconPadding="8dp"
+                    tools:ignore="HardcodedText" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="18dp"
+                    android:gravity="center">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Don't have a code?"
+                        android:textColor="@color/tripoo_text_secondary"
+                        android:textSize="13sp"
+                        tools:ignore="HardcodedText" />
+                    <TextView
+                        android:id="@+id/tvCreateTrip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="Create a new trip"
+                        android:textColor="@color/tripoo_orange"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        tools:ignore="HardcodedText" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/Tripoo.Text.SectionLabel"
+                    android:text="Pending Invites"
+                    android:layout_marginTop="18dp"
+                    android:layout_marginBottom="10dp"
+                    tools:ignore="HardcodedText" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardPendingInvite"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="1dp"
+                    app:strokeColor="@color/tripoo_border_light"
+                    app:cardBackgroundColor="@color/tripoo_surface">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:padding="12dp">
+
+                        <FrameLayout
+                            android:layout_width="38dp"
+                            android:layout_height="38dp"
+                            android:background="@color/tripoo_blue_bg">
+
+                            <TextView
+                                style="@style/Tripoo.Icon"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:text="beach_access"
+                                android:textColor="@color/tripoo_blue"
+                                android:textSize="20sp" />
+                        </FrameLayout>
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="11dp">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Goa Weekend"
+                                android:textColor="@color/tripoo_text_primary"
+                                android:textSize="13sp"
+                                android:textStyle="bold"
+                                tools:ignore="HardcodedText" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Mani invited you"
+                                android:textColor="@color/tripoo_text_secondary"
+                                android:textSize="11sp"
+                                tools:ignore="HardcodedText" />
+                        </LinearLayout>
+                        <TextView
+                            android:id="@+id/btnAcceptInvite"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@color/tripoo_orange_12"
+                            android:text="Join"
+                            android:textColor="@color/tripoo_orange"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:paddingStart="11dp"
+                            android:paddingEnd="11dp"
+                            android:paddingTop="5dp"
+                            android:paddingBottom="5dp"
+                            tools:ignore="HardcodedText" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="12dp"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

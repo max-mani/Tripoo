@@ -4,123 +4,370 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?android:attr/colorBackground">
+    android:background="@color/tripoo_section_bg">
 
-    <androidx.core.widget.NestedScrollView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:orientation="vertical">
 
+        <!-- Topbar -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:background="@color/tripoo_surface"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="50dp"
+            android:paddingBottom="13dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-            <!-- You Owe / You Are Owed Cards -->
+            <FrameLayout
+                android:id="@+id/btnBack"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:foreground="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    style="@style/Tripoo.Icon"
+                    android:text="arrow_back"
+                    android:textColor="@color/tripoo_orange"
+                    android:textSize="20sp" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bali Trip"
+                    android:textColor="@color/tripoo_text_primary"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    tools:ignore="HardcodedText" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:text="8 participants · Jul 15–30"
+                    android:textColor="@color/tripoo_text_secondary"
+                    android:textSize="11sp"
+                    tools:ignore="HardcodedText" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <FrameLayout
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:foreground="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        style="@style/Tripoo.Icon"
+                        android:text="search"
+                        android:textColor="@color/tripoo_text_primary"
+                        android:textSize="22sp" />
+                </FrameLayout>
+                <FrameLayout
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:foreground="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        style="@style/Tripoo.Icon"
+                        android:text="more_vert"
+                        android:textColor="@color/tripoo_text_primary"
+                        android:textSize="22sp" />
+                </FrameLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Balances -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:background="@color/tripoo_surface">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:cardBackgroundColor="@color/tripoo_red_bg"
+                app:strokeColor="@color/tripoo_red_border"
+                app:strokeWidth="1dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="13dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="You Owe"
+                        android:textColor="#B91C1C"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        tools:ignore="HardcodedText" />
+
+                    <TextView
+                        android:id="@+id/tvYouOwe"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:text="₹0"
+                        android:textColor="@color/tripoo_text_primary"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        tools:ignore="HardcodedText" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <TextView style="@style/Tripoo.Icon" android:text="trending_down" android:textColor="@color/tripoo_red" android:textSize="13sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="3dp" android:text="-5% last week" android:textColor="@color/tripoo_red" android:textSize="10sp" android:textStyle="bold" tools:ignore="HardcodedText"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                app:cardBackgroundColor="@color/tripoo_orange_12"
+                app:strokeColor="#33F48C25"
+                app:strokeWidth="1dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="13dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="You Are Owed"
+                        android:textColor="@color/tripoo_orange"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        tools:ignore="HardcodedText" />
+
+                    <TextView
+                        android:id="@+id/tvYouAreOwed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:text="₹0"
+                        android:textColor="@color/tripoo_text_primary"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        tools:ignore="HardcodedText" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <TextView style="@style/Tripoo.Icon" android:text="trending_up" android:textColor="@color/tripoo_green" android:textSize="13sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="3dp" android:text="+12% last week" android:textColor="@color/tripoo_green" android:textSize="10sp" android:textStyle="bold" tools:ignore="HardcodedText"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <!-- Tabs (visual only) -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/tripoo_surface"
+            android:scrollbars="none">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingTop="12dp" android:paddingBottom="12dp" android:text="All Expenses" android:textColor="@color/tripoo_orange" android:textSize="12sp" android:textStyle="bold" tools:ignore="HardcodedText"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="20dp" android:paddingTop="12dp" android:paddingBottom="12dp" android:text="My Spending" android:textColor="@color/tripoo_text_hint" android:textSize="12sp" android:textStyle="bold" tools:ignore="HardcodedText"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="20dp" android:paddingTop="12dp" android:paddingBottom="12dp" android:text="Settled" android:textColor="@color/tripoo_text_hint" android:textSize="12sp" android:textStyle="bold" tools:ignore="HardcodedText"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="20dp" android:paddingTop="12dp" android:paddingBottom="12dp" android:text="Stats" android:textColor="@color/tripoo_text_hint" android:textSize="12sp" android:textStyle="bold" tools:ignore="HardcodedText"/>
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fillViewport="true"
+            android:paddingBottom="90dp">
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="16dp">
+                android:orientation="vertical">
 
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardYouOwe"
-                    android:layout_width="0dp"
+                <TextView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
-                    app:cardBackgroundColor="@color/md_theme_light_error"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="2dp">
+                    android:background="@color/tripoo_section_bg"
+                    android:text="Recent Activity"
+                    android:textColor="#6B7280"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="6dp"
+                    tools:ignore="HardcodedText" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="You Owe"
-                            android:textSize="14sp"
-                            android:textColor="@color/white" />
-
-                        <TextView
-                            android:id="@+id/tvYouOwe"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="₹ 0"
-                            android:textSize="20sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/white"
-                            tools:text="₹ 1,500" />
-
-                    </LinearLayout>
-
-                </com.google.android.material.card.MaterialCardView>
-
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardYouAreOwed"
-                    android:layout_width="0dp"
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvExpenses"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_weight="1"
-                    app:cardBackgroundColor="@color/success"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="2dp">
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_expense" />
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
+        <!-- Bottom nav (visual only for now) -->
+        <LinearLayout
+            android:id="@+id/bottomNav"
+            android:layout_width="match_parent"
+            android:layout_height="76dp"
+            android:background="@drawable/bg_bnav"
+            android:orientation="horizontal"
+            android:paddingTop="9dp"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="You Are Owed"
-                            android:textSize="14sp"
-                            android:textColor="@color/white" />
-
-                        <TextView
-                            android:id="@+id/tvYouAreOwed"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="₹ 0"
-                            android:textSize="20sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/white"
-                            tools:text="₹ 2,000" />
-
-                    </LinearLayout>
-
-                </com.google.android.material.card.MaterialCardView>
-
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="top|center_horizontal"
+                android:orientation="vertical">
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/nav_home_selector"
+                    android:contentDescription="@null" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Home"
+                    android:textAllCaps="true"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.04"
+                    android:textColor="@color/tripoo_text_hint"
+                    tools:ignore="HardcodedText" />
             </LinearLayout>
 
-            <!-- Expenses List -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="Expenses"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                tools:text="Expenses" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="top|center_horizontal"
+                android:orientation="vertical">
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/nav_expense_selector"
+                    android:contentDescription="@null" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Expenses"
+                    android:textAllCaps="true"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.04"
+                    android:textColor="@color/tripoo_orange"
+                    tools:ignore="HardcodedText" />
+            </LinearLayout>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvExpenses"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                tools:listitem="@layout/item_expense" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="top|center_horizontal"
+                android:orientation="vertical">
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/nav_tasks_selector"
+                    android:contentDescription="@null" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tasks"
+                    android:textAllCaps="true"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.04"
+                    android:textColor="@color/tripoo_text_hint"
+                    tools:ignore="HardcodedText" />
+            </LinearLayout>
 
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="top|center_horizontal"
+                android:orientation="vertical">
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/nav_groups_selector"
+                    android:contentDescription="@null" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Groups"
+                    android:textAllCaps="true"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.04"
+                    android:textColor="@color/tripoo_text_hint"
+                    tools:ignore="HardcodedText" />
+            </LinearLayout>
         </LinearLayout>
-
-    </androidx.core.widget.NestedScrollView>
+    </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddExpense"
@@ -128,10 +375,10 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:contentDescription="Add Expense"
-        app:backgroundTint="@color/md_theme_light_primary"
-        app:tint="@color/white"
-        app:layout_anchor="@id/rvExpenses"
-        app:layout_anchorGravity="bottom|end"
-        app:srcCompat="@android:drawable/ic_input_add" />
+        app:backgroundTint="@color/tripoo_orange"
+        app:tint="@color/tripoo_surface"
+        app:layout_anchor="@id/bottomNav"
+        app:layout_anchorGravity="top|end"
+        app:srcCompat="@drawable/ic_add" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

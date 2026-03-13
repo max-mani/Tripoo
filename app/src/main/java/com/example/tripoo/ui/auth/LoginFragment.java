@@ -54,7 +54,7 @@ public class LoginFragment extends Fragment {
                 binding.btnLogin.setEnabled(true);
                 
                 if (resource.isSuccess()) {
-                    Navigation.findNavController(view).navigate(R.id.action_login_to_home);
+                    Navigation.findNavController(view).navigate(R.id.action_login_to_dashboard);
                 } else if (resource.isError()) {
                     Toast.makeText(requireContext(), resource.getMessage(), Toast.LENGTH_SHORT).show();
                 }

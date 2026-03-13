@@ -13,19 +13,18 @@ import com.example.tripoo.data.repository.TripRepository;
 import com.example.tripoo.data.repository.UserRepository;
 import com.example.tripoo.utils.Resource;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.QuerySnapshot;
+import kotlin.Unit;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GroupsViewModel extends AndroidViewModel {
-    private TripRepository tripRepository;
-    private AuthRepository authRepository;
-    private UserRepository userRepository;
-    private MutableLiveData<Resource<Trip>> tripLiveData = new MutableLiveData<>();
-    private MutableLiveData<Resource<List<TripMember>>> membersLiveData = new MutableLiveData<>();
+    private final TripRepository tripRepository;
+    private final AuthRepository authRepository;
+    private final UserRepository userRepository;
+    private final MutableLiveData<Resource<Trip>> tripLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Resource<List<TripMember>>> membersLiveData = new MutableLiveData<>();
     private ListenerRegistration tripListener;
     private ListenerRegistration membersListener;
     private String currentTripId;
@@ -39,101 +38,65 @@ public class GroupsViewModel extends AndroidViewModel {
 
     public void loadTripAndMembers(String tripId) {
         currentTripId = tripId;
-        
-        // Load trip
-        tripListener = tripRepository.listenToTrip(tripId, (snapshot, e) -> {
+
+        tripListener = tripRepository.listenToTrip(tripId, (trip, e) -> {
             if (e != null) {
                 tripLiveData.setValue(Resource.error(e.getMessage()));
-                return;
+                return Unit.INSTANCE;
             }
-            
-            if (snapshot != null && snapshot.exists()) {
-                Trip trip = snapshot.toObject(Trip.class);
-                if (trip != null) {
-                    trip.setTripId(snapshot.getId());
-                    tripLiveData.setValue(Resource.success(trip));
-                }
+            if (trip != null) {
+                tripLiveData.setValue(Resource.success(trip));
             }
+            return Unit.INSTANCE;
         });
-        
-        // Load members
+
         membersLiveData.setValue(Resource.loading());
-        membersListener = tripRepository.listenToTripMembers(tripId, (snapshot, e) -> {
+        membersListener = tripRepository.listenToTripMembers(tripId, (members, e) -> {
             if (e != null) {
                 membersLiveData.setValue(Resource.error(e.getMessage()));
-                return;
+                return Unit.INSTANCE;
             }
-            
-            if (snapshot != null) {
-                final List<TripMember> members = new ArrayList<>();
+            if (members != null) {
                 FirebaseUser currentUser = authRepository.getCurrentUser();
-                final String currentUserId = currentUser != null ? currentUser.getUid() : null;
-                final boolean[] currentUserInList = {false};
-                final TripMember[] currentUserMember = {null};
-                
-                for (DocumentSnapshot doc : snapshot.getDocuments()) {
-                    TripMember member = doc.toObject(TripMember.class);
-                    if (member != null) {
-                        member.setUserId(doc.getId());
-                        members.add(member);
-                        // Check if current user is in the list
-                        if (currentUserId != null && doc.getId().equals(currentUserId)) {
-                            currentUserInList[0] = true;
-                            currentUserMember[0] = member;
-                        }
-                    }
-                }
-                
-                // Always update current user's name from User document and ensure they're in the list
+                String currentUserId = currentUser != null ? currentUser.getUid() : null;
                 if (currentUserId != null) {
-                    userRepository.getUser(currentUserId)
-                            .addOnCompleteListener(userTask -> {
-                                String userName = "User";
-                                String userEmail = currentUser.getEmail();
-                                String userPhotoUrl = null;
-                                
-                                if (userTask.isSuccessful() && userTask.getResult().exists()) {
-                                    DocumentSnapshot userDoc = userTask.getResult();
-                                    userName = userDoc.getString("name");
-                                    if (userName == null || userName.isEmpty()) {
-                                        userName = currentUser.getDisplayName() != null ? 
-                                                currentUser.getDisplayName() : "User";
-                                    }
-                                    userPhotoUrl = userDoc.getString("photoUrl");
-                                } else {
-                                    userName = currentUser.getDisplayName() != null ? 
-                                            currentUser.getDisplayName() : "User";
-                                }
-                                
-                                if (userPhotoUrl == null && currentUser.getPhotoUrl() != null) {
-                                    userPhotoUrl = currentUser.getPhotoUrl().toString();
-                                }
-                                
-                                // Update existing member or add new one
-                                if (currentUserInList[0] && currentUserMember[0] != null) {
-                                    // Update the existing member's name and photo
-                                    currentUserMember[0].setName(userName);
-                                    if (userPhotoUrl != null) {
-                                        currentUserMember[0].setPhotoUrl(userPhotoUrl);
-                                    }
-                                } else {
-                                    // Add current user to members list
-                                    TripMember newMember = new TripMember(
-                                            currentUserId,
-                                            userName,
-                                            userEmail,
-                                            userPhotoUrl,
-                                            false
-                                    );
-                                    members.add(newMember);
-                                }
-                                
-                                membersLiveData.setValue(Resource.success(members));
-                            });
+                    userRepository.getUser(currentUserId, user -> {
+                        String userName = "User";
+                        String userPhotoUrl = null;
+                        if (user != null) {
+                            userName = user.getName() != null && !user.getName().isEmpty() ? user.getName() : (currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "User");
+                            userPhotoUrl = user.getPhotoUrl();
+                        } else if (currentUser.getDisplayName() != null) {
+                            userName = currentUser.getDisplayName();
+                        }
+                        if (userPhotoUrl == null && currentUser.getPhotoUrl() != null) {
+                            userPhotoUrl = currentUser.getPhotoUrl().toString();
+                        }
+                        boolean currentUserInList = false;
+                        List<TripMember> result = new ArrayList<>(members);
+                        for (TripMember m : members) {
+                            if (currentUserId.equals(m.getUserId())) {
+                                currentUserInList = true;
+                                break;
+                            }
+                        }
+                        if (!currentUserInList) {
+                            result.add(new TripMember(
+                                    currentUserId,
+                                    userName,
+                                    currentUser.getEmail() != null ? currentUser.getEmail() : "",
+                                    userPhotoUrl,
+                                    false
+                            ));
+                        }
+                        membersLiveData.setValue(Resource.success(result));
+                        return Unit.INSTANCE;
+                    });
                 } else {
                     membersLiveData.setValue(Resource.success(members));
                 }
             }
+            return Unit.INSTANCE;
         });
     }
 
