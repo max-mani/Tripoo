@@ -77,7 +77,8 @@
             <FrameLayout
                 android:layout_width="28dp"
                 android:layout_height="28dp"
-                android:background="@drawable/bg_avatar_circle_orange">
+                android:background="@drawable/bg_avatar_circle_orange"
+                android:clipToOutline="true">
                 <ImageView
                     android:id="@+id/ivCreateIdentityAvatar"
                     android:layout_width="match_parent"
@@ -289,7 +290,7 @@
                         android:layout_height="20dp"
                         android:layout_gravity="start|center_vertical"
                         android:layout_marginStart="13dp"
-                        android:src="@drawable/ic_wallet"
+                        android:src="@drawable/ic_budget_nav"
                         android:tint="@color/tripoo_text_secondary" />
                     <EditText
                         android:id="@+id/etBudget"
@@ -358,7 +359,7 @@
                             <FrameLayout
                                 android:layout_width="40dp"
                                 android:layout_height="40dp"
-                                android:background="@color/tripoo_orange"
+                                android:background="@drawable/bg_invite_icon_orange"
                                 android:layout_marginEnd="10dp">
                                 <ImageView
                                     android:layout_width="22dp"

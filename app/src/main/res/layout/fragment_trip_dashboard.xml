@@ -41,6 +41,12 @@
                 android:textFontWeight="900"
                 tools:ignore="HardcodedText" />
 
+            <!-- spacer pushes avatar to far right -->
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
             <FrameLayout
                 android:id="@+id/btnProfile"
                 android:layout_width="36dp"
@@ -48,7 +54,8 @@
                 android:layout_marginStart="0dp"
                 android:layout_marginLeft="0dp"
                 android:layout_gravity="end"
-                android:layout_weight="1"
+                android:background="@drawable/bg_avatar_ring_orange"
+                android:clipToOutline="true"
                 android:foreground="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true">
@@ -57,7 +64,6 @@
                     android:id="@+id/ivAvatar"
                     android:layout_width="36dp"
                     android:layout_height="36dp"
-                    android:background="@drawable/bg_avatar_circle_orange"
                     android:scaleType="centerCrop"
                     android:visibility="gone" />
 
@@ -65,7 +71,6 @@
                     android:id="@+id/tvAvatar"
                     android:layout_width="36dp"
                     android:layout_height="36dp"
-                    android:background="@drawable/bg_avatar_circle_orange"
                     android:gravity="center"
                     android:text="FN"
                     android:textColor="@color/tripoo_surface"
