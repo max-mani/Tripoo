@@ -79,7 +79,7 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:fillViewport="true"
-            android:paddingBottom="8dp">
+            android:paddingBottom="90dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -219,29 +219,37 @@
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
 
-        <!-- Bottom nav (visual only) -->
+        <!-- Bottom nav -->
         <LinearLayout
             android:id="@+id/bottomNav"
             android:layout_width="match_parent"
             android:layout_height="76dp"
             android:background="@drawable/bg_bnav"
             android:orientation="horizontal"
+            android:gravity="top"
             android:paddingTop="9dp"
+            android:paddingBottom="0dp"
             android:paddingStart="4dp"
             android:paddingEnd="4dp">
 
             <LinearLayout
+                android:id="@+id/navHome"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="top|center_horizontal"
-                android:orientation="vertical">
+                android:gravity="center"
+                android:orientation="vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless">
                 <ImageView
+                    android:id="@+id/ivNavHome"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/nav_home_selector"
                     android:contentDescription="@null" />
                 <TextView
+                    android:id="@+id/tvNavHome"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Home"
@@ -254,17 +262,23 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/navExpenses"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="top|center_horizontal"
-                android:orientation="vertical">
+                android:gravity="center"
+                android:orientation="vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless">
                 <ImageView
+                    android:id="@+id/ivNavExpenses"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/nav_expense_selector"
                     android:contentDescription="@null" />
                 <TextView
+                    android:id="@+id/tvNavExpenses"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Expenses"
@@ -277,17 +291,23 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/navTasks"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="top|center_horizontal"
-                android:orientation="vertical">
+                android:gravity="center"
+                android:orientation="vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless">
                 <ImageView
+                    android:id="@+id/ivNavTasks"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/nav_tasks_selector"
                     android:contentDescription="@null" />
                 <TextView
+                    android:id="@+id/tvNavTasks"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Tasks"
@@ -300,17 +320,23 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/navGroups"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="top|center_horizontal"
-                android:orientation="vertical">
+                android:gravity="center"
+                android:orientation="vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless">
                 <ImageView
+                    android:id="@+id/ivNavGroups"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/nav_groups_selector"
                     android:contentDescription="@null" />
                 <TextView
+                    android:id="@+id/tvNavGroups"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Groups"

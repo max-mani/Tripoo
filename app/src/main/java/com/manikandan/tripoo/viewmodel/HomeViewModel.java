@@ -50,10 +50,6 @@ public class HomeViewModel extends AndroidViewModel {
         userRepository.getUser(firebaseUser.getUid(), user -> {
             if (user != null) {
                 userLiveData.setValue(Resource.success(user));
-                String lastActiveTripId = user.getLastActiveTripId();
-                if (lastActiveTripId != null && !lastActiveTripId.isEmpty()) {
-                    loadTrip(lastActiveTripId);
-                }
             } else {
                 userLiveData.setValue(Resource.error("Failed to load user"));
             }

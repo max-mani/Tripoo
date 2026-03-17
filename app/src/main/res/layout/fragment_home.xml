@@ -30,14 +30,12 @@
                 android:foreground="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true">
-                <TextView
-                    style="@style/Tripoo.Icon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_gravity="center"
-                    android:text="arrow_back"
-                    android:textColor="@color/tripoo_orange"
-                    android:textSize="20sp" />
+                    android:src="@drawable/ic_arrow_back"
+                    android:tint="@color/tripoo_orange" />
             </FrameLayout>
 
             <LinearLayout
@@ -76,14 +74,12 @@
                 android:foreground="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true">
-                <TextView
-                    style="@style/Tripoo.Icon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
                     android:layout_gravity="center"
-                    android:text="more_horiz"
-                    android:textColor="@color/tripoo_text_primary"
-                    android:textSize="22sp" />
+                    android:src="@drawable/ic_more_horiz"
+                    android:tint="@color/tripoo_text_primary" />
             </FrameLayout>
         </LinearLayout>
 
@@ -197,13 +193,28 @@
                     android:paddingBottom="17dp"
                     android:orientation="vertical">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Countdown to Adventure"
-                        android:textColor="#E0FFFFFF"
-                        android:textSize="12sp"
-                        tools:ignore="HardcodedText" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_schedule"
+                            android:tint="#E0FFFFFF"
+                            android:contentDescription="@null" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="Countdown to Adventure"
+                            android:textColor="#E0FFFFFF"
+                            android:textSize="12sp"
+                            tools:ignore="HardcodedText" />
+                    </LinearLayout>
 
                     <TextView
                         android:id="@+id/tvTripPlace"
@@ -216,13 +227,145 @@
                         android:textStyle="bold"
                         tools:ignore="HardcodedText" />
 
+                    <LinearLayout
+                        android:id="@+id/llCountdownTiles"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="horizontal"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_countdown_tile"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp">
+                            <TextView
+                                android:id="@+id/tvCdDays"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0"
+                                android:textColor="@color/tripoo_surface"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                tools:ignore="HardcodedText" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp"
+                                android:text="DAYS"
+                                android:textColor="#E0FFFFFF"
+                                android:textSize="10sp"
+                                android:textStyle="bold"
+                                tools:ignore="HardcodedText" />
+                        </LinearLayout>
+
+                        <View android:layout_width="10dp" android:layout_height="1dp" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_countdown_tile"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp">
+                            <TextView
+                                android:id="@+id/tvCdHours"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0"
+                                android:textColor="@color/tripoo_surface"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                tools:ignore="HardcodedText" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp"
+                                android:text="HOURS"
+                                android:textColor="#E0FFFFFF"
+                                android:textSize="10sp"
+                                android:textStyle="bold"
+                                tools:ignore="HardcodedText" />
+                        </LinearLayout>
+
+                        <View android:layout_width="10dp" android:layout_height="1dp" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_countdown_tile"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp">
+                            <TextView
+                                android:id="@+id/tvCdMins"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0"
+                                android:textColor="@color/tripoo_surface"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                tools:ignore="HardcodedText" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp"
+                                android:text="MINS"
+                                android:textColor="#E0FFFFFF"
+                                android:textSize="10sp"
+                                android:textStyle="bold"
+                                tools:ignore="HardcodedText" />
+                        </LinearLayout>
+
+                        <View android:layout_width="10dp" android:layout_height="1dp" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_countdown_tile"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp">
+                            <TextView
+                                android:id="@+id/tvCdSecs"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0"
+                                android:textColor="@color/tripoo_surface"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                tools:ignore="HardcodedText" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp"
+                                android:text="SECS"
+                                android:textColor="#E0FFFFFF"
+                                android:textSize="10sp"
+                                android:textStyle="bold"
+                                tools:ignore="HardcodedText" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Legacy view (kept for safety, but not shown) -->
                     <com.manikandan.tripoo.view.TripCountdownView
                         android:id="@+id/tripCountdownView"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
-                        android:visibility="gone"
-                        tools:visibility="visible" />
+                        android:visibility="gone" />
                 </LinearLayout>
 
                 <com.google.android.material.card.MaterialCardView
@@ -255,14 +398,13 @@
                                 android:layout_height="38dp"
                                 android:background="@color/tripoo_orange_12"
                                 android:layout_marginEnd="11dp">
-                                <TextView
-                                    style="@style/Tripoo.Icon"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
                                     android:layout_gravity="center"
-                                    android:text="account_balance_wallet"
-                                    android:textColor="@color/tripoo_orange"
-                                    android:textSize="20sp" />
+                                    android:src="@drawable/ic_budget_nav"
+                                    android:tint="@color/tripoo_orange"
+                                    android:contentDescription="@null" />
                             </FrameLayout>
 
                             <LinearLayout
@@ -279,6 +421,7 @@
                                     android:textStyle="bold"
                                     tools:ignore="HardcodedText" />
                                 <TextView
+                                    android:id="@+id/tvBudgetSharedAcross"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="2dp"
@@ -304,8 +447,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
-                            android:visibility="gone"
-                            tools:visibility="visible">
+                            android:visibility="visible">
 
                             <com.google.android.material.progressindicator.LinearProgressIndicator
                                 android:id="@+id/progressBudget"
@@ -352,13 +494,13 @@
                                     android:textSize="11sp"
                                     android:textStyle="bold"
                                     tools:ignore="HardcodedText" />
-                                <TextView
-                                    style="@style/Tripoo.Icon"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="chevron_right"
-                                    android:textColor="@color/tripoo_orange"
-                                    android:textSize="15sp" />
+                                <ImageView
+                                    android:layout_width="16dp"
+                                    android:layout_height="16dp"
+                                    android:layout_marginStart="2dp"
+                                    android:src="@drawable/ic_chevron_right"
+                                    android:tint="@color/tripoo_orange"
+                                    android:contentDescription="@null" />
                             </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
@@ -406,7 +548,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Day 1 Location"
+                                android:text="Location"
                                 android:textColor="@color/tripoo_orange"
                                 android:textSize="11sp"
                                 android:textStyle="bold"
@@ -419,24 +561,27 @@
                             android:background="@drawable/bg_map_preview">
 
                             <LinearLayout
+                                android:id="@+id/btnViewMaps"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="center"
                                 android:background="@drawable/bg_map_chip"
                                 android:orientation="horizontal"
                                 android:gravity="center_vertical"
+                                android:clickable="true"
+                                android:focusable="true"
                                 android:paddingStart="12dp"
                                 android:paddingEnd="12dp"
                                 android:paddingTop="6dp"
                                 android:paddingBottom="6dp">
 
-                                <TextView
-                                    style="@style/Tripoo.Icon"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="location_on"
-                                    android:textColor="@color/tripoo_orange"
-                                    android:textSize="13sp" />
+                                <ImageView
+                                    android:layout_width="16dp"
+                                    android:layout_height="16dp"
+                                    android:layout_marginEnd="6dp"
+                                    android:src="@drawable/ic_location"
+                                    android:tint="@color/tripoo_orange"
+                                    android:contentDescription="@null" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
@@ -488,8 +633,16 @@
                             android:gravity="center"
                             android:paddingTop="13dp"
                             android:paddingBottom="13dp">
-                            <FrameLayout android:layout_width="42dp" android:layout_height="42dp" android:background="@color/tripoo_orange_12">
-                                <TextView style="@style/Tripoo.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="payments" android:textColor="@color/tripoo_orange" android:textSize="20sp"/>
+                            <FrameLayout
+                                android:layout_width="42dp"
+                                android:layout_height="42dp"
+                                android:background="@drawable/bg_circle_orange_lt">
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/ic_receipt"
+                                    android:tint="@color/tripoo_orange" />
                             </FrameLayout>
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Expenses" android:textColor="@color/tripoo_text_primary" android:textSize="10sp" android:textStyle="bold" tools:ignore="HardcodedText"/>
                         </LinearLayout>
@@ -513,8 +666,16 @@
                             android:gravity="center"
                             android:paddingTop="13dp"
                             android:paddingBottom="13dp">
-                            <FrameLayout android:layout_width="42dp" android:layout_height="42dp" android:background="@color/tripoo_orange_12">
-                                <TextView style="@style/Tripoo.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="checklist" android:textColor="@color/tripoo_orange" android:textSize="20sp"/>
+                            <FrameLayout
+                                android:layout_width="42dp"
+                                android:layout_height="42dp"
+                                android:background="@drawable/bg_circle_orange_lt">
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/ic_tasks"
+                                    android:tint="@color/tripoo_orange" />
                             </FrameLayout>
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="To-Do List" android:textColor="@color/tripoo_text_primary" android:textSize="10sp" android:textStyle="bold" tools:ignore="HardcodedText"/>
                         </LinearLayout>
@@ -538,8 +699,16 @@
                             android:gravity="center"
                             android:paddingTop="13dp"
                             android:paddingBottom="13dp">
-                            <FrameLayout android:layout_width="42dp" android:layout_height="42dp" android:background="@color/tripoo_orange_12">
-                                <TextView style="@style/Tripoo.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="group" android:textColor="@color/tripoo_orange" android:textSize="20sp"/>
+                            <FrameLayout
+                                android:layout_width="42dp"
+                                android:layout_height="42dp"
+                                android:background="@drawable/bg_circle_orange_lt">
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/ic_group"
+                                    android:tint="@color/tripoo_orange" />
                             </FrameLayout>
                             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Participants" android:textColor="@color/tripoo_text_primary" android:textSize="10sp" android:textStyle="bold" tools:ignore="HardcodedText"/>
                         </LinearLayout>
@@ -557,7 +726,9 @@
             android:layout_height="76dp"
             android:background="@drawable/bg_bnav"
             android:orientation="horizontal"
+            android:gravity="top"
             android:paddingTop="9dp"
+            android:paddingBottom="0dp"
             android:paddingStart="4dp"
             android:paddingEnd="4dp">
 
@@ -566,14 +737,19 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="top|center_horizontal"
-                android:orientation="vertical">
+                android:gravity="center"
+                android:orientation="vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless">
                 <ImageView
+                    android:id="@+id/ivNavHome"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/nav_home_selector"
                     android:contentDescription="@null" />
                 <TextView
+                    android:id="@+id/tvNavHome"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Home"
@@ -590,14 +766,19 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="top|center_horizontal"
-                android:orientation="vertical">
+                android:gravity="center"
+                android:orientation="vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless">
                 <ImageView
+                    android:id="@+id/ivNavExpenses"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/nav_expense_selector"
                     android:contentDescription="@null" />
                 <TextView
+                    android:id="@+id/tvNavExpenses"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Expenses"
@@ -614,14 +795,19 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="top|center_horizontal"
-                android:orientation="vertical">
+                android:gravity="center"
+                android:orientation="vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless">
                 <ImageView
+                    android:id="@+id/ivNavTasks"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/nav_tasks_selector"
                     android:contentDescription="@null" />
                 <TextView
+                    android:id="@+id/tvNavTasks"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Tasks"
@@ -638,14 +824,19 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="top|center_horizontal"
-                android:orientation="vertical">
+                android:gravity="center"
+                android:orientation="vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless">
                 <ImageView
+                    android:id="@+id/ivNavGroups"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/nav_groups_selector"
                     android:contentDescription="@null" />
                 <TextView
+                    android:id="@+id/tvNavGroups"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Groups"

@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="24dp"
+    android:width="20dp"
+    android:height="20dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Match HTML: format_list_bulleted -->
+    <!-- Material-style format_list_bulleted icon -->
     <path
-        android:fillColor="@color/tripoo_text_hint"
+        android:fillColor="@color/tripoo_orange"
         android:pathData="M7,5h14v2H7zM7,11h14v2H7zM7,17h14v2H7z" />
     <path
-        android:fillColor="@color/tripoo_text_hint"
+        android:fillColor="@color/tripoo_orange"
         android:pathData="M4,5.5A1.5,1.5 0 1,1 1,5.5A1.5,1.5 0 0,1 4,5.5zM4,11.5A1.5,1.5 0 1,1 1,11.5A1.5,1.5 0 0,1 4,11.5zM4,17.5A1.5,1.5 0 1,1 1,17.5A1.5,1.5 0 0,1 4,17.5z" />
 </vector>
+

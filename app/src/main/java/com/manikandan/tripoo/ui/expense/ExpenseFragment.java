@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.core.content.ContextCompat;
 import com.manikandan.tripoo.R;
 import com.manikandan.tripoo.data.model.Expense;
 import com.manikandan.tripoo.data.model.User;
@@ -50,15 +51,20 @@ public class ExpenseFragment extends Fragment {
         binding.rvExpenses.setAdapter(adapter);
         
         // Load members to map user IDs to names
-        homeViewModel.getUserLiveData().observe(getViewLifecycleOwner(), resource -> {
-            if (resource.isSuccess() && resource.getData() != null) {
-                User user = resource.getData();
-                String tripId = user.getLastActiveTripId();
-                if (tripId != null && !tripId.isEmpty()) {
-                    groupsViewModel.loadTripAndMembers(tripId);
+        String initialTripId = getCurrentTripId();
+        if (initialTripId != null && !initialTripId.isEmpty()) {
+            groupsViewModel.loadTripAndMembers(initialTripId);
+        } else {
+            homeViewModel.getUserLiveData().observe(getViewLifecycleOwner(), resource -> {
+                if (resource.isSuccess() && resource.getData() != null) {
+                    User user = resource.getData();
+                    String tripId = user.getLastActiveTripId();
+                    if (tripId != null && !tripId.isEmpty()) {
+                        groupsViewModel.loadTripAndMembers(tripId);
+                    }
                 }
-            }
-        });
+            });
+        }
         
         // Observe user data to get current user info
         final User[] currentUserRef = new User[1];
@@ -90,7 +96,8 @@ public class ExpenseFragment extends Fragment {
             Resource<User> resource = homeViewModel.getUserLiveData().getValue();
             if (resource != null && resource.isSuccess() && resource.getData() != null) {
                 User user = resource.getData();
-                String tripId = user.getLastActiveTripId();
+                String tripId = getCurrentTripId();
+                if (tripId == null || tripId.isEmpty()) tripId = user.getLastActiveTripId();
                 if (tripId != null && !tripId.isEmpty()) {
                     showAddExpenseBottomSheet(tripId, null);
                 }
@@ -100,17 +107,62 @@ public class ExpenseFragment extends Fragment {
         if (binding.btnBack != null) {
             binding.btnBack.setOnClickListener(v -> Navigation.findNavController(view).popBackStack());
         }
-        
-        // Load expenses when user has active trip
-        homeViewModel.getUserLiveData().observe(getViewLifecycleOwner(), resource -> {
-            if (resource.isSuccess() && resource.getData() != null) {
-                User user = resource.getData();
-                String tripId = user.getLastActiveTripId();
-                if (tripId != null && !tripId.isEmpty()) {
-                    expenseViewModel.loadExpenses(tripId);
+
+        setActiveBottomNav("expenses");
+        // Bottom nav
+        if (binding.navHome != null) {
+            binding.navHome.setOnClickListener(v -> {
+                String tripId = getCurrentTripId();
+                if (tripId != null) {
+                    Bundle args = new Bundle();
+                    args.putString("tripId", tripId);
+                    Navigation.findNavController(view).navigate(R.id.homeFragment, args);
+                } else {
+                    Navigation.findNavController(view).navigate(R.id.homeFragment);
                 }
-            }
-        });
+            });
+        }
+        if (binding.navExpenses != null) {
+            binding.navExpenses.setOnClickListener(v -> {
+                // already on Expenses
+            });
+        }
+        if (binding.navTasks != null) {
+            binding.navTasks.setOnClickListener(v -> {
+                String tripId = getCurrentTripId();
+                if (tripId != null) {
+                    Bundle args = new Bundle();
+                    args.putString("tripId", tripId);
+                    Navigation.findNavController(view).navigate(R.id.tasksFragment, args);
+                }
+            });
+        }
+        if (binding.navGroups != null) {
+            binding.navGroups.setOnClickListener(v -> {
+                String tripId = getCurrentTripId();
+                if (tripId != null) {
+                    Bundle args = new Bundle();
+                    args.putString("tripId", tripId);
+                    Navigation.findNavController(view).navigate(R.id.participantsFragment, args);
+                }
+            });
+        }
+        
+        // Load expenses for current trip
+        String tripIdForScreen = getCurrentTripId();
+        if (tripIdForScreen != null && !tripIdForScreen.isEmpty()) {
+            expenseViewModel.loadExpenses(tripIdForScreen);
+        } else {
+            homeViewModel.getUserLiveData().observe(getViewLifecycleOwner(), resource -> {
+                if (resource.isSuccess() && resource.getData() != null) {
+                    User user = resource.getData();
+                    String tripId = user.getLastActiveTripId();
+                    if (tripId != null && !tripId.isEmpty()) {
+                        expenseViewModel.loadExpenses(tripId);
+                    }
+                }
+            });
+        }
         
         expenseViewModel.getExpensesLiveData().observe(getViewLifecycleOwner(), resource -> {
             if (resource.isSuccess() && resource.getData() != null) {
@@ -134,6 +186,32 @@ public class ExpenseFragment extends Fragment {
     private void showAddExpenseBottomSheet(String tripId, Expense expense) {
         AddExpenseBottomSheet bottomSheet = AddExpenseBottomSheet.newInstance(tripId, expense);
         bottomSheet.show(getParentFragmentManager(), "AddExpenseBottomSheet");
+    }
+
+    private String getCurrentTripId() {
+        String argTripId = getArguments() != null ? getArguments().getString("tripId", "") : "";
+        if (argTripId != null && !argTripId.isEmpty()) return argTripId;
+        Resource<User> r = homeViewModel != null ? homeViewModel.getUserLiveData().getValue() : null;
+        if (r != null && r.isSuccess() && r.getData() != null) {
+            return r.getData().getLastActiveTripId();
+        }
+        return null;
+    }
+
+    private void setActiveBottomNav(String tab) {
+        if (binding == null) return;
+        int orange = ContextCompat.getColor(requireContext(), R.color.tripoo_orange);
+        int grey = ContextCompat.getColor(requireContext(), R.color.tripoo_text_hint);
+
+        binding.ivNavHome.setSelected("home".equals(tab));
+        binding.ivNavExpenses.setSelected("expenses".equals(tab));
+        binding.ivNavTasks.setSelected("tasks".equals(tab));
+        binding.ivNavGroups.setSelected("groups".equals(tab));
+
+        binding.tvNavHome.setTextColor("home".equals(tab) ? orange : grey);
+        binding.tvNavExpenses.setTextColor("expenses".equals(tab) ? orange : grey);
+        binding.tvNavTasks.setTextColor("tasks".equals(tab) ? orange : grey);
+        binding.tvNavGroups.setTextColor("groups".equals(tab) ? orange : grey);
     }
 
     @Override
