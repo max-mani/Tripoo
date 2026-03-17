@@ -19,6 +19,12 @@
         <item name="android:windowSplashScreenBackground">@color/tripoo_orange</item>
     </style>
 
+    <!-- PopupMenu overlay: ensure visible text -->
+    <style name="ThemeOverlay.Tripoo.PopupMenu" parent="">
+        <item name="android:textColorPrimary">@color/tripoo_text_primary</item>
+        <item name="android:textColorSecondary">@color/tripoo_text_secondary</item>
+    </style>
+
     <style name="Theme.Tripoo.BottomSheet" parent="Theme.Material3.Light.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/Widget.Tripoo.BottomSheet</item>
     </style>

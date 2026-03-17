@@ -116,4 +116,15 @@ class UserRepository {
             }
         }
     }
+
+    fun removeTripFromUser(uid: String, tripId: String, callback: (Throwable?) -> Unit) {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                withContext(Dispatchers.IO) { removeTripFromUser(uid, tripId) }
+                callback(null)
+            } catch (e: Exception) {
+                callback(e)
+            }
+        }
+    }
 }

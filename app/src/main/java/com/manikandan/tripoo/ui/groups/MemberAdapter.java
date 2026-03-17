@@ -55,25 +55,60 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.MemberView
         public void bind(TripMember member) {
             binding.tvMemberName.setText(member.getName());
             binding.tvMemberEmail.setText(member.getEmail());
-            
+
+            // Admin chip visibility
             if (member.isAdmin()) {
                 binding.chipAdmin.setVisibility(android.view.View.VISIBLE);
             } else {
                 binding.chipAdmin.setVisibility(android.view.View.GONE);
             }
-            
-            if (member.getPhotoUrl() != null && !member.getPhotoUrl().isEmpty()) {
-                loadMemberPhoto(member.getPhotoUrl());
+
+            // Default to initials avatar
+            String initials = getInitials(member.getName());
+            if (binding.tvMemberInitials != null) {
+                binding.tvMemberInitials.setText(initials);
+                binding.tvMemberInitials.setVisibility(android.view.View.VISIBLE);
             }
+            if (binding.ivMemberPhoto != null) {
+                binding.ivMemberPhoto.setImageDrawable(null);
+                binding.ivMemberPhoto.setVisibility(android.view.View.GONE);
+            }
+
+            // If there is a photoUrl, try to show photo instead of initials
+            String photoUrl = member.getPhotoUrl();
+            if (photoUrl != null && !photoUrl.isEmpty()) {
+                loadMemberPhoto(photoUrl);
+            }
+        }
+
+        private String getInitials(String name) {
+            if (name == null) return "";
+            String trimmed = name.trim();
+            if (trimmed.isEmpty()) return "";
+            String[] parts = trimmed.split("\\s+");
+            StringBuilder sb = new StringBuilder();
+            sb.append(Character.toUpperCase(parts[0].charAt(0)));
+            if (parts.length > 1) {
+                sb.append(Character.toUpperCase(parts[1].charAt(0)));
+            }
+            return sb.toString();
         }
         
         private void loadMemberPhoto(String photoUrl) {
             if (photoUrl == null || photoUrl.isEmpty()) return;
-            // Never pass base64 to Glide - decode first
+
+            // Hide initials while we attempt to load the photo
+            if (binding.tvMemberInitials != null) {
+                binding.tvMemberInitials.setVisibility(android.view.View.GONE);
+            }
+            if (binding.ivMemberPhoto != null) {
+                binding.ivMemberPhoto.setVisibility(android.view.View.VISIBLE);
+            }
+
+            // Never pass base64 directly to Glide - decode first
             if (photoUrl.startsWith("http://") || photoUrl.startsWith("https://")) {
                 Glide.with(binding.getRoot())
                         .load(photoUrl)
-                        .circleCrop()
                         .placeholder(R.drawable.ic_launcher_foreground)
                         .into(binding.ivMemberPhoto);
                 return;
@@ -82,9 +117,16 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.MemberView
             if (bitmap != null) {
                 Glide.with(binding.getRoot())
                         .load(bitmap)
-                        .circleCrop()
                         .placeholder(R.drawable.ic_launcher_foreground)
                         .into(binding.ivMemberPhoto);
+            } else {
+                // Fallback back to initials
+                if (binding.ivMemberPhoto != null) {
+                    binding.ivMemberPhoto.setVisibility(android.view.View.GONE);
+                }
+                if (binding.tvMemberInitials != null) {
+                    binding.tvMemberInitials.setVisibility(android.view.View.VISIBLE);
+                }
             }
         }
     }

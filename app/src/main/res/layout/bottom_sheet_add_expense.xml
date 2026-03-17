@@ -22,8 +22,7 @@
         android:paddingStart="18dp"
         android:paddingEnd="18dp"
         android:paddingTop="14dp"
-        android:paddingBottom="12dp"
-        android:background="?attr/colorSurface">
+        android:paddingBottom="12dp">
 
         <TextView
             android:layout_width="0dp"
@@ -33,7 +32,6 @@
             android:textColor="@color/tripoo_text_primary"
             android:textSize="17sp"
             android:textStyle="bold"
-            android:fontWeight="800"
             tools:ignore="HardcodedText" />
 
         <FrameLayout
@@ -44,14 +42,13 @@
             android:clickable="true"
             android:focusable="true">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
                 android:layout_gravity="center"
-                style="@style/Tripoo.Icon"
-                android:text="close"
-                android:textColor="@color/tripoo_text_secondary"
-                android:textSize="18sp" />
+                android:src="@drawable/ic_close"
+                android:tint="@color/tripoo_text_secondary"
+                android:contentDescription="@string/close" />
         </FrameLayout>
     </LinearLayout>
 
@@ -60,11 +57,11 @@
         android:layout_height="1dp"
         android:background="@color/tripoo_border_light" />
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fillViewport="true"
-        android:maxHeight="400dp">
+        android:maxHeight="520dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -75,17 +72,18 @@
             android:paddingTop="18dp"
             android:paddingBottom="32dp">
 
+            <!-- Amount -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 style="@style/Tripoo.Text.SectionLabel"
-                android:text="Amount"
-                android:layout_marginBottom="7dp" />
+                android:text="AMOUNT"
+                android:layout_marginBottom="7dp"
+                tools:ignore="HardcodedText" />
 
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:background="@drawable/bg_input_outline">
+                android:layout_height="wrap_content">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -100,324 +98,229 @@
                 <EditText
                     android:id="@+id/etAmount"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="32dp"
+                    android:layout_height="50dp"
+                    android:layout_marginStart="34dp"
                     android:layout_marginEnd="14dp"
-                    android:background="@android:color/transparent"
-                    android:hint="0.00"
+                    android:background="@drawable/bg_input_outline"
                     android:inputType="numberDecimal"
+                    android:hint="0.00"
                     android:textColor="@color/tripoo_text_primary"
                     android:textColorHint="#BBA898"
                     android:textSize="22sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    tools:ignore="Autofill,HardcodedText" />
             </FrameLayout>
 
+            <!-- Description -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 style="@style/Tripoo.Text.SectionLabel"
-                android:text="Description"
+                android:text="DESCRIPTION"
                 android:layout_marginTop="15dp"
-                android:layout_marginBottom="7dp" />
+                android:layout_marginBottom="7dp"
+                tools:ignore="HardcodedText" />
 
-            <FrameLayout
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:background="@drawable/bg_input_outline">
+                android:layout_height="wrap_content"
+                app:startIconDrawable="@drawable/ic_receipt">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start|center_vertical"
-                    android:layout_marginStart="13dp"
-                    style="@style/Tripoo.Icon"
-                    android:text="receipt"
-                    android:textColor="@color/tripoo_text_secondary"
-                    android:textSize="20sp" />
-
-                <EditText
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etDescription"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="44dp"
-                    android:layout_marginEnd="14dp"
-                    android:background="@android:color/transparent"
+                    android:layout_height="wrap_content"
                     android:hint="e.g. Villa Booking"
-                    android:inputType="text"
                     android:textColor="@color/tripoo_text_primary"
                     android:textColorHint="#BBA898"
                     android:textSize="15sp"
-                    android:singleLine="true" />
-            </FrameLayout>
+                    tools:ignore="HardcodedText" />
+            </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Category grid -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 style="@style/Tripoo.Text.SectionLabel"
-                android:text="Category"
+                android:text="CATEGORY"
                 android:layout_marginTop="15dp"
-                android:layout_marginBottom="7dp" />
+                android:layout_marginBottom="7dp"
+                tools:ignore="HardcodedText" />
 
-            <LinearLayout
+            <GridLayout
+                android:id="@+id/gridCategories"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:columnCount="3"
+                android:useDefaultMargins="false"
+                android:rowCount="2" />
 
-            <LinearLayout
+            <!-- Paid By -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/Tripoo.Text.SectionLabel"
+                android:text="PAID BY"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="7dp"
+                tools:ignore="HardcodedText" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                app:startIconDrawable="@drawable/ic_group">
 
-                <LinearLayout
-                    android:id="@+id/catAccommodation"
-                    android:layout_width="0dp"
+                <AutoCompleteTextView
+                    android:id="@+id/spinnerPaidBy"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="10dp"
-                    android:background="@drawable/bg_chip_on"
-                    android:layout_margin="4dp">
+                    android:inputType="none"
+                    android:focusable="false"
+                    android:textColor="@color/tripoo_text_primary"
+                    android:textColorHint="#BBA898"
+                    android:textSize="15sp" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-                    <FrameLayout
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="@color/tripoo_blue_bg">
-
-                        <TextView
-                            style="@style/Tripoo.Icon"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:text="home"
-                            android:textColor="@color/tripoo_blue"
-                            android:textSize="20sp" />
-                    </FrameLayout>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Accommodation"
-                        android:textColor="@color/tripoo_orange"
-                        android:textSize="10sp"
-                        android:textStyle="bold"
-                        tools:ignore="HardcodedText" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/catFood"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="10dp"
-                    android:background="@drawable/bg_chip_off"
-                    android:layout_margin="4dp">
-
-                    <FrameLayout
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="#FFEDD5">
-
-                        <TextView
-                            style="@style/Tripoo.Icon"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:text="restaurant"
-                            android:textColor="#EA580C"
-                            android:textSize="20sp" />
-                    </FrameLayout>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Food"
-                        android:textColor="@color/tripoo_text_primary"
-                        android:textSize="10sp"
-                        android:textStyle="bold"
-                        tools:ignore="HardcodedText" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/catTransport"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="10dp"
-                    android:background="@drawable/bg_chip_off"
-                    android:layout_margin="4dp">
-
-                    <FrameLayout
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="@color/tripoo_purple_bg">
-
-                        <TextView
-                            style="@style/Tripoo.Icon"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:text="directions_car"
-                            android:textColor="@color/tripoo_purple_text"
-                            android:textSize="20sp" />
-                    </FrameLayout>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Transport"
-                        android:textColor="@color/tripoo_text_primary"
-                        android:textSize="10sp"
-                        android:textStyle="bold"
-                        tools:ignore="HardcodedText" />
-                </LinearLayout>
-
-            </LinearLayout>
+            <!-- Split toggle -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/Tripoo.Text.SectionLabel"
+                android:text="SPLIT"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="7dp"
+                tools:ignore="HardcodedText" />
 
             <LinearLayout
+                android:id="@+id/layoutSplitOptions"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginTop="8dp">
+                android:weightSum="3">
 
-                <LinearLayout
-                    android:id="@+id/catDrinks"
+                <Button
+                    android:id="@+id/btnSplitEqually"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="42dp"
                     android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="10dp"
-                    android:background="@drawable/bg_chip_off"
-                    android:layout_margin="4dp">
+                    android:layout_marginEnd="8dp"
+                    android:text="Equally"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    tools:ignore="HardcodedText" />
 
-                    <FrameLayout
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="@color/tripoo_green_bg">
-
-                        <TextView
-                            style="@style/Tripoo.Icon"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:text="local_bar"
-                            android:textColor="@color/tripoo_green"
-                            android:textSize="20sp" />
-                    </FrameLayout>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Drinks"
-                        android:textColor="@color/tripoo_text_primary"
-                        android:textSize="10sp"
-                        android:textStyle="bold"
-                        tools:ignore="HardcodedText" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/catActivities"
+                <Button
+                    android:id="@+id/btnSplitCustom"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="42dp"
                     android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="10dp"
-                    android:background="@drawable/bg_chip_off"
-                    android:layout_margin="4dp">
+                    android:layout_marginEnd="8dp"
+                    android:text="Custom"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    tools:ignore="HardcodedText" />
 
-                    <FrameLayout
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="@color/tripoo_yellow_bg">
-
-                        <TextView
-                            style="@style/Tripoo.Icon"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:text="surfing"
-                            android:textColor="@color/tripoo_yellow_text"
-                            android:textSize="20sp" />
-                    </FrameLayout>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Activities"
-                        android:textColor="@color/tripoo_text_primary"
-                        android:textSize="10sp"
-                        android:textStyle="bold"
-                        tools:ignore="HardcodedText" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/catOther"
+                <Button
+                    android:id="@+id/btnSplitJustMe"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="42dp"
                     android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="10dp"
-                    android:background="@drawable/bg_chip_off"
-                    android:layout_margin="4dp">
-
-                    <FrameLayout
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="@color/tripoo_bg">
-
-                        <TextView
-                            style="@style/Tripoo.Icon"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:text="more_horiz"
-                            android:textColor="@color/tripoo_text_secondary"
-                            android:textSize="20sp" />
-                    </FrameLayout>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Other"
-                        android:textColor="@color/tripoo_text_primary"
-                        android:textSize="10sp"
-                        android:textStyle="bold"
-                        tools:ignore="HardcodedText" />
-                </LinearLayout>
-            </LinearLayout>
+                    android:text="Just Me"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    tools:ignore="HardcodedText" />
             </LinearLayout>
 
+            <!-- Split With member chips -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 style="@style/Tripoo.Text.SectionLabel"
-                android:text="Split With"
+                android:text="SPLIT WITH"
                 android:layout_marginTop="15dp"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="7dp"
+                tools:ignore="HardcodedText" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvMembers"
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupMembers"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                tools:listitem="@layout/item_member_checkbox" />
+                app:singleSelection="false" />
 
+            <!-- Date -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/Tripoo.Text.SectionLabel"
+                android:text="DATE"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="7dp"
+                tools:ignore="HardcodedText" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Tripoo.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:endIconMode="custom"
+                app:endIconDrawable="@drawable/ic_calendar"
+                app:endIconTint="@color/tripoo_orange">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Select date"
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:textColor="@color/tripoo_text_primary"
+                    android:textColorHint="#BBA898"
+                    android:textSize="15sp"
+                    tools:ignore="HardcodedText" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Note -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/Tripoo.Text.SectionLabel"
+                android:text="NOTE (OPTIONAL)"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="7dp"
+                tools:ignore="HardcodedText" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etNote"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minLines="2"
+                    android:hint="Any extra details..."
+                    android:inputType="textMultiLine"
+                    android:textColor="@color/tripoo_text_primary"
+                    android:textColorHint="#BBA898"
+                    android:textSize="15sp"
+                    tools:ignore="HardcodedText" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Submit -->
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSaveExpense"
+                android:id="@+id/btnAddExpense"
                 style="@style/Tripoo.Button.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
                 android:text="Add Expense"
-                app:icon="@null"
                 tools:ignore="HardcodedText" />
+
         </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
+
 </LinearLayout>

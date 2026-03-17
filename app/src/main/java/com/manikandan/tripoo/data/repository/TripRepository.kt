@@ -166,18 +166,50 @@ class TripRepository {
         }
     }
 
-    suspend fun deleteTrip(tripId: String, memberIds: List<String>) {
+    suspend fun deleteTripAsAdmin(tripId: String, adminUid: String) {
         try {
-            val batch = db.batch()
             val tripRef = trips.document(tripId)
-            listOf("members", "expenses", "tasks").forEach { sub ->
+
+            // 1) Delete expenses + tasks (batched)
+            suspend fun deleteSubcollection(sub: String) {
                 val docs = tripRef.collection(sub).get().await().documents
-                docs.forEach { batch.delete(it.reference) }
+                docs.chunked(400).forEach { chunk ->
+                    val batch = db.batch()
+                    chunk.forEach { batch.delete(it.reference) }
+                    batch.commit().await()
+                }
             }
-            batch.delete(tripRef)
-            batch.commit().await()
+
+            deleteSubcollection("expenses")
+            deleteSubcollection("tasks")
+
+            // 2) Delete members except admin (keep admin member doc so isAdmin() continues to pass)
+            val memberDocs = tripRef.collection("members").get().await().documents
+            val others = memberDocs.filter { it.id != adminUid }
+            others.chunked(400).forEach { chunk ->
+                val batch = db.batch()
+                chunk.forEach { batch.delete(it.reference) }
+                batch.commit().await()
+            }
+
+            // 3) Delete trip doc (requires admin member doc still exists)
+            tripRef.delete().await()
+
+            // 4) Delete admin member doc last (optional cleanup)
+            tripRef.collection("members").document(adminUid).delete().await()
         } catch (e: Exception) {
             throw e
+        }
+    }
+
+    fun deleteTripAsAdmin(tripId: String, adminUid: String, callback: (Throwable?) -> Unit) {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                withContext(Dispatchers.IO) { deleteTripAsAdmin(tripId, adminUid) }
+                callback(null)
+            } catch (e: Exception) {
+                callback(e)
+            }
         }
     }
 

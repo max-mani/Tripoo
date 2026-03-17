@@ -5,6 +5,10 @@ import android.os.CountDownTimer;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
+import android.app.AlertDialog;
+import android.widget.Toast;
+import android.widget.PopupMenu;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,6 +68,10 @@ public class HomeFragment extends Fragment {
                     Navigation.findNavController(view).navigate(R.id.tripDashboardFragment);
                 }
             });
+        }
+
+        if (binding.btnMore != null) {
+            binding.btnMore.setOnClickListener(v -> showMoreMenu(view));
         }
 
         // Bottom nav: mirror quick access navigation
@@ -226,6 +234,20 @@ public class HomeFragment extends Fragment {
             }
         });
 
+        viewModel.getDeleteTripLiveData().observe(getViewLifecycleOwner(), res -> {
+            if (res == null) return;
+            if (res.isSuccess()) {
+                Toast.makeText(requireContext(), "Trip deleted", Toast.LENGTH_SHORT).show();
+                try {
+                    Navigation.findNavController(view).popBackStack(R.id.tripDashboardFragment, false);
+                } catch (Exception e) {
+                    Navigation.findNavController(view).navigate(R.id.tripDashboardFragment);
+                }
+            } else if (res.isError()) {
+                Toast.makeText(requireContext(), res.getMessage() != null ? res.getMessage() : "Delete failed", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         viewModel.getTotalExpensesLiveData().observe(getViewLifecycleOwner(), total -> {
             Resource<Trip> tripRes = viewModel.getTripLiveData().getValue();
             if (tripRes == null || !tripRes.isSuccess() || tripRes.getData() == null) return;
@@ -266,6 +288,37 @@ public class HomeFragment extends Fragment {
         binding.tvNavExpenses.setTextColor("expenses".equals(tab) ? orange : grey);
         binding.tvNavTasks.setTextColor("tasks".equals(tab) ? orange : grey);
         binding.tvNavGroups.setTextColor("groups".equals(tab) ? orange : grey);
+    }
+
+    private void showMoreMenu(View rootView) {
+        Resource<Trip> tripRes = viewModel.getTripLiveData().getValue();
+        if (tripRes == null || !tripRes.isSuccess() || tripRes.getData() == null) return;
+
+        PopupMenu menu = new PopupMenu(new ContextThemeWrapper(requireContext(), R.style.ThemeOverlay_Tripoo_PopupMenu), binding.btnMore);
+        final int MENU_DELETE = 1;
+        menu.getMenu().add(0, MENU_DELETE, 0, "Delete trip");
+        menu.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == MENU_DELETE) {
+                showDeleteTripConfirm();
+                return true;
+            }
+            return false;
+        });
+        menu.show();
+    }
+
+    private void showDeleteTripConfirm() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Delete trip?")
+                .setMessage("This will permanently delete the trip for everyone.")
+                .setNegativeButton("Cancel", (d, w) -> d.dismiss())
+                .setPositiveButton("Delete", (d, w) -> {
+                    String tripId = getCurrentTripId();
+                    if (tripId != null && !tripId.isEmpty()) {
+                        viewModel.deleteTrip(tripId);
+                    }
+                })
+                .show();
     }
 
     private String getCurrentTripId() {

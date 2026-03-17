@@ -26,6 +26,7 @@ public class HomeViewModel extends AndroidViewModel {
     private final MutableLiveData<Resource<String>> createTripLiveData = new MutableLiveData<>();
     private final MutableLiveData<Resource<String>> joinTripLiveData = new MutableLiveData<>();
     private final MutableLiveData<Double> totalExpensesLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Resource<Void>> deleteTripLiveData = new MutableLiveData<>();
     private ListenerRegistration tripListener;
 
     public HomeViewModel(@NonNull Application application) {
@@ -217,6 +218,45 @@ public class HomeViewModel extends AndroidViewModel {
 
     public LiveData<Double> getTotalExpensesLiveData() {
         return totalExpensesLiveData;
+    }
+
+    public LiveData<Resource<Void>> getDeleteTripLiveData() {
+        return deleteTripLiveData;
+    }
+
+    public void deleteTrip(String tripId) {
+        deleteTripLiveData.setValue(Resource.loading());
+        FirebaseUser firebaseUser = authRepository.getCurrentUser();
+        if (firebaseUser == null) {
+            deleteTripLiveData.setValue(Resource.error("Not logged in"));
+            return;
+        }
+        Resource<Trip> tripRes = tripLiveData.getValue();
+        Trip trip = (tripRes != null && tripRes.isSuccess()) ? tripRes.getData() : null;
+        if (trip == null) {
+            deleteTripLiveData.setValue(Resource.error("Trip not loaded"));
+            return;
+        }
+
+        if (trip.getAdminId() == null || !trip.getAdminId().equals(firebaseUser.getUid())) {
+            deleteTripLiveData.setValue(Resource.error("Only admin can delete this trip"));
+            return;
+        }
+
+        String adminUid = firebaseUser.getUid();
+        tripRepository.deleteTripAsAdmin(tripId, adminUid, err -> {
+            if (err != null) {
+                deleteTripLiveData.postValue(Resource.error(err.getMessage() != null ? err.getMessage() : "Delete failed"));
+                return Unit.INSTANCE;
+            }
+
+            // Option B: only update current user's doc (rules prevent updating other users)
+            userRepository.removeTripFromUser(adminUid, tripId, ignored -> {
+                deleteTripLiveData.postValue(Resource.success(null));
+                return Unit.INSTANCE;
+            });
+            return Unit.INSTANCE;
+        });
     }
 
     @Override

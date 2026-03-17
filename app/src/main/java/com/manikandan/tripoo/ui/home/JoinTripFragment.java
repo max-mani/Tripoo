@@ -99,7 +99,22 @@ public class JoinTripFragment extends Fragment {
         }
 
         binding.btnJoinTrip.setOnClickListener(v -> {
-            String tripCode = binding.etTripCode.getText().toString().trim().toUpperCase();
+            String tripCode = binding.etTripCode.getText().toString();
+            if (tripCode == null) tripCode = "";
+            tripCode = tripCode.trim().toUpperCase();
+            // Normalize common copy/paste variants (different dashes, spaces/newlines)
+            tripCode = tripCode
+                    .replace("\u2013", "-")  // en-dash
+                    .replace("\u2014", "-")  // em-dash
+                    .replace("\u2011", "-")  // non-breaking hyphen
+                    .replace("\u2212", "-")  // minus sign
+                    .replace(" ", "")
+                    .replace("\n", "")
+                    .replace("\t", "");
+            // Allow users to paste just the 3 chars (e.g., ABC)
+            if (tripCode.matches("^[A-Z0-9]{3}$")) {
+                tripCode = "TRP-" + tripCode;
+            }
             
             if (TextUtils.isEmpty(tripCode)) {
                 Toast.makeText(requireContext(), "Please enter trip code", Toast.LENGTH_SHORT).show();

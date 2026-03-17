@@ -88,10 +88,16 @@
     </fragment>
 
     <fragment android:id="@+id/expensesFragment"
-        android:name="com.manikandan.tripoo.ui.expense.ExpenseFragment"
+        android:name="com.manikandan.tripoo.ui.expenses.ExpensesFragment"
         android:label="Expenses"
-        tools:layout="@layout/fragment_expense">
+        tools:layout="@layout/fragment_expenses">
         <argument android:name="tripId" app:argType="string" android:defaultValue=""/>
+        <action android:id="@+id/action_expenses_to_tasks"
+            app:destination="@id/tasksFragment"
+            app:popUpTo="@id/homeFragment" />
+        <action android:id="@+id/action_expenses_to_participants"
+            app:destination="@id/participantsFragment"
+            app:popUpTo="@id/homeFragment" />
     </fragment>
 
     <fragment android:id="@+id/tasksFragment"

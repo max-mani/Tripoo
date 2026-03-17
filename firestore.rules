@@ -2,40 +2,85 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users can only read/write their own document
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Users collection
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Any signed-in user can read user info (needed for members list, etc.)
+      allow read: if isAuthenticated();
+
+      // Users can create/delete their own doc
+      allow create, delete: if isAuthenticated() && request.auth.uid == userId;
+
+      // Users can always update their own doc
+      allow update: if isAuthenticated() && request.auth.uid == userId;
+
+      // Allow a trip admin to remove a deleted tripId from other users' docs.
+      //
+      // NOTE: Firestore rules can't reliably prove *which* tripId was removed from the array,
+      // so we constrain this to: only tripIds/lastActiveTripId can change and tripIds can only shrink.
+      // This supports Option B cleanup after deleting the trip doc.
+      allow update: if isAuthenticated()
+        && request.auth.uid != userId
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly(['tripIds', 'lastActiveTripId'])
+        && request.resource.data.tripIds is list
+        && resource.data.tripIds is list
+        && request.resource.data.tripIds.size() <= resource.data.tripIds.size();
     }
 
     // Trip rules
     match /trips/{tripId} {
       // Any authenticated user can read a trip (needed to validate join codes)
-      allow read: if request.auth != null;
+      allow read: if isAuthenticated();
 
-      // Only trip members can write to the trip document
-      allow write: if request.auth != null &&
-        request.auth.uid in resource.data.memberIds;
+      // Helpers
+      function isTripMember() {
+        return isAuthenticated() && (request.auth.uid in resource.data.memberIds);
+      }
+
+      // Allow join-by-code to add the current user to memberIds.
+      // This must be allowed BEFORE the user is a member, otherwise join always fails.
+      function isJoiningTrip() {
+        return isAuthenticated()
+          // Only memberIds can change during join
+          && request.resource.data.diff(resource.data).changedKeys().hasOnly(['memberIds'])
+          // memberIds must grow by exactly 1
+          && request.resource.data.memberIds is list
+          && resource.data.memberIds is list
+          && request.resource.data.memberIds.size() == resource.data.memberIds.size() + 1
+          // new list must contain all previous members
+          && request.resource.data.memberIds.hasAll(resource.data.memberIds)
+          // and must include the joining user
+          && request.resource.data.memberIds.hasAny([request.auth.uid]);
+      }
+
+      // Trip document writes:
+      // - members can write (existing behavior)
+      // - non-members can ONLY perform the join memberIds append
+      allow write: if isTripMember() || isJoiningTrip();
 
       // Anyone authenticated can create a new trip
-      allow create: if request.auth != null;
+      allow create: if isAuthenticated();
 
       // Members subcollection
       match /members/{memberId} {
-        allow read: if request.auth != null;
-        allow write: if request.auth != null &&
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated() &&
           (request.auth.uid == memberId ||
            get(/databases/$(database)/documents/trips/$(tripId)).data.adminId == request.auth.uid);
       }
 
       // Expenses subcollection — any trip member can read/write
       match /expenses/{expenseId} {
-        allow read, write: if request.auth != null &&
+        allow read, write: if isAuthenticated() &&
           request.auth.uid in get(/databases/$(database)/documents/trips/$(tripId)).data.memberIds;
       }
 
       // Tasks subcollection — any trip member can read/write
       match /tasks/{taskId} {
-        allow read, write: if request.auth != null &&
+        allow read, write: if isAuthenticated() &&
           request.auth.uid in get(/databases/$(database)/documents/trips/$(tripId)).data.memberIds;
       }
     }

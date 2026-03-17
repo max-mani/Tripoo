@@ -397,14 +397,14 @@
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddExpense"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:contentDescription="Add Expense"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="18dp"
+        android:layout_marginBottom="86dp"
+        android:contentDescription="@string/add_expense"
         app:backgroundTint="@color/tripoo_orange"
         app:tint="@color/tripoo_surface"
-        app:layout_anchor="@id/bottomNav"
-        app:layout_anchorGravity="top|end"
         app:srcCompat="@drawable/ic_add" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

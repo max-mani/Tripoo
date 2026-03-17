@@ -43,14 +43,13 @@
             android:clickable="true"
             android:focusable="true">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
                 android:layout_gravity="center"
-                style="@style/Tripoo.Icon"
-                android:text="close"
-                android:textColor="@color/tripoo_text_secondary"
-                android:textSize="18sp" />
+                android:src="@drawable/ic_close"
+                android:tint="@color/tripoo_text_secondary"
+                android:contentDescription="@string/close" />
         </FrameLayout>
     </LinearLayout>
 
