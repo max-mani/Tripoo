@@ -80,6 +80,9 @@
     </style>
 
     <style name="ShapeAppearance.Rounded" parent="ShapeAppearance.Material3.Corner.Full"/>
+    <style name="ShapeAppearanceOverlay.Tripoo.FabCircle" parent="">
+        <item name="cornerSize">28dp</item>
+    </style>
 
     <!-- Typography -->
     <style name="Tripoo.Text" parent="TextAppearance.Material3.BodyLarge"/>

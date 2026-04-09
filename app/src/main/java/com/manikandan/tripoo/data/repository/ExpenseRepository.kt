@@ -16,6 +16,14 @@ import kotlinx.coroutines.withContext
 class ExpenseRepository {
     private val db = FirebaseFirestore.getInstance()
 
+    data class ExpenseSummary(
+        val topSpenderId: String = "",
+        val topSpenderName: String = "",
+        val topSpenderAmount: Double = 0.0,
+        val totalSpent: Double = 0.0,
+        val averagePerPerson: Double = 0.0
+    )
+
     suspend fun addExpense(tripId: String, expense: Expense) {
         try {
             val ref = db.collection("trips").document(tripId).collection("expenses").document()
@@ -58,6 +66,63 @@ class ExpenseRepository {
         }
     }
 
+    suspend fun getTotalExpenses(tripId: String): Double {
+        return try {
+            db.collection("trips").document(tripId).collection("expenses")
+                .get().await().documents
+                .mapNotNull { it.toObject(Expense::class.java) }
+                .sumOf { it.amount }
+        } catch (e: Exception) {
+            0.0
+        }
+    }
+
+    suspend fun saveExpenseSummary(
+        tripId: String,
+        topSpenderId: String,
+        topSpenderName: String,
+        topSpenderAmount: Double,
+        totalSpent: Double,
+        averagePerPerson: Double
+    ) {
+        val payload = mapOf(
+            "topSpenderId" to topSpenderId,
+            "topSpenderName" to topSpenderName,
+            "topSpenderAmount" to topSpenderAmount,
+            "totalSpent" to totalSpent,
+            "averagePerPerson" to averagePerPerson,
+            "updatedAt" to System.currentTimeMillis()
+        )
+        db.collection("trips").document(tripId)
+            .collection("meta").document("expense_summary")
+            .set(payload).await()
+    }
+
+    suspend fun getExpenseSummary(tripId: String): ExpenseSummary? {
+        return try {
+            val doc = db.collection("trips").document(tripId)
+                .collection("meta").document("expense_summary")
+                .get().await()
+            if (!doc.exists()) return null
+            ExpenseSummary(
+                topSpenderId = doc.getString("topSpenderId").orEmpty(),
+                topSpenderName = doc.getString("topSpenderName").orEmpty(),
+                topSpenderAmount = doc.getDouble("topSpenderAmount") ?: 0.0,
+                totalSpent = doc.getDouble("totalSpent") ?: 0.0,
+                averagePerPerson = doc.getDouble("averagePerPerson") ?: 0.0
+            )
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    suspend fun markExpenseSettled(tripId: String, expenseId: String, isSettled: Boolean = true) {
+        db.collection("trips").document(tripId).collection("expenses")
+            .document(expenseId)
+            .update("settled", isSettled)
+            .await()
+    }
+
     fun listenToExpenses(tripId: String, callback: (List<Expense>, Exception?) -> Unit): ListenerRegistration {
         return db.collection("trips").document(tripId).collection("expenses")
             .orderBy("timestamp", Query.Direction.DESCENDING)
@@ -86,15 +151,21 @@ class ExpenseRepository {
 
     suspend fun updateExpense(tripId: String, expenseId: String, expense: Expense) {
         try {
+            val docRef = db.collection("trips").document(tripId).collection("expenses").document(expenseId)
+            val existing = docRef.get().await()
+            // Read existing settled state; once settled it can never be unset
+            val existingSettled = existing.getBoolean("settled") == true
+            val finalSettled = expense.settled || existingSettled
             val updates = mapOf(
                 "title" to expense.title,
                 "amount" to expense.amount,
                 "category" to expense.category,
                 "paidBy" to expense.paidBy,
                 "splitWith" to expense.splitWith,
-                "timestamp" to expense.timestamp
+                "timestamp" to expense.timestamp,
+                "settled" to finalSettled
             )
-            db.collection("trips").document(tripId).collection("expenses").document(expenseId).update(updates).await()
+            docRef.update(updates).await()
         } catch (e: Exception) {
             throw e
         }

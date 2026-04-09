@@ -73,6 +73,14 @@ public class HomeFragment extends Fragment {
         if (binding.btnMore != null) {
             binding.btnMore.setOnClickListener(v -> showMoreMenu(view));
         }
+        binding.swipeRefreshHome.setOnRefreshListener(() -> {
+            viewModel.refreshUser();
+            String tripId = getCurrentTripId();
+            if (tripId != null && !tripId.isEmpty()) {
+                viewModel.loadTrip(tripId);
+            }
+            binding.swipeRefreshHome.postDelayed(() -> binding.swipeRefreshHome.setRefreshing(false), 600);
+        });
 
         // Bottom nav: mirror quick access navigation
         setActiveBottomNav("home");

@@ -51,6 +51,13 @@ public class TasksFragment extends Fragment {
         
         binding.rvTasks.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.rvTasks.setAdapter(adapter);
+        binding.swipeRefreshTasks.setOnRefreshListener(() -> {
+            String tripId = getCurrentTripId();
+            if (tripId != null && !tripId.isEmpty()) {
+                viewModel.loadTasks(tripId);
+            }
+            binding.swipeRefreshTasks.postDelayed(() -> binding.swipeRefreshTasks.setRefreshing(false), 500);
+        });
         
         binding.fabAddTask.setOnClickListener(v -> {
             Resource<User> resource = homeViewModel.getUserLiveData().getValue();

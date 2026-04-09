@@ -2,6 +2,7 @@ package com.manikandan.tripoo.ui.expenses
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -11,12 +12,16 @@ import androidx.recyclerview.widget.RecyclerView
 import com.manikandan.tripoo.R
 import com.manikandan.tripoo.data.model.Expense
 import com.manikandan.tripoo.databinding.ItemExpenseBinding
-import com.manikandan.tripoo.databinding.ItemExpenseSeparatorBinding
+import com.manikandan.tripoo.databinding.ItemExpenseDateHeaderBinding
 
 class ExpenseAdapter(
     private val currentUserId: String,
     private val memberNames: Map<String, String>,
-    private val onClick: (Expense) -> Unit
+    private val canMarkSettled: Boolean,
+    private val onClick: (Expense) -> Unit,
+    private val onEdit: (Expense) -> Unit,
+    private val onDelete: (Expense) -> Unit,
+    private val onSettle: (Expense) -> Unit
 ) : ListAdapter<ExpenseAdapter.ExpenseListItem, RecyclerView.ViewHolder>(DIFF) {
 
     sealed class ExpenseListItem {
@@ -24,7 +29,7 @@ class ExpenseAdapter(
         data class ExpenseRow(val expense: Expense) : ExpenseListItem()
     }
 
-    inner class HeaderVH(val binding: ItemExpenseSeparatorBinding) :
+    inner class HeaderVH(val binding: ItemExpenseDateHeaderBinding) :
         RecyclerView.ViewHolder(binding.root)
 
     inner class RowVH(val binding: ItemExpenseBinding) :
@@ -39,7 +44,7 @@ class ExpenseAdapter(
         val inflater = LayoutInflater.from(parent.context)
         return if (viewType == 0) {
             HeaderVH(
-                ItemExpenseSeparatorBinding.inflate(
+                ItemExpenseDateHeaderBinding.inflate(
                     inflater,
                     parent,
                     false
@@ -75,11 +80,11 @@ class ExpenseAdapter(
                     memberNames[e.paidBy] ?: "Someone"
                 }
 
-                val splitLabel = if (e.splitWith.size > 2) {
+                val splitLabel = if (e.splitWith.size >= memberNames.size && memberNames.isNotEmpty()) {
                     "Everyone"
                 } else {
                     e.splitWith.joinToString { memberId ->
-                        memberNames[memberId] ?: "?"
+                        if (memberId == currentUserId) "You" else (memberNames[memberId] ?: "?")
                     }
                 }
 
@@ -123,6 +128,24 @@ class ExpenseAdapter(
                 binding.flCategoryIcon.backgroundTintList = ColorStateList.valueOf(bgColor)
 
                 binding.root.setOnClickListener { onClick(e) }
+                binding.btnExpenseMore.setOnClickListener {
+                    val wrapper = ContextThemeWrapper(ctx, androidx.appcompat.R.style.ThemeOverlay_AppCompat_Light)
+                    val popup = android.widget.PopupMenu(wrapper, binding.btnExpenseMore)
+                    popup.menu.add(0, 1, 0, "Edit")
+                    popup.menu.add(0, 2, 1, "Delete")
+                    if (canMarkSettled && !e.settled) {
+                        popup.menu.add(0, 3, 2, "Mark as settled")
+                    }
+                    popup.setOnMenuItemClickListener { menuItem ->
+                        when (menuItem.itemId) {
+                            1 -> onEdit(e)
+                            2 -> onDelete(e)
+                            3 -> onSettle(e)
+                        }
+                        true
+                    }
+                    popup.show()
+                }
             }
         }
     }
@@ -130,31 +153,31 @@ class ExpenseAdapter(
     private fun categoryStyle(ctx: Context, cat: String): Triple<Int, Int, Int> {
         return when (cat) {
             "accommodation" -> Triple(
-                R.drawable.ic_luggage,
+                R.drawable.ic_home,
                 ContextCompat.getColor(ctx, R.color.tripoo_blue_bg),
                 ContextCompat.getColor(ctx, R.color.tripoo_blue)
             )
 
             "food" -> Triple(
-                R.drawable.ic_budget,
+                R.drawable.ic_restaurant,
                 0xFFFFEDD5.toInt(),
                 0xFFEA580C.toInt()
             )
 
             "transport" -> Triple(
-                R.drawable.ic_schedule,
+                R.drawable.ic_car,
                 ContextCompat.getColor(ctx, R.color.tripoo_purple_bg),
                 ContextCompat.getColor(ctx, R.color.tripoo_purple_text)
             )
 
             "drinks" -> Triple(
-                R.drawable.ic_wallet,
+                R.drawable.ic_local_bar,
                 ContextCompat.getColor(ctx, R.color.tripoo_green_bg),
                 ContextCompat.getColor(ctx, R.color.tripoo_green)
             )
 
             "activities" -> Triple(
-                R.drawable.ic_location,
+                R.drawable.ic_surfing,
                 ContextCompat.getColor(ctx, R.color.tripoo_yellow_bg),
                 ContextCompat.getColor(ctx, R.color.tripoo_yellow_text)
             )

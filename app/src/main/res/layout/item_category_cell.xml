@@ -1,25 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="0dp"
     android:layout_height="wrap_content"
     android:layout_columnWeight="1"
+    android:layout_margin="4dp"
+    android:background="@drawable/bg_category_cell"
+    android:gravity="center"
     android:orientation="vertical"
-    android:gravity="center_horizontal"
-    android:paddingTop="10dp"
-    android:paddingBottom="10dp"
-    android:paddingStart="4dp"
-    android:paddingEnd="4dp">
+    android:paddingHorizontal="4dp"
+    android:paddingVertical="12dp">
 
     <FrameLayout
-        android:id="@+id/layoutCategoryIcon"
+        android:id="@+id/flCatIconBg"
         android:layout_width="40dp"
         android:layout_height="40dp">
 
         <ImageView
             android:id="@+id/ivCatIcon"
-            android:layout_width="21dp"
-            android:layout_height="21dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_gravity="center" />
     </FrameLayout>
 
@@ -28,12 +27,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
-        android:textSize="10sp"
-        android:textStyle="bold"
-        android:textColor="@color/tripoo_text_primary"
-        android:text="Category"
         android:gravity="center"
-        tools:ignore="HardcodedText" />
-
+        android:textColor="#181411"
+        android:textSize="10sp"
+        android:textStyle="bold" />
 </LinearLayout>
 

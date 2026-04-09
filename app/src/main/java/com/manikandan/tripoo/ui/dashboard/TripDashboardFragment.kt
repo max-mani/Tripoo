@@ -52,6 +52,13 @@ class TripDashboardFragment : Fragment() {
         binding.btnNewTrip.setOnClickListener {
             findNavController().navigate(R.id.action_dashboard_to_create)
         }
+        binding.swipeRefreshDashboard.setOnRefreshListener {
+            viewModel.loadTrips()
+            binding.swipeRefreshDashboard.postDelayed(
+                { binding.swipeRefreshDashboard.isRefreshing = false },
+                500
+            )
+        }
 
         viewModel.filteredTrips.observe(viewLifecycleOwner) { trips ->
             adapter.submitList(trips ?: emptyList())

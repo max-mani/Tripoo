@@ -49,6 +49,13 @@ public class GroupsFragment extends Fragment {
         adapter = new MemberAdapter(new ArrayList<>());
         binding.rvMembers.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.rvMembers.setAdapter(adapter);
+        binding.swipeRefreshGroups.setOnRefreshListener(() -> {
+            String tripId = getCurrentTripId();
+            if (tripId != null && !tripId.isEmpty()) {
+                groupsViewModel.loadTripAndMembers(tripId);
+            }
+            binding.swipeRefreshGroups.postDelayed(() -> binding.swipeRefreshGroups.setRefreshing(false), 500);
+        });
         
         binding.btnCopyCode.setOnClickListener(v -> {
             String tripCode = binding.tvTripCode.getText().toString();

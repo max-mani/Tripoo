@@ -7,5 +7,9 @@ data class Expense(
     val category: String = "other",
     val paidBy: String = "",
     val splitWith: List<String> = emptyList(),
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    // Named 'settled' (not 'isSettled') so Firebase Java reflection uses field name 'settled'
+    // (boolean getters starting with 'is' are stripped to their suffix by Java BeanInfo).
+    // Must be var so Firebase can set it via the generated setter when deserializing.
+    var settled: Boolean = false
 )

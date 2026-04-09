@@ -19,6 +19,7 @@
     <string name="trending_down">Trending down</string>
     <string name="trending_up">Trending up</string>
     <string name="add_expense">Add expense</string>
+    <string name="save_changes">Save changes</string>
     <string name="add_task">Add task</string>
 
     <string name="default_web_client_id">442908467947-xxxxxxxxxxxx.apps.googleusercontent.com</string>

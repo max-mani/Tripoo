@@ -68,6 +68,10 @@ public class ProfileFragment extends Fragment {
             viewModel.signOut();
             Navigation.findNavController(view).navigate(R.id.action_profile_to_auth);
         });
+        binding.swipeRefreshProfile.setOnRefreshListener(() -> {
+            viewModel.refreshUser();
+            binding.swipeRefreshProfile.postDelayed(() -> binding.swipeRefreshProfile.setRefreshing(false), 500);
+        });
 
         if (binding.btnBackToDashboard != null) {
             binding.btnBackToDashboard.setOnClickListener(v ->

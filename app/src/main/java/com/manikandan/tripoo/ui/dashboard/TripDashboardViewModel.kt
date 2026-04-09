@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.manikandan.tripoo.data.model.TripWithMeta
 import com.manikandan.tripoo.data.model.User
 import com.manikandan.tripoo.data.repository.AuthRepository
+import com.manikandan.tripoo.data.repository.ExpenseRepository
 import com.manikandan.tripoo.data.repository.TripRepository
 import com.manikandan.tripoo.data.repository.UserRepository
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +18,7 @@ class TripDashboardViewModel : ViewModel() {
     private val auth = AuthRepository()
     private val userRepo = UserRepository()
     private val tripRepo = TripRepository()
+    private val expenseRepo = ExpenseRepository()
 
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
@@ -44,12 +46,16 @@ class TripDashboardViewModel : ViewModel() {
                 _user.postValue(user)
                 val tripIds = user?.tripIds ?: emptyList()
                 val trips = withContext(Dispatchers.IO) { tripRepo.getTripsForUser(tripIds) }
-                val withMeta = trips.map { trip ->
-                    TripWithMeta(
-                        trip = trip,
-                        memberCount = trip.memberIds.size,
-                        userRole = if (trip.adminId == uid) "admin" else "member"
-                    )
+                val withMeta = withContext(Dispatchers.IO) {
+                    trips.map { trip ->
+                        val totalSpent = expenseRepo.getTotalExpenses(trip.id)
+                        TripWithMeta(
+                            trip = trip,
+                            memberCount = trip.memberIds.size,
+                            userRole = if (trip.adminId == uid) "admin" else "member",
+                            totalSpent = totalSpent
+                        )
+                    }
                 }
                 _allTrips.postValue(withMeta)
                 applyFilter(currentFilter, withMeta)

@@ -65,9 +65,12 @@ class TripCardAdapter(
             holder.binding.layoutBudget.visibility = View.VISIBLE
             holder.binding.layoutCountdown.visibility = View.GONE
             holder.binding.progressBudget.max = 100
-            holder.binding.progressBudget.progress = 0
-            holder.binding.tvBudgetText.text = "₹0 / ₹${trip.budget.toInt()} budget"
-            holder.binding.tvBudgetPercent.text = "100% left"
+            val spent = item.totalSpent.coerceAtLeast(0.0)
+            val progress = ((spent / trip.budget) * 100.0).toInt().coerceIn(0, 100)
+            val remainingPct = (100 - progress).coerceIn(0, 100)
+            holder.binding.progressBudget.progress = progress
+            holder.binding.tvBudgetText.text = "₹${spent.toInt()} / ₹${trip.budget.toInt()} budget"
+            holder.binding.tvBudgetPercent.text = "$remainingPct% left"
         } else if (trip.status == "upcoming") {
             holder.binding.layoutBudget.visibility = View.GONE
             holder.binding.layoutCountdown.visibility = View.VISIBLE
