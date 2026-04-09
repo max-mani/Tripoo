@@ -10,6 +10,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.Handler
@@ -25,6 +26,13 @@ import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -34,6 +42,7 @@ import com.manikandan.tripoo.R
 import com.manikandan.tripoo.data.model.Expense
 import com.manikandan.tripoo.data.model.TripMember
 import com.manikandan.tripoo.databinding.BottomSheetAddExpenseBinding
+import com.manikandan.tripoo.utils.ImageUtils
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -155,17 +164,6 @@ class AddExpenseBottomSheet(
 
 
 
-
-
-
-
-
-
-
-
-
-
-        
         setupAmountFieldFocusStyle()
         autoFocusAmount()
 
@@ -283,6 +281,7 @@ class AddExpenseBottomSheet(
             selectedMemberIds.add(member.userId)
             val (bgColor, txtColor) = avatarPalette[idx % avatarPalette.size]
             val letter = (member.name.firstOrNull() ?: '?').uppercaseChar()
+            val chipIconPx = (24 * resources.displayMetrics.density).toInt()
 
             val chip = Chip(requireContext()).apply {
                 text = member.name.split(" ").firstOrNull() ?: member.name
@@ -293,9 +292,9 @@ class AddExpenseBottomSheet(
                 setTextColor(chipText)
                 chipStrokeColor = chipStroke
                 chipStrokeWidth = 1.5f
-                // Avatar circle as chip icon — matches HTML .a-av
                 isChipIconVisible = true
-                chipIconSize = 24f * resources.displayMetrics.density
+                chipIconSize = chipIconPx.toFloat()
+                // Default to initial avatar; real photo loaded below if available
                 chipIcon = BitmapDrawable(resources, makeAvatarBitmap(letter, bgColor, txtColor))
                 isCheckedIconVisible = false
                 tag = member.userId
@@ -307,6 +306,41 @@ class AddExpenseBottomSheet(
             }
             memberChips.add(chip)
             binding.chipGroupMembers.addView(chip)
+
+            // Load profile photo asynchronously — chip with initial avatar is already visible above
+            val photoUrl = member.photoUrl
+            if (!photoUrl.isNullOrEmpty()) {
+                if (ImageUtils.isBase64Image(photoUrl)) {
+                    // Decode base64 on IO thread, update chip on main thread
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        try {
+                            val bmp = withContext(Dispatchers.IO) {
+                                ImageUtils.base64ToBitmap(photoUrl)
+                            }
+                            if (bmp != null && isAdded) {
+                                val circular = withContext(Dispatchers.IO) {
+                                    makeCircularPhotoBitmap(bmp, chipIconPx)
+                                }
+                                chip.chipIcon = BitmapDrawable(resources, circular)
+                            }
+                        } catch (_: Exception) { /* keep initial avatar */ }
+                    }
+                } else {
+                    try {
+                        Glide.with(this)
+                            .asBitmap()
+                            .load(photoUrl)
+                            .circleCrop()
+                            .override(chipIconPx, chipIconPx)
+                            .into(object : CustomTarget<Bitmap>() {
+                                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                                    if (isAdded) chip.chipIcon = BitmapDrawable(resources, resource)
+                                }
+                                override fun onLoadCleared(placeholder: Drawable?) {}
+                            })
+                    } catch (_: Exception) { /* keep initial avatar */ }
+                }
+            }
         }
     }
 
@@ -330,6 +364,18 @@ class AddExpenseBottomSheet(
         canvas.drawText(letter.toString(), size / 2f, textY, paint)
 
         return bmp
+    }
+
+    /** Crops a source bitmap into a circle of the given pixel size using BitmapShader. */
+    private fun makeCircularPhotoBitmap(src: Bitmap, size: Int): Bitmap {
+        val scaled = Bitmap.createScaledBitmap(src, size, size, true)
+        val result = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(result)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = android.graphics.BitmapShader(scaled, android.graphics.Shader.TileMode.CLAMP, android.graphics.Shader.TileMode.CLAMP)
+        }
+        canvas.drawCircle(size / 2f, size / 2f, size / 2f, paint)
+        return result
     }
 
     // ── Split toggle ─────────────────────────────────────────────────────────

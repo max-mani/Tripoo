@@ -1,60 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp">
+    android:orientation="vertical">
 
+    <!-- Row content -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:gravity="center_vertical"
+        android:paddingStart="14dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="11dp"
+        android:paddingBottom="11dp">
 
-        <com.google.android.material.checkbox.MaterialCheckBox
-            android:id="@+id/cbCompleted"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp" />
+        <!-- Custom checkbox -->
+        <FrameLayout
+            android:id="@+id/flCheckbox"
+            android:layout_width="21dp"
+            android:layout_height="21dp"
+            android:background="@drawable/bg_task_checkbox">
 
+            <ImageView
+                android:id="@+id/ivCheck"
+                android:layout_width="13dp"
+                android:layout_height="13dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_check"
+                android:contentDescription="@null"
+                android:visibility="gone" />
+
+        </FrameLayout>
+
+        <!-- Task info -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:layout_marginStart="11dp"
             android:orientation="vertical">
 
             <TextView
                 android:id="@+id/tvTaskTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textColor="@color/tripoo_text_primary"
                 tools:text="Book hotel" />
 
             <TextView
-                android:id="@+id/tvAssignedTo"
+                android:id="@+id/tvAssigned"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textSize="14sp"
-                android:textColor="@color/text_secondary"
-                tools:text="Assigned to: John" />
-
-            <TextView
-                android:id="@+id/tvDueDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textSize="12sp"
-                android:textColor="@color/text_secondary"
-                tools:text="Due: 15 Jan 2024" />
+                android:layout_marginTop="2dp"
+                android:textSize="10sp"
+                android:textColor="@color/tripoo_text_secondary"
+                tools:text="Assigned to Everyone" />
 
         </LinearLayout>
 
+        <!-- Assignee avatar -->
+        <TextView
+            android:id="@+id/tvAssigneeAvatar"
+            android:layout_width="23dp"
+            android:layout_height="23dp"
+            android:layout_marginStart="6dp"
+            android:gravity="center"
+            android:textSize="9sp"
+            android:textStyle="bold"
+            android:textColor="@color/tripoo_orange"
+            android:background="@drawable/bg_avatar_circle_orange"
+            tools:text="J" />
+
+        <!-- More menu button (edit/delete) -->
+        <ImageButton
+            android:id="@+id/btnTaskMore"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="2dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_more_horiz"
+            android:tint="@color/tripoo_text_hint"
+            android:scaleType="center"
+            android:contentDescription="@string/more_options" />
+
     </LinearLayout>
 
-</com.google.android.material.card.MaterialCardView>
+    <!-- Divider between rows in same group -->
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/tripoo_bg"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="14dp" />
+
+</LinearLayout>

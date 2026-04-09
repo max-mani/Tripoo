@@ -99,13 +99,36 @@ class TripRepository {
             null
         }
 
-    suspend fun getTripMembers(tripId: String): List<TripMember> =
-        try {
-            trips.document(tripId).collection("members").get().await()
+    suspend fun getTripMembers(tripId: String): List<TripMember> {
+        return try {
+            val memberDocs = trips.document(tripId).collection("members").get().await()
                 .documents.mapNotNull { doc -> doc.toObject(TripMember::class.java)?.copy(userId = doc.id) }
+            if (memberDocs.isEmpty())
+                return emptyList()
+
+            // Member documents are written at join time and don't track profile photo changes.
+            // Enrich each member with the freshest photoUrl from the users collection.
+            val userIds = memberDocs.map { it.userId }.filter { it.isNotEmpty() }
+            val photoMap: Map<String, String> = userIds.chunked(10).flatMap { chunk ->
+                try {
+                    db.collection("users")
+                        .whereIn(FieldPath.documentId(), chunk)
+                        .get().await()
+                        .documents
+                        .mapNotNull { doc ->
+                            val photo = doc.getString("photoUrl")
+                            if (!photo.isNullOrEmpty()) doc.id to photo else null
+                        }
+                } catch (e: Exception) { emptyList() }
+            }.toMap()
+
+            memberDocs.map { member ->
+                photoMap[member.userId]?.let { member.copy(photoUrl = it) } ?: member
+            }
         } catch (e: Exception) {
             emptyList()
         }
+    }
 
     fun listenToTripMembers(tripId: String): Flow<List<TripMember>> = callbackFlow {
         val listener = trips.document(tripId).collection("members")
