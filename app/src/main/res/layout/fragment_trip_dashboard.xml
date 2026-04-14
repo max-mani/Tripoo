@@ -238,7 +238,14 @@
             </androidx.core.widget.NestedScrollView>
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-        <!-- Fixed above banner: does not scroll with trip list -->
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/adViewDashboard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:adSize="BANNER"
+            app:adUnitId="@string/admob_banner_dashboard" />
+
+        <!-- Fixed below banner ad: does not scroll with trip list -->
         <LinearLayout
             android:id="@+id/layoutTripActions"
             android:layout_width="match_parent"
@@ -281,13 +288,5 @@
                 app:iconPadding="6dp"
                 tools:ignore="HardcodedText" />
         </LinearLayout>
-
-        <com.google.android.gms.ads.AdView
-            android:id="@+id/adViewDashboard"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            app:adSize="BANNER"
-            app:adUnitId="@string/admob_banner_dashboard" />
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

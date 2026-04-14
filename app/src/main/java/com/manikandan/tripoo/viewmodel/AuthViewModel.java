@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import com.manikandan.tripoo.data.model.User;
+import com.manikandan.tripoo.utils.UserAvatarIdentity;
 import com.manikandan.tripoo.data.repository.AuthRepository;
 import com.manikandan.tripoo.data.repository.UserRepository;
 import com.manikandan.tripoo.utils.Resource;
@@ -100,13 +101,20 @@ public class AuthViewModel extends AndroidViewModel {
         authResultLiveData.setValue(Resource.loading());
         authRepository.signUpWithEmailPassword(email, password, (firebaseUser, err) -> {
             if (err == null && firebaseUser != null) {
+                String avLetter = UserAvatarIdentity.INSTANCE.letterFromName(name);
+                String avColor = UserAvatarIdentity.INSTANCE.bgForSeed(firebaseUser.getUid());
                 User user = new User(
                         firebaseUser.getUid(),
                         name,
                         email != null ? email : "",
+                        null,
+                        null,
+                        null,
                         firebaseUser.getPhotoUrl() != null ? firebaseUser.getPhotoUrl().toString() : null,
                         Collections.emptyList(),
-                        null
+                        null,
+                        avLetter,
+                        avColor
                 );
                 userRepository.createOrUpdateUser(user, createErr -> {
                     if (createErr == null) {
@@ -153,13 +161,20 @@ public class AuthViewModel extends AndroidViewModel {
                 String photo = (avatarBase64 != null && !avatarBase64.trim().isEmpty())
                         ? avatarBase64.trim()
                         : (firebaseUser.getPhotoUrl() != null ? firebaseUser.getPhotoUrl().toString() : null);
+                String avLetter = UserAvatarIdentity.INSTANCE.letterFromName(name.trim());
+                String avColor = UserAvatarIdentity.INSTANCE.bgForSeed(firebaseUser.getUid());
                 User user = new User(
                         firebaseUser.getUid(),
                         name.trim(),
                         email.trim(),
+                        null,
+                        null,
+                        null,
                         photo,
                         Collections.emptyList(),
-                        null
+                        null,
+                        avLetter,
+                        avColor
                 );
                 userRepository.createOrUpdateUser(user, createErr -> {
                     isLoading.setValue(false);

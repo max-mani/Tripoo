@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Tripoo</string>
+    <string name="save">Save</string>
 
     <string-array name="task_categories">
         <item>General</item>
@@ -10,6 +11,10 @@
     </string-array>
 
     <string name="splash_subtitle">Plan together. Travel better.</string>
+
+    <string name="home_countdown_upcoming_title">Countdown to Adventure</string>
+    <string name="home_countdown_current_title">Adventure in Progress</string>
+    <string name="home_countdown_past_title">Time Since Adventure</string>
 
     <!-- Icon/content descriptions -->
     <string name="back">Back</string>
@@ -33,6 +38,26 @@
     <string name="admob_app_id" translatable="false">ca-app-pub-2688489242058123~7006874625</string>
     <!-- Banner ad unit for the trip dashboard (AdMob → Ad units). -->
     <string name="admob_banner_dashboard" translatable="false">ca-app-pub-2688489242058123/8610991523</string>
+    <!-- Banner on trip tabs: Home, Expenses, Tasks, Groups (shared ad unit). -->
+    <string name="admob_banner_trip_group" translatable="false">ca-app-pub-2688489242058123/3765934933</string>
     <!-- Interstitial when leaving a trip (Home / Groups / Tasks / Expenses → trip list). -->
     <string name="admob_interstitial_trip_exit" translatable="false">ca-app-pub-2688489242058123/4044014375</string>
+
+    <string name="groups_role_organiser">Trip organiser</string>
+    <string name="groups_role_co_organiser">Co-organiser</string>
+    <string name="groups_role_member">Member</string>
+    <string name="groups_make_co_organiser">Make co-organiser</string>
+    <string name="groups_remove_co_organiser">Remove co-organiser</string>
+    <string name="groups_invite_share">Join my Tripoo trip with code: %1$s</string>
+    <string name="groups_leave_confirm_title">Leave this trip?</string>
+    <string name="groups_leave_confirm_message">You can rejoin later with the trip code if you still have access.</string>
+    <string name="groups_transfer_title">Transfer organiser role</string>
+    <string name="groups_transfer_message">Choose another member to become the trip organiser before you leave.</string>
+    <string name="groups_last_member">You are the only member. Delete the trip from the home menu instead.</string>
+    <string name="groups_header_subtitle_fmt">%1$d participants · %2$s</string>
+    <string name="groups_transfer_confirm_pick">Make %1$s the new organiser? You will leave this trip.</string>
+    <string name="groups_members_header_fmt">Members (%1$d)</string>
+    <string name="groups_remove_from_trip">Remove from trip</string>
+    <string name="groups_remove_member_title">Remove member?</string>
+    <string name="groups_remove_member_message">%1$s will lose access to this trip. You can invite them again with the trip code.</string>
 </resources>

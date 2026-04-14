@@ -17,12 +17,22 @@ import com.manikandan.tripoo.databinding.ItemExpenseDateHeaderBinding
 class ExpenseAdapter(
     private val currentUserId: String,
     private val memberNames: Map<String, String>,
-    private val canMarkSettled: Boolean,
+    canMarkSettled: Boolean,
     private val onClick: (Expense) -> Unit,
     private val onEdit: (Expense) -> Unit,
     private val onDelete: (Expense) -> Unit,
     private val onSettle: (Expense) -> Unit
 ) : ListAdapter<ExpenseAdapter.ExpenseListItem, RecyclerView.ViewHolder>(DIFF) {
+
+    var canMarkSettled: Boolean = canMarkSettled
+        private set
+
+    fun setCanMarkSettled(value: Boolean) {
+        if (canMarkSettled != value) {
+            canMarkSettled = value
+            notifyDataSetChanged()
+        }
+    }
 
     sealed class ExpenseListItem {
         data class DateHeader(val label: String) : ExpenseListItem()

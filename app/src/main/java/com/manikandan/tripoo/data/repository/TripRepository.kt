@@ -3,13 +3,17 @@ package com.manikandan.tripoo.data.repository
 import com.manikandan.tripoo.data.model.LeaveTripResult
 import com.manikandan.tripoo.data.model.Trip
 import com.manikandan.tripoo.data.model.TripMember
+import com.manikandan.tripoo.data.model.User
 import com.manikandan.tripoo.notifications.FanoutNotificationPublisher
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -20,6 +24,19 @@ import kotlinx.coroutines.withContext
 class TripRepository {
     private val db = FirebaseFirestore.getInstance()
     private val trips = db.collection("trips")
+    private val userRepository = UserRepository()
+
+    /**
+     * Kotlin/Firestore sometimes maps [TripMember.isAdmin] to a field named "admin" on write.
+     * Reads must accept both "isAdmin" and "admin".
+     */
+    private fun parseTripMember(doc: DocumentSnapshot): TripMember? {
+        val m = doc.toObject(TripMember::class.java) ?: return null
+        val adminFlag = doc.getBoolean("isAdmin") ?: doc.getBoolean("admin") ?: m.isAdmin
+        return m.copy(userId = doc.id, isAdmin = adminFlag)
+    }
+    private val memberEnrichScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var memberEnrichJob: Job? = null
 
     private fun generateJoinCode(): String {
         val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -107,6 +124,26 @@ class TripRepository {
             null
         }
 
+    /**
+     * Trip organiser ([Trip.adminId]) or a member with [TripMember.isAdmin] (co-organiser)
+     * can edit trip details, delete the trip, and perform organiser-level actions in the app.
+     */
+    suspend fun canUserManageTripAsLeader(tripId: String, uid: String): Boolean {
+        if (uid.isEmpty()) return false
+        val trip = getTrip(tripId) ?: return false
+        if (trip.adminId == uid) return true
+        val snap = trips.document(tripId).collection("members").document(uid).get().await()
+        if (!snap.exists()) return false
+        return parseTripMember(snap)?.isAdmin == true
+    }
+
+    fun canUserManageTripAsLeader(tripId: String, uid: String, callback: (Boolean) -> Unit) {
+        CoroutineScope(Dispatchers.Main).launch {
+            val ok = withContext(Dispatchers.IO) { canUserManageTripAsLeader(tripId, uid) }
+            callback(ok)
+        }
+    }
+
     private suspend fun updateTripDetailsSuspend(
         tripId: String,
         name: String,
@@ -161,7 +198,7 @@ class TripRepository {
     suspend fun getTripMembers(tripId: String): List<TripMember> {
         return try {
             val memberDocs = trips.document(tripId).collection("members").get().await()
-                .documents.mapNotNull { doc -> doc.toObject(TripMember::class.java)?.copy(userId = doc.id) }
+                .documents.mapNotNull { doc -> parseTripMember(doc) }
             if (memberDocs.isEmpty())
                 return emptyList()
 
@@ -181,20 +218,64 @@ class TripRepository {
                 } catch (e: Exception) { emptyList() }
             }.toMap()
 
-            memberDocs.map { member ->
+            val merged = memberDocs.map { member ->
                 photoMap[member.userId]?.let { member.copy(photoUrl = it) } ?: member
             }
+            enrichMembersWithUserProfiles(merged)
         } catch (e: Exception) {
             emptyList()
+        }
+    }
+
+    private suspend fun enrichMembersWithUserProfiles(members: List<TripMember>): List<TripMember> {
+        if (members.isEmpty()) return members
+        val ids = members.map { it.userId }.filter { it.isNotEmpty() }.distinct()
+        val userById = HashMap<String, User?>()
+        ids.chunked(10).forEach { chunk ->
+            try {
+                db.collection("users").whereIn(FieldPath.documentId(), chunk).get().await()
+                    .documents.forEach { doc ->
+                        userById[doc.id] = doc.toObject(User::class.java)
+                    }
+            } catch (_: Exception) {
+            }
+        }
+        return members.map { m ->
+            val uid = m.userId
+            val u = userById[uid] ?: userRepository.getUser(uid)
+            val mergedPhoto = when {
+                !m.photoUrl.isNullOrBlank() -> m.photoUrl
+                u != null && !u.photoUrl.isNullOrBlank() -> u.photoUrl
+                else -> null
+            }
+            val noPhoto = mergedPhoto.isNullOrBlank()
+            val (let, bg) = if (noPhoto && u != null) {
+                userRepository.ensureAvatarIdentityFields(uid)
+            } else if (noPhoto) {
+                Pair(
+                    com.manikandan.tripoo.utils.UserAvatarIdentity.letterFromName(m.name),
+                    com.manikandan.tripoo.utils.UserAvatarIdentity.bgForSeed(uid)
+                )
+            } else {
+                Pair(
+                    u?.avatarLetter?.ifBlank { null }
+                        ?: com.manikandan.tripoo.utils.UserAvatarIdentity.letterFromName(m.name),
+                    u?.avatarColorHex?.ifBlank { null }
+                        ?: com.manikandan.tripoo.utils.UserAvatarIdentity.bgForSeed(uid)
+                )
+            }
+            m.copy(
+                photoUrl = mergedPhoto,
+                avatarLetter = let,
+                avatarColorHex = bg
+            )
         }
     }
 
     fun listenToTripMembers(tripId: String): Flow<List<TripMember>> = callbackFlow {
         val listener = trips.document(tripId).collection("members")
             .addSnapshotListener { snap, _ ->
-                trySend(snap?.documents?.mapNotNull { doc ->
-                    doc.toObject(TripMember::class.java)?.copy(userId = doc.id)
-                } ?: emptyList())
+                trySend(snap?.documents?.mapNotNull { doc -> parseTripMember(doc) } ?: emptyList())
             }
         awaitClose { listener.remove() }
     }
@@ -203,14 +284,129 @@ class TripRepository {
         return trips.document(tripId).collection("members")
             .addSnapshotListener { snap, e ->
                 if (e != null) {
+                    memberEnrichJob?.cancel()
                     callback(emptyList(), e)
                     return@addSnapshotListener
                 }
-                val list = snap?.documents?.mapNotNull { doc ->
-                    doc.toObject(TripMember::class.java)?.copy(userId = doc.id)
-                } ?: emptyList()
-                callback(list, null)
+                val list = snap?.documents?.mapNotNull { doc -> parseTripMember(doc) } ?: emptyList()
+                memberEnrichJob?.cancel()
+                memberEnrichJob = memberEnrichScope.launch {
+                    val enriched = try {
+                        withContext(Dispatchers.IO) { enrichMembersWithUserProfiles(list) }
+                    } catch (_: Exception) {
+                        list
+                    }
+                    callback(enriched, null)
+                }
             }
+    }
+
+    suspend fun setMemberAdminRole(
+        tripId: String,
+        targetUserId: String,
+        asAdmin: Boolean,
+        actingUserId: String,
+        tripCreatorId: String
+    ) {
+        if (actingUserId != tripCreatorId) {
+            throw SecurityException("Only the trip organiser can change member roles")
+        }
+        if (targetUserId == tripCreatorId) {
+            throw SecurityException("The organiser cannot be demoted")
+        }
+        trips.document(tripId).collection("members").document(targetUserId)
+            .update(
+                mapOf(
+                    "isAdmin" to asAdmin,
+                    "admin" to asAdmin
+                )
+            ).await()
+    }
+
+    suspend fun removeMemberFromTrip(
+        tripId: String,
+        targetUserId: String,
+        actingOrganiserId: String,
+        tripOrganiserId: String
+    ) {
+        if (actingOrganiserId != tripOrganiserId) {
+            throw SecurityException("Only the trip organiser can remove members")
+        }
+        if (targetUserId == tripOrganiserId) {
+            throw SecurityException("Cannot remove the organiser")
+        }
+        val tripName = trips.document(tripId).get().await().toObject(Trip::class.java)?.name?.trim()
+            .orEmpty().ifBlank { "Trip" }
+        val removedSnap = trips.document(tripId).collection("members").document(targetUserId).get().await()
+        val removedName = parseTripMember(removedSnap)?.name?.trim().orEmpty().ifBlank { "Someone" }
+        FanoutNotificationPublisher.publishAsync(
+            tripId,
+            tripName,
+            "$removedName was removed from the trip",
+            "member_removed"
+        )
+        val batch = db.batch()
+        batch.delete(trips.document(tripId).collection("members").document(targetUserId))
+        batch.update(trips.document(tripId), "memberIds", FieldValue.arrayRemove(targetUserId))
+        batch.commit().await()
+        userRepository.removeTripFromUser(targetUserId, tripId)
+    }
+
+    fun removeMemberFromTrip(
+        tripId: String,
+        targetUserId: String,
+        actingOrganiserId: String,
+        tripOrganiserId: String,
+        callback: (Throwable?) -> Unit
+    ) {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    removeMemberFromTrip(tripId, targetUserId, actingOrganiserId, tripOrganiserId)
+                }
+                callback(null)
+            } catch (e: Exception) {
+                callback(e)
+            }
+        }
+    }
+
+    fun setMemberAdminRole(
+        tripId: String,
+        targetUserId: String,
+        asAdmin: Boolean,
+        actingUserId: String,
+        tripCreatorId: String,
+        callback: (Throwable?) -> Unit
+    ) {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    setMemberAdminRole(tripId, targetUserId, asAdmin, actingUserId, tripCreatorId)
+                }
+                callback(null)
+            } catch (e: Exception) {
+                callback(e)
+            }
+        }
+    }
+
+    fun leaveTripAsync(tripId: String, uid: String, callback: (LeaveTripResult) -> Unit) {
+        CoroutineScope(Dispatchers.Main).launch {
+            val result = withContext(Dispatchers.IO) { leaveTrip(tripId, uid) }
+            callback(result)
+        }
+    }
+
+    fun transferAdminAndLeave(tripId: String, oldUid: String, newUid: String, callback: (Throwable?) -> Unit) {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                withContext(Dispatchers.IO) { transferAdminAndLeave(tripId, oldUid, newUid) }
+                callback(null)
+            } catch (e: Exception) {
+                callback(e)
+            }
+        }
     }
 
     suspend fun leaveTrip(tripId: String, uid: String): LeaveTripResult {
@@ -242,6 +438,43 @@ class TripRepository {
         }
     }
 
+    /**
+     * Removes [uid] from every trip in their [User.tripIds] snapshot (leave, transfer admin, or delete trip
+     * if they are the only member). Caller should delete the user document and Firebase Auth account.
+     */
+    suspend fun removeAccountFromAllTrips(uid: String) {
+        val initial = userRepository.getUser(uid)?.tripIds?.toList().orEmpty()
+        for (tripId in initial) {
+            if (tripId.isBlank()) continue
+            try {
+                val members = getTripMembers(tripId)
+                when {
+                    members.isEmpty() -> { /* stale id */ }
+                    members.size == 1 && members.first().userId == uid ->
+                        deleteTripAsAdmin(tripId, uid)
+                    else -> {
+                        when (val r = leaveTrip(tripId, uid)) {
+                            is LeaveTripResult.MustTransferAdmin -> {
+                                val next = r.otherMembers.firstOrNull()
+                                if (next != null) {
+                                    transferAdminAndLeave(tripId, uid, next.userId)
+                                }
+                            }
+                            is LeaveTripResult.LastMember ->
+                                deleteTripAsAdmin(tripId, uid)
+                            is LeaveTripResult.Success -> { }
+                        }
+                    }
+                }
+            } catch (_: Exception) {
+            }
+            try {
+                userRepository.removeTripFromUser(uid, tripId)
+            } catch (_: Exception) {
+            }
+        }
+    }
+
     suspend fun transferAdminAndLeave(tripId: String, oldUid: String, newUid: String) {
         try {
             val tripName = trips.document(tripId).get().await().toObject(Trip::class.java)?.name?.trim()
@@ -254,7 +487,10 @@ class TripRepository {
             )
             val batch = db.batch()
             val membersRef = trips.document(tripId).collection("members")
-            batch.update(membersRef.document(newUid), "isAdmin", true)
+            batch.update(
+                membersRef.document(newUid),
+                mapOf("isAdmin" to true, "admin" to true)
+            )
             batch.update(trips.document(tripId), "adminId", newUid)
             batch.delete(membersRef.document(oldUid))
             batch.update(trips.document(tripId), "memberIds", FieldValue.arrayRemove(oldUid))

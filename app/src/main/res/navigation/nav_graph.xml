@@ -135,6 +135,24 @@
             app:destination="@id/authFragment"
             app:popUpTo="@id/nav_graph" app:popUpToInclusive="true"/>
         <action android:id="@+id/action_profile_to_dashboard" app:destination="@id/tripDashboardFragment"/>
+        <action android:id="@+id/action_profile_to_myTripsList" app:destination="@id/profileMyTripsListFragment"/>
+        <action android:id="@+id/action_profile_to_spendingList" app:destination="@id/profileSpendingListFragment"/>
     </fragment>
+
+    <fragment
+        android:id="@+id/profileMyTripsListFragment"
+        android:name="com.manikandan.tripoo.ui.profile.ProfileTripsListFragment"
+        android:label="My Trips"
+        tools:layout="@layout/fragment_profile_trips_list">
+        <action
+            android:id="@+id/action_profileMyTripsList_to_home"
+            app:destination="@id/homeFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/profileSpendingListFragment"
+        android:name="com.manikandan.tripoo.ui.profile.ProfileSpendingListFragment"
+        android:label="Spending"
+        tools:layout="@layout/fragment_profile_spending_list" />
 
 </navigation>

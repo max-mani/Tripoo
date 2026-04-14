@@ -228,13 +228,13 @@
                             android:contentDescription="@null" />
 
                         <TextView
+                            android:id="@+id/tvCountdownSectionTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
-                            android:text="Countdown to Adventure"
+                            android:text="@string/home_countdown_upcoming_title"
                             android:textColor="#E0FFFFFF"
-                            android:textSize="12sp"
-                            tools:ignore="HardcodedText" />
+                            android:textSize="12sp" />
                     </LinearLayout>
 
                     <TextView
@@ -757,6 +757,14 @@
             </LinearLayout>
             </androidx.core.widget.NestedScrollView>
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/adViewTripGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/tripoo_bg"
+            app:adSize="BANNER"
+            app:adUnitId="@string/admob_banner_trip_group" />
 
         <LinearLayout
             android:id="@+id/bottomNav"

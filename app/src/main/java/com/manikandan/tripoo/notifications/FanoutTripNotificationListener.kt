@@ -96,6 +96,7 @@ object FanoutTripNotificationListener {
                     if (actor == uid) continue
                     val title = doc.getString("title") ?: continue
                     val body = doc.getString("body").orEmpty()
+                    if (!NotificationPrefs.areTripNotificationsEnabled(ctx)) continue
                     LocalTripNotification.show(ctx, tripId, title, body, doc.id.hashCode())
                 }
             }

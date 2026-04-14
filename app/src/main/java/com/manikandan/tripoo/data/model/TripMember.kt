@@ -5,5 +5,8 @@ data class TripMember(
     val name: String = "",
     val email: String = "",
     val photoUrl: String? = null,
-    val isAdmin: Boolean = false
+    val isAdmin: Boolean = false,
+    /** Enriched from users/{userId} for display (not required on member Firestore docs). */
+    val avatarLetter: String? = null,
+    val avatarColorHex: String? = null
 )

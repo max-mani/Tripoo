@@ -17,270 +17,1070 @@
             android:fillViewport="true"
             android:paddingBottom="32dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <FrameLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_splash_gradient"
-                android:paddingTop="50dp"
-                android:paddingBottom="26dp">
+                android:orientation="vertical">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <!-- Hero (tripoo_app_design.html ph-hero) -->
+                <FrameLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    style="@style/Tripoo.Icon"
-                    android:text="account_circle"
-                    android:textSize="240sp"
-                    android:alpha="0.06" />
+                    android:background="@drawable/bg_splash_gradient"
+                    android:paddingTop="50dp"
+                    android:paddingBottom="26dp">
+
+                    <ImageView
+                        android:layout_width="220dp"
+                        android:layout_height="220dp"
+                        android:layout_gravity="center"
+                        android:alpha="0.08"
+                        android:contentDescription="@null"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_account_circle_outline"
+                        app:tint="@color/tripoo_surface" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/avatarContainer"
+                            android:layout_width="90dp"
+                            android:layout_height="90dp"
+                            app:cardBackgroundColor="#3DFFFFFF"
+                            app:cardCornerRadius="45dp"
+                            app:cardElevation="0dp"
+                            app:strokeColor="#80FFFFFF"
+                            app:strokeWidth="3dp">
+
+                            <FrameLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:clipChildren="true">
+
+                                <FrameLayout
+                                    android:id="@+id/flAvatarColorInner"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent">
+
+                                    <com.google.android.material.imageview.ShapeableImageView
+                                        android:id="@+id/ivProfilePhoto"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:scaleType="centerCrop"
+                                        android:visibility="gone"
+                                        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent"
+                                        tools:visibility="visible" />
+
+                                    <TextView
+                                        android:id="@+id/tvProfileInitials"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:gravity="center"
+                                        android:textColor="@color/tripoo_text_primary"
+                                        android:textSize="30sp"
+                                        android:textStyle="bold"
+                                        tools:text="FN" />
+                                </FrameLayout>
+
+                                <FrameLayout
+                                    android:id="@+id/btnChangePhoto"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="28dp"
+                                    android:layout_gravity="bottom"
+                                    android:background="#61000000"
+                                    android:clickable="true"
+                                    android:focusable="true">
+
+                                    <ImageView
+                                        android:layout_width="16dp"
+                                        android:layout_height="16dp"
+                                        android:layout_gravity="center"
+                                        android:contentDescription="@null"
+                                        android:src="@drawable/ic_photo_camera"
+                                        app:tint="@color/tripoo_surface" />
+                                </FrameLayout>
+                            </FrameLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <TextView
+                            android:id="@+id/tvProfileName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:textColor="@color/tripoo_surface"
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            tools:text="Faizal Noor" />
+
+                        <TextView
+                            android:id="@+id/tvProfileEmail"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:textColor="#C2FFFFFF"
+                            android:textSize="12sp"
+                            tools:text="faizal@email.com" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="18dp"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="28dp"
+                                android:gravity="center"
+                                android:orientation="vertical">
+                                <TextView
+                                    android:id="@+id/tvStatTrips"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="@color/tripoo_surface"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold"
+                                    tools:text="3" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Trips"
+                                    android:textColor="#B3FFFFFF"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold"
+                                    tools:ignore="HardcodedText" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="28dp"
+                                android:gravity="center"
+                                android:orientation="vertical">
+                                <TextView
+                                    android:id="@+id/tvStatSpent"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="@color/tripoo_surface"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold"
+                                    tools:text="₹8.4k" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Spent"
+                                    android:textColor="#B3FFFFFF"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold"
+                                    tools:ignore="HardcodedText" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:orientation="vertical">
+                                <TextView
+                                    android:id="@+id/tvStatFriends"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="@color/tripoo_surface"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold"
+                                    tools:text="12" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Friends"
+                                    android:textColor="#B3FFFFFF"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold"
+                                    tools:ignore="HardcodedText" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+                </FrameLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:gravity="center_horizontal">
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp">
 
-                    <FrameLayout
-                        android:id="@+id/avatarContainer"
-                        android:layout_width="90dp"
-                        android:layout_height="90dp"
-                        android:background="@drawable/bg_profile_avatar">
-
-                        <com.google.android.material.imageview.ShapeableImageView
-                            android:id="@+id/ivProfilePhoto"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:scaleType="centerCrop"
-                            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.CornerSize50Percent"
-                            tools:src="@android:drawable/ic_menu_gallery" />
-
-                        <FrameLayout
-                            android:id="@+id/btnChangePhoto"
-                            android:layout_width="match_parent"
-                            android:layout_height="28dp"
-                            android:layout_gravity="bottom"
-                            android:background="#61000000"
-                            android:clickable="true"
-                            android:focusable="true">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center"
-                                style="@style/Tripoo.Icon"
-                                android:text="photo_camera"
-                                android:textColor="@color/tripoo_surface"
-                                android:textSize="14sp" />
-                        </FrameLayout>
-                    </FrameLayout>
-
+                    <!-- Account -->
                     <TextView
-                        android:id="@+id/tvProfileName"
+                        style="@style/Tripoo.Text.SectionLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:textColor="@color/tripoo_surface"
-                        android:textSize="22sp"
-                        android:textStyle="bold"
-                        android:fontWeight="900"
-                        tools:text="Faizal Noor" />
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="10dp"
+                        android:text="Account"
+                        tools:ignore="HardcodedText" />
 
-                    <TextView
-                        android:id="@+id/tvProfileEmail"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="3dp"
-                        android:textColor="#C2FFFFFF"
-                        android:textSize="12sp"
-                        tools:text="faizal@email.com" />
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="18dp"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="center"
-                            android:layout_marginEnd="28dp">
-                            <TextView
-                                android:id="@+id/tvStatTrips"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textColor="@color/tripoo_surface"
-                                android:textSize="22sp"
-                                android:textStyle="bold"
-                                tools:text="3" />
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Trips"
-                                android:textColor="#B3FFFFFF"
-                                android:textSize="9sp"
-                                android:textStyle="bold"
-                                tools:ignore="HardcodedText" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="center"
-                            android:layout_marginEnd="28dp">
-                            <TextView
-                                android:id="@+id/tvStatSpent"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textColor="@color/tripoo_surface"
-                                android:textSize="22sp"
-                                android:textStyle="bold"
-                                tools:text="₹8.4k" />
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Spent"
-                                android:textColor="#B3FFFFFF"
-                                android:textSize="9sp"
-                                android:textStyle="bold"
-                                tools:ignore="HardcodedText" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="center">
-                            <TextView
-                                android:id="@+id/tvStatFriends"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textColor="@color/tripoo_surface"
-                                android:textSize="22sp"
-                                android:textStyle="bold"
-                                tools:text="12" />
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Friends"
-                                android:textColor="#B3FFFFFF"
-                                android:textSize="9sp"
-                                android:textStyle="bold"
-                                tools:ignore="HardcodedText" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </LinearLayout>
-            </FrameLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    style="@style/Tripoo.Text.SectionLabel"
-                    android:text="Account"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="10dp"
-                    tools:ignore="HardcodedText" />
-
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="0dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="@color/tripoo_border_light"
-                    app:cardBackgroundColor="@color/tripoo_surface">
-
-                    <LinearLayout
+                    <com.google.android.material.card.MaterialCardView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        app:cardBackgroundColor="@color/tripoo_surface"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/tripoo_border_light"
+                        app:strokeWidth="1dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:padding="13dp"
-                            android:clickable="true"
-                            android:focusable="true">
-                            <FrameLayout
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
-                                android:background="@color/tripoo_orange_12">
-                                <TextView style="@style/Tripoo.Icon" android:text="person" android:textColor="@color/tripoo_orange" android:textSize="20sp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center"/>
-                            </FrameLayout>
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="12dp">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Full Name" android:textColor="@color/tripoo_text_primary" android:textSize="14sp" android:textStyle="bold" tools:ignore="HardcodedText"/>
-                                <EditText android:id="@+id/etName" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@null" android:textColor="@color/tripoo_text_secondary" android:textSize="11sp" android:inputType="textPersonName" android:padding="0dp" tools:text="Faizal Noor"/>
-                            </LinearLayout>
-                            <TextView style="@style/Tripoo.Icon" android:text="chevron_right" android:textColor="@color/tripoo_text_hint" android:textSize="18sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                        </LinearLayout>
+                            android:orientation="vertical">
 
-                        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/tripoo_bg"/>
+                            <LinearLayout
+                                android:id="@+id/rowFullName"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:foreground="?attr/selectableItemBackground"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:paddingStart="14dp"
+                                android:paddingTop="13dp"
+                                android:paddingEnd="14dp"
+                                android:paddingBottom="13dp">
+                                <FrameLayout
+                                    android:layout_width="36dp"
+                                    android:layout_height="36dp"
+                                    android:background="@drawable/bg_profile_icon_orange">
+                                    <ImageView
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:layout_gravity="center"
+                                        android:contentDescription="@null"
+                                        android:src="@drawable/ic_person"
+                                        app:tint="@color/tripoo_orange" />
+                                </FrameLayout>
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="12dp"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical">
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Full Name"
+                                        android:textColor="@color/tripoo_text_primary"
+                                        android:textSize="14sp"
+                                        android:textStyle="bold"
+                                        tools:ignore="HardcodedText" />
+                                    <TextView
+                                        android:id="@+id/tvNameDisplay"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="1dp"
+                                        android:textColor="@color/tripoo_text_secondary"
+                                        android:textSize="11sp"
+                                        tools:text="Faizal Noor" />
+                                </LinearLayout>
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:contentDescription="@null"
+                                    android:src="@drawable/ic_chevron_right"
+                                    app:tint="@color/tripoo_text_hint" />
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:layout_marginStart="14dp"
+                                android:layout_marginEnd="14dp"
+                                android:background="@color/tripoo_bg" />
+
+                            <LinearLayout
+                                android:id="@+id/rowEmail"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:foreground="?attr/selectableItemBackground"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:paddingStart="14dp"
+                                android:paddingTop="13dp"
+                                android:paddingEnd="14dp"
+                                android:paddingBottom="13dp">
+                                <FrameLayout
+                                    android:layout_width="36dp"
+                                    android:layout_height="36dp"
+                                    android:background="@drawable/bg_profile_icon_orange">
+                                    <ImageView
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:layout_gravity="center"
+                                        android:contentDescription="@null"
+                                        android:src="@drawable/ic_mail"
+                                        app:tint="@color/tripoo_orange" />
+                                </FrameLayout>
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="12dp"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical">
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Email"
+                                        android:textColor="@color/tripoo_text_primary"
+                                        android:textSize="14sp"
+                                        android:textStyle="bold"
+                                        tools:ignore="HardcodedText" />
+                                    <TextView
+                                        android:id="@+id/tvEmailValue"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="1dp"
+                                        android:textColor="@color/tripoo_text_secondary"
+                                        android:textSize="11sp"
+                                        tools:text="faizal@email.com" />
+                                </LinearLayout>
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:contentDescription="@null"
+                                    android:src="@drawable/ic_chevron_right"
+                                    app:tint="@color/tripoo_text_hint" />
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:layout_marginStart="14dp"
+                                android:layout_marginEnd="14dp"
+                                android:background="@color/tripoo_bg" />
+
+                            <LinearLayout
+                                android:id="@+id/rowPhone"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:foreground="?attr/selectableItemBackground"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:paddingStart="14dp"
+                                android:paddingTop="13dp"
+                                android:paddingEnd="14dp"
+                                android:paddingBottom="13dp">
+                                <FrameLayout
+                                    android:layout_width="36dp"
+                                    android:layout_height="36dp"
+                                    android:background="@drawable/bg_profile_icon_orange">
+                                    <ImageView
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:layout_gravity="center"
+                                        android:contentDescription="@null"
+                                        android:src="@drawable/ic_phone"
+                                        app:tint="@color/tripoo_orange" />
+                                </FrameLayout>
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="12dp"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical">
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Phone Number"
+                                        android:textColor="@color/tripoo_text_primary"
+                                        android:textSize="14sp"
+                                        android:textStyle="bold"
+                                        tools:ignore="HardcodedText" />
+                                    <TextView
+                                        android:id="@+id/tvPhoneValue"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="1dp"
+                                        android:textColor="@color/tripoo_text_secondary"
+                                        android:textSize="11sp"
+                                        tools:text="Not linked" />
+                                </LinearLayout>
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:contentDescription="@null"
+                                    android:src="@drawable/ic_chevron_right"
+                                    app:tint="@color/tripoo_text_hint" />
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:layout_marginStart="14dp"
+                                android:layout_marginEnd="14dp"
+                                android:background="@color/tripoo_bg" />
+
+                            <LinearLayout
+                                android:id="@+id/rowChangePassword"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:foreground="?attr/selectableItemBackground"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:paddingStart="14dp"
+                                android:paddingTop="13dp"
+                                android:paddingEnd="14dp"
+                                android:paddingBottom="13dp">
+                                <FrameLayout
+                                    android:layout_width="36dp"
+                                    android:layout_height="36dp"
+                                    android:background="@drawable/bg_profile_icon_orange">
+                                    <ImageView
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:layout_gravity="center"
+                                        android:contentDescription="@null"
+                                        android:src="@drawable/ic_lock"
+                                        app:tint="@color/tripoo_orange" />
+                                </FrameLayout>
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="12dp"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical">
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Change Password"
+                                        android:textColor="@color/tripoo_text_primary"
+                                        android:textSize="14sp"
+                                        android:textStyle="bold"
+                                        tools:ignore="HardcodedText" />
+                                </LinearLayout>
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:contentDescription="@null"
+                                    android:src="@drawable/ic_chevron_right"
+                                    app:tint="@color/tripoo_text_hint" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Trip history -->
+                    <TextView
+                        style="@style/Tripoo.Text.SectionLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="10dp"
+                        android:text="Trip History"
+                        tools:ignore="HardcodedText" />
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:cardBackgroundColor="@color/tripoo_surface"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/tripoo_border_light"
+                        app:strokeWidth="1dp">
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:padding="13dp">
-                            <FrameLayout android:layout_width="36dp" android:layout_height="36dp" android:background="@color/tripoo_orange_12">
-                                <TextView style="@style/Tripoo.Icon" android:text="mail" android:textColor="@color/tripoo_orange" android:textSize="20sp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center"/>
-                            </FrameLayout>
-                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="12dp">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Email" android:textColor="@color/tripoo_text_primary" android:textSize="14sp" android:textStyle="bold" tools:ignore="HardcodedText"/>
-                                <EditText android:id="@+id/etEmail" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@null" android:textColor="@color/tripoo_text_secondary" android:textSize="11sp" android:inputType="textEmailAddress" android:enabled="false" android:padding="0dp" tools:text="faizal@email.com"/>
+                            android:orientation="vertical">
+
+                            <LinearLayout
+                                android:id="@+id/rowMyTrips"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:foreground="?attr/selectableItemBackground"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:paddingStart="14dp"
+                                android:paddingTop="13dp"
+                                android:paddingEnd="14dp"
+                                android:paddingBottom="13dp">
+                                <FrameLayout
+                                    android:layout_width="36dp"
+                                    android:layout_height="36dp"
+                                    android:background="@drawable/bg_profile_icon_green">
+                                    <ImageView
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:layout_gravity="center"
+                                        android:contentDescription="@null"
+                                        android:src="@drawable/ic_luggage"
+                                        app:tint="@color/tripoo_status_active_text" />
+                                </FrameLayout>
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="12dp"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical">
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="My Trips"
+                                        android:textColor="@color/tripoo_text_primary"
+                                        android:textSize="14sp"
+                                        android:textStyle="bold"
+                                        tools:ignore="HardcodedText" />
+                                    <TextView
+                                        android:id="@+id/tvMyTripsSubtitle"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="1dp"
+                                        android:textColor="@color/tripoo_text_secondary"
+                                        android:textSize="11sp"
+                                        tools:text="3 trips · 2 active" />
+                                </LinearLayout>
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:contentDescription="@null"
+                                    android:src="@drawable/ic_chevron_right"
+                                    app:tint="@color/tripoo_text_hint" />
                             </LinearLayout>
-                            <TextView style="@style/Tripoo.Icon" android:text="chevron_right" android:textColor="@color/tripoo_text_hint" android:textSize="18sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:layout_marginStart="14dp"
+                                android:layout_marginEnd="14dp"
+                                android:background="@color/tripoo_bg" />
+
+                            <LinearLayout
+                                android:id="@+id/rowTotalSpent"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:foreground="?attr/selectableItemBackground"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:paddingStart="14dp"
+                                android:paddingTop="13dp"
+                                android:paddingEnd="14dp"
+                                android:paddingBottom="13dp">
+                                <FrameLayout
+                                    android:layout_width="36dp"
+                                    android:layout_height="36dp"
+                                    android:background="@drawable/bg_profile_icon_yellow">
+                                    <ImageView
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:layout_gravity="center"
+                                        android:contentDescription="@null"
+                                        android:src="@drawable/ic_payments"
+                                        app:tint="@color/tripoo_yellow_text" />
+                                </FrameLayout>
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="12dp"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical">
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Total Spent"
+                                        android:textColor="@color/tripoo_text_primary"
+                                        android:textSize="14sp"
+                                        android:textStyle="bold"
+                                        tools:ignore="HardcodedText" />
+                                    <TextView
+                                        android:id="@+id/tvTotalSpentSubtitle"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="1dp"
+                                        android:textColor="@color/tripoo_text_secondary"
+                                        android:textSize="11sp"
+                                        tools:text="₹8,450 across all trips" />
+                                </LinearLayout>
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:contentDescription="@null"
+                                    android:src="@drawable/ic_chevron_right"
+                                    app:tint="@color/tripoo_text_hint" />
+                            </LinearLayout>
                         </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
+                    </com.google.android.material.card.MaterialCardView>
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnUpdateProfile"
-                    style="@style/Tripoo.Button.Outline"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="Update Profile"
-                    tools:ignore="HardcodedText" />
+                    <!-- Preferences -->
+                    <TextView
+                        style="@style/Tripoo.Text.SectionLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="10dp"
+                        android:text="Preferences"
+                        tools:ignore="HardcodedText" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnSignOut"
-                    style="@style/Tripoo.Button.Destructive"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="Sign Out"
-                    app:icon="@drawable/ic_logout"
-                    app:iconGravity="textStart"
-                    app:iconTint="@color/tripoo_red"
-                    tools:ignore="HardcodedText" />
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:cardBackgroundColor="@color/tripoo_surface"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/tripoo_border_light"
+                        app:strokeWidth="1dp">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnBackToDashboard"
-                    style="@style/Tripoo.Button.Outline.Small"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Back to Dashboard"
-                    app:icon="@drawable/ic_arrow_back"
-                    app:iconGravity="textStart"
-                    tools:ignore="HardcodedText" />
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:paddingStart="14dp"
+                                android:paddingTop="13dp"
+                                android:paddingEnd="14dp"
+                                android:paddingBottom="13dp">
+                                <FrameLayout
+                                    android:layout_width="36dp"
+                                    android:layout_height="36dp"
+                                    android:background="@drawable/bg_profile_icon_orange">
+                                    <ImageView
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:layout_gravity="center"
+                                        android:contentDescription="@null"
+                                        android:src="@drawable/ic_notifications"
+                                        app:tint="@color/tripoo_orange" />
+                                </FrameLayout>
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="12dp"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical">
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Notifications"
+                                        android:textColor="@color/tripoo_text_primary"
+                                        android:textSize="14sp"
+                                        android:textStyle="bold"
+                                        tools:ignore="HardcodedText" />
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="1dp"
+                                        android:text="Expenses, tasks, trip updates"
+                                        android:textColor="@color/tripoo_text_secondary"
+                                        android:textSize="11sp"
+                                        tools:ignore="HardcodedText" />
+                                </LinearLayout>
+                                <com.google.android.material.materialswitch.MaterialSwitch
+                                    android:id="@+id/switchNotifications"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:checked="true" />
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:layout_marginStart="14dp"
+                                android:layout_marginEnd="14dp"
+                                android:background="@color/tripoo_bg" />
+
+                            <LinearLayout
+                                android:id="@+id/rowLanguage"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:foreground="?attr/selectableItemBackground"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:paddingStart="14dp"
+                                android:paddingTop="13dp"
+                                android:paddingEnd="14dp"
+                                android:paddingBottom="13dp">
+                                <FrameLayout
+                                    android:layout_width="36dp"
+                                    android:layout_height="36dp"
+                                    android:background="@drawable/bg_profile_icon_orange">
+                                    <ImageView
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:layout_gravity="center"
+                                        android:contentDescription="@null"
+                                        android:src="@drawable/ic_language"
+                                        app:tint="@color/tripoo_orange" />
+                                </FrameLayout>
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="12dp"
+                                    android:layout_weight="1"
+                                    android:text="Language"
+                                    android:textColor="@color/tripoo_text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold"
+                                    tools:ignore="HardcodedText" />
+                                <TextView
+                                    android:id="@+id/tvLanguageValue"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginEnd="4dp"
+                                    android:text="English"
+                                    android:textColor="@color/tripoo_text_secondary"
+                                    android:textSize="12sp"
+                                    tools:ignore="HardcodedText" />
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:contentDescription="@null"
+                                    android:src="@drawable/ic_chevron_right"
+                                    app:tint="@color/tripoo_text_hint" />
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:layout_marginStart="14dp"
+                                android:layout_marginEnd="14dp"
+                                android:background="@color/tripoo_bg" />
+
+                            <LinearLayout
+                                android:id="@+id/rowCurrency"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:foreground="?attr/selectableItemBackground"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:paddingStart="14dp"
+                                android:paddingTop="13dp"
+                                android:paddingEnd="14dp"
+                                android:paddingBottom="13dp">
+                                <FrameLayout
+                                    android:layout_width="36dp"
+                                    android:layout_height="36dp"
+                                    android:background="@drawable/bg_profile_icon_orange">
+                                    <ImageView
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:layout_gravity="center"
+                                        android:contentDescription="@null"
+                                        android:src="@drawable/ic_payments"
+                                        app:tint="@color/tripoo_orange" />
+                                </FrameLayout>
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="12dp"
+                                    android:layout_weight="1"
+                                    android:text="Default Currency"
+                                    android:textColor="@color/tripoo_text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold"
+                                    tools:ignore="HardcodedText" />
+                                <TextView
+                                    android:id="@+id/tvCurrencyValue"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginEnd="4dp"
+                                    android:text="INR (₹)"
+                                    android:textColor="@color/tripoo_text_secondary"
+                                    android:textSize="12sp"
+                                    tools:ignore="HardcodedText" />
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:contentDescription="@null"
+                                    android:src="@drawable/ic_chevron_right"
+                                    app:tint="@color/tripoo_text_hint" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Support -->
+                    <TextView
+                        style="@style/Tripoo.Text.SectionLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="10dp"
+                        android:text="Support"
+                        tools:ignore="HardcodedText" />
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        app:cardBackgroundColor="@color/tripoo_surface"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/tripoo_border_light"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <LinearLayout
+                                android:id="@+id/rowHelp"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:foreground="?attr/selectableItemBackground"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:paddingStart="14dp"
+                                android:paddingTop="13dp"
+                                android:paddingEnd="14dp"
+                                android:paddingBottom="13dp">
+                                <FrameLayout
+                                    android:layout_width="36dp"
+                                    android:layout_height="36dp"
+                                    android:background="@drawable/bg_profile_icon_orange">
+                                    <ImageView
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:layout_gravity="center"
+                                        android:contentDescription="@null"
+                                        android:src="@drawable/ic_help_outline"
+                                        app:tint="@color/tripoo_orange" />
+                                </FrameLayout>
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="12dp"
+                                    android:layout_weight="1"
+                                    android:text="Help &amp; FAQ"
+                                    android:textColor="@color/tripoo_text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:contentDescription="@null"
+                                    android:src="@drawable/ic_chevron_right"
+                                    app:tint="@color/tripoo_text_hint" />
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:layout_marginStart="14dp"
+                                android:layout_marginEnd="14dp"
+                                android:background="@color/tripoo_bg" />
+
+                            <LinearLayout
+                                android:id="@+id/rowFeedback"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:foreground="?attr/selectableItemBackground"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:paddingStart="14dp"
+                                android:paddingTop="13dp"
+                                android:paddingEnd="14dp"
+                                android:paddingBottom="13dp">
+                                <FrameLayout
+                                    android:layout_width="36dp"
+                                    android:layout_height="36dp"
+                                    android:background="@drawable/bg_profile_icon_orange">
+                                    <ImageView
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:layout_gravity="center"
+                                        android:contentDescription="@null"
+                                        android:src="@drawable/ic_feedback_outline"
+                                        app:tint="@color/tripoo_orange" />
+                                </FrameLayout>
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="12dp"
+                                    android:layout_weight="1"
+                                    android:text="Send Feedback"
+                                    android:textColor="@color/tripoo_text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold"
+                                    tools:ignore="HardcodedText" />
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:contentDescription="@null"
+                                    android:src="@drawable/ic_chevron_right"
+                                    app:tint="@color/tripoo_text_hint" />
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:layout_marginStart="14dp"
+                                android:layout_marginEnd="14dp"
+                                android:background="@color/tripoo_bg" />
+
+                            <LinearLayout
+                                android:id="@+id/rowPrivacy"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:foreground="?attr/selectableItemBackground"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:paddingStart="14dp"
+                                android:paddingTop="13dp"
+                                android:paddingEnd="14dp"
+                                android:paddingBottom="13dp">
+                                <FrameLayout
+                                    android:layout_width="36dp"
+                                    android:layout_height="36dp"
+                                    android:background="@drawable/bg_profile_icon_orange">
+                                    <ImageView
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:layout_gravity="center"
+                                        android:contentDescription="@null"
+                                        android:src="@drawable/ic_shield_outline"
+                                        app:tint="@color/tripoo_orange" />
+                                </FrameLayout>
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="12dp"
+                                    android:layout_weight="1"
+                                    android:text="Privacy Policy"
+                                    android:textColor="@color/tripoo_text_primary"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold"
+                                    tools:ignore="HardcodedText" />
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:contentDescription="@null"
+                                    android:src="@drawable/ic_chevron_right"
+                                    app:tint="@color/tripoo_text_hint" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Danger -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        app:cardBackgroundColor="@color/tripoo_surface"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/tripoo_border_light"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <LinearLayout
+                                android:id="@+id/rowLogout"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:foreground="?attr/selectableItemBackground"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:paddingStart="14dp"
+                                android:paddingTop="13dp"
+                                android:paddingEnd="14dp"
+                                android:paddingBottom="13dp">
+                                <FrameLayout
+                                    android:layout_width="36dp"
+                                    android:layout_height="36dp"
+                                    android:background="@drawable/bg_profile_icon_red">
+                                    <ImageView
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:layout_gravity="center"
+                                        android:contentDescription="@null"
+                                        android:src="@drawable/ic_logout"
+                                        app:tint="@color/tripoo_red" />
+                                </FrameLayout>
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="12dp"
+                                    android:layout_weight="1"
+                                    android:text="Log Out"
+                                    android:textColor="@color/tripoo_red"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold"
+                                    tools:ignore="HardcodedText" />
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:contentDescription="@null"
+                                    android:src="@drawable/ic_chevron_right"
+                                    app:tint="@color/tripoo_text_hint" />
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:layout_marginStart="14dp"
+                                android:layout_marginEnd="14dp"
+                                android:background="@color/tripoo_bg" />
+
+                            <LinearLayout
+                                android:id="@+id/rowDeleteAccount"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:foreground="?attr/selectableItemBackground"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:paddingStart="14dp"
+                                android:paddingTop="13dp"
+                                android:paddingEnd="14dp"
+                                android:paddingBottom="13dp">
+                                <FrameLayout
+                                    android:layout_width="36dp"
+                                    android:layout_height="36dp"
+                                    android:background="@drawable/bg_profile_icon_red">
+                                    <ImageView
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:layout_gravity="center"
+                                        android:contentDescription="@null"
+                                        android:src="@drawable/ic_delete_forever"
+                                        app:tint="@color/tripoo_red" />
+                                </FrameLayout>
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="12dp"
+                                    android:layout_weight="1"
+                                    android:text="Delete Account"
+                                    android:textColor="@color/tripoo_red"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold"
+                                    tools:ignore="HardcodedText" />
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:contentDescription="@null"
+                                    android:src="@drawable/ic_chevron_right"
+                                    app:tint="@color/tripoo_text_hint" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnBackToDashboard"
+                        style="@style/Tripoo.Button.Outline.Small"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:text="Back to Dashboard"
+                        app:icon="@drawable/ic_arrow_back"
+                        app:iconGravity="textStart"
+                        tools:ignore="HardcodedText" />
+                </LinearLayout>
             </LinearLayout>
-        </LinearLayout>
         </ScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -14,11 +14,13 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.manikandan.tripoo.R
 import com.manikandan.tripoo.data.model.Task
+import com.manikandan.tripoo.data.model.TripMember
 import com.manikandan.tripoo.databinding.ItemTaskBinding
+import com.manikandan.tripoo.utils.UserAvatarIdentity
 import com.manikandan.tripoo.databinding.ItemTaskHeaderBinding
 
 class TaskAdapter(
-    private val memberNames: Map<String, String>,
+    private val membersById: Map<String, TripMember>,
     private val onToggle: (Task) -> Unit,
     private val onEdit: (Task) -> Unit = {},
     private val onDelete: (Task) -> Unit = {}
@@ -164,7 +166,7 @@ class TaskAdapter(
             val assigneeName = when {
                 rawAssigned.equals("everyone", ignoreCase = true) -> "Everyone"
                 rawAssigned.isEmpty() -> "Everyone"
-                memberNames.containsKey(rawAssigned) -> memberNames[rawAssigned]!!
+                membersById.containsKey(rawAssigned) -> membersById[rawAssigned]!!.name
                 else -> rawAssigned
             }
             b.tvAssigned.text = "Assigned to $assigneeName"
@@ -225,9 +227,9 @@ class TaskAdapter(
                 }
             }
 
-            // Assignee badge: centered group icon or initial
+            // Assignee badge: centered group icon or initial (match Groups / user avatar colours)
             val isEveryone = rawAssigned.equals("everyone", ignoreCase = true) || rawAssigned.isEmpty()
-            val avatarBg = GradientDrawable().apply {
+            val everyoneBg = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
                 setColor(Color.parseColor("#1FF48C25"))
             }
@@ -235,15 +237,28 @@ class TaskAdapter(
                 b.ivAssigneeGroup.visibility = View.VISIBLE
                 b.tvAssigneeAvatar.visibility = View.GONE
                 b.tvAssigneeAvatar.text = ""
-                b.flAssigneeBadge.background = avatarBg
+                b.flAssigneeBadge.background = everyoneBg
             } else {
                 b.ivAssigneeGroup.visibility = View.GONE
                 b.tvAssigneeAvatar.visibility = View.VISIBLE
-                val initial = (memberNames[rawAssigned] ?: assigneeName)
-                    .firstOrNull()?.uppercase() ?: "?"
+                val m = membersById[rawAssigned]
+                val initial = if (m != null) {
+                    UserAvatarIdentity.displayLetter(m).toString()
+                } else {
+                    assigneeName.firstOrNull()?.uppercase() ?: "?"
+                }
                 b.tvAssigneeAvatar.text = initial
+                val (bgCol, txtCol) = if (m != null) {
+                    UserAvatarIdentity.chipColors(m, 0)
+                } else {
+                    Color.parseColor("#1FF48C25") to Color.parseColor("#F48C25")
+                }
+                val avatarBg = GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL
+                    setColor(bgCol)
+                }
                 b.flAssigneeBadge.background = avatarBg
-                b.tvAssigneeAvatar.setTextColor(Color.parseColor("#F48C25"))
+                b.tvAssigneeAvatar.setTextColor(txtCol)
             }
 
             // Divider: hide on last row

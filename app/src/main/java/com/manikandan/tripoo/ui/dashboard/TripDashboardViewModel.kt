@@ -11,6 +11,8 @@ import com.manikandan.tripoo.data.repository.ExpenseRepository
 import com.manikandan.tripoo.data.repository.TripRepository
 import com.manikandan.tripoo.data.repository.UserRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -47,14 +49,19 @@ class TripDashboardViewModel : ViewModel() {
                 val tripIds = user?.tripIds ?: emptyList()
                 val trips = withContext(Dispatchers.IO) { tripRepo.getTripsForUser(tripIds) }
                 val withMeta = withContext(Dispatchers.IO) {
-                    trips.map { trip ->
-                        val totalSpent = expenseRepo.getTotalExpenses(trip.id)
-                        TripWithMeta(
-                            trip = trip,
-                            memberCount = trip.memberIds.size,
-                            userRole = if (trip.adminId == uid) "admin" else "member",
-                            totalSpent = totalSpent
-                        )
+                    coroutineScope {
+                        trips.map { trip ->
+                            async {
+                                val leader = tripRepo.canUserManageTripAsLeader(trip.id, uid)
+                                val totalSpent = expenseRepo.getTotalExpenses(trip.id)
+                                TripWithMeta(
+                                    trip = trip,
+                                    memberCount = trip.memberIds.size,
+                                    userRole = if (leader) "admin" else "member",
+                                    totalSpent = totalSpent
+                                )
+                            }
+                        }.map { it.await() }
                     }
                 }
                 _allTrips.postValue(withMeta)

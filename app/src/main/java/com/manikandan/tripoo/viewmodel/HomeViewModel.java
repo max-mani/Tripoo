@@ -28,6 +28,7 @@ public class HomeViewModel extends AndroidViewModel {
     private final MutableLiveData<Double> totalExpensesLiveData = new MutableLiveData<>();
     private final MutableLiveData<Resource<Void>> deleteTripLiveData = new MutableLiveData<>();
     private final MutableLiveData<Resource<Void>> updateTripLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> canManageTripLiveData = new MutableLiveData<>(false);
     private ListenerRegistration tripListener;
 
     public HomeViewModel(@NonNull Application application) {
@@ -45,6 +46,7 @@ public class HomeViewModel extends AndroidViewModel {
                 tripListener.remove();
                 tripListener = null;
             }
+            canManageTripLiveData.setValue(false);
             userLiveData.setValue(Resource.error("Logged out"));
             tripLiveData.setValue(Resource.error("Logged out"));
             return;
@@ -68,6 +70,7 @@ public class HomeViewModel extends AndroidViewModel {
             tripListener.remove();
             tripListener = null;
         }
+        canManageTripLiveData.setValue(false);
         userLiveData.setValue(Resource.error("Logged out"));
         tripLiveData.setValue(Resource.error("Logged out"));
     }
@@ -76,15 +79,27 @@ public class HomeViewModel extends AndroidViewModel {
         if (tripListener != null) {
             tripListener.remove();
         }
+        canManageTripLiveData.setValue(false);
         tripListener = tripRepository.listenToTrip(tripId, (trip, e) -> {
             if (e != null) {
                 tripLiveData.setValue(Resource.error(e.getMessage()));
+                canManageTripLiveData.postValue(false);
                 return Unit.INSTANCE;
             }
             if (trip != null) {
                 tripLiveData.setValue(Resource.success(trip));
+                FirebaseUser u = authRepository.getCurrentUser();
+                if (u != null) {
+                    tripRepository.canUserManageTripAsLeader(tripId, u.getUid(), can -> {
+                        canManageTripLiveData.postValue(can);
+                        return Unit.INSTANCE;
+                    });
+                } else {
+                    canManageTripLiveData.postValue(false);
+                }
             } else {
                 tripLiveData.setValue(Resource.error("Trip not found"));
+                canManageTripLiveData.postValue(false);
             }
             return Unit.INSTANCE;
         });
@@ -132,7 +147,9 @@ public class HomeViewModel extends AndroidViewModel {
                     userName,
                     firebaseUser.getEmail() != null ? firebaseUser.getEmail() : "",
                     userPhotoUrl,
-                    true
+                    true,
+                    null,
+                    null
             );
             tripRepository.createTrip(trip, member, tripId -> {
                 if (tripId != null) {
@@ -177,7 +194,9 @@ public class HomeViewModel extends AndroidViewModel {
                     userName,
                     firebaseUser.getEmail() != null ? firebaseUser.getEmail() : "",
                     userPhotoUrl,
-                    false
+                    false,
+                    null,
+                    null
             );
             tripRepository.joinTrip(tripCode, member, tripId -> {
                 if (tripId != null) {
@@ -226,8 +245,17 @@ public class HomeViewModel extends AndroidViewModel {
         return deleteTripLiveData;
     }
 
+    /** Clears delete result so other screens do not react to a stale success/error. */
+    public void acknowledgeDeleteTripResult() {
+        deleteTripLiveData.setValue(null);
+    }
+
     public LiveData<Resource<Void>> getUpdateTripLiveData() {
         return updateTripLiveData;
+    }
+
+    public LiveData<Boolean> getCanManageTripLiveData() {
+        return canManageTripLiveData;
     }
 
     public void updateTrip(String tripId, String name, String destination, String description, Timestamp startDate, Timestamp endDate, double budget) {
@@ -243,34 +271,38 @@ public class HomeViewModel extends AndroidViewModel {
             updateTripLiveData.setValue(Resource.error("Trip not loaded"));
             return;
         }
-        if (trip.getAdminId() == null || !trip.getAdminId().equals(firebaseUser.getUid())) {
-            updateTripLiveData.setValue(Resource.error("Only admin can edit this trip"));
-            return;
-        }
         if (trip.getId() == null || !trip.getId().equals(tripId)) {
             updateTripLiveData.setValue(Resource.error("Trip mismatch"));
             return;
         }
 
-        long startMs = timestampToMillis(startDate);
-        long endMs = timestampToMillis(endDate);
-        tripRepository.updateTripDetails(
-                tripId,
-                name != null ? name.trim() : "",
-                destination != null ? destination.trim() : "",
-                description != null ? description.trim() : "",
-                startMs,
-                endMs,
-                budget,
-                err -> {
-                    if (err != null) {
-                        updateTripLiveData.postValue(Resource.error(err.getMessage() != null ? err.getMessage() : "Update failed"));
-                    } else {
-                        updateTripLiveData.postValue(Resource.success(null));
+        String uid = firebaseUser.getUid();
+        tripRepository.canUserManageTripAsLeader(tripId, uid, can -> {
+            if (!can) {
+                updateTripLiveData.postValue(Resource.error("Only the organiser or a co-organiser can edit this trip"));
+                return Unit.INSTANCE;
+            }
+            long startMs = timestampToMillis(startDate);
+            long endMs = timestampToMillis(endDate);
+            tripRepository.updateTripDetails(
+                    tripId,
+                    name != null ? name.trim() : "",
+                    destination != null ? destination.trim() : "",
+                    description != null ? description.trim() : "",
+                    startMs,
+                    endMs,
+                    budget,
+                    err -> {
+                        if (err != null) {
+                            updateTripLiveData.postValue(Resource.error(err.getMessage() != null ? err.getMessage() : "Update failed"));
+                        } else {
+                            updateTripLiveData.postValue(Resource.success(null));
+                        }
+                        return Unit.INSTANCE;
                     }
-                    return Unit.INSTANCE;
-                }
-        );
+            );
+            return Unit.INSTANCE;
+        });
     }
 
     public void deleteTrip(String tripId) {
@@ -287,21 +319,30 @@ public class HomeViewModel extends AndroidViewModel {
             return;
         }
 
-        if (trip.getAdminId() == null || !trip.getAdminId().equals(firebaseUser.getUid())) {
-            deleteTripLiveData.setValue(Resource.error("Only admin can delete this trip"));
+        String organiserUid = trip.getAdminId();
+        if (organiserUid == null || organiserUid.isEmpty()) {
+            deleteTripLiveData.setValue(Resource.error("Trip not loaded"));
             return;
         }
 
-        String adminUid = firebaseUser.getUid();
-        tripRepository.deleteTripAsAdmin(tripId, adminUid, err -> {
-            if (err != null) {
-                deleteTripLiveData.postValue(Resource.error(err.getMessage() != null ? err.getMessage() : "Delete failed"));
+        String uid = firebaseUser.getUid();
+        tripRepository.canUserManageTripAsLeader(tripId, uid, can -> {
+            if (!can) {
+                deleteTripLiveData.postValue(Resource.error("Only the organiser or a co-organiser can delete this trip"));
                 return Unit.INSTANCE;
             }
+            // Member doc IDs match user UIDs; deletion order must keep the trip organiser's doc until last.
+            tripRepository.deleteTripAsAdmin(tripId, organiserUid, err -> {
+                if (err != null) {
+                    deleteTripLiveData.postValue(Resource.error(err.getMessage() != null ? err.getMessage() : "Delete failed"));
+                    return Unit.INSTANCE;
+                }
 
-            // Option B: only update current user's doc (rules prevent updating other users)
-            userRepository.removeTripFromUser(adminUid, tripId, ignored -> {
-                deleteTripLiveData.postValue(Resource.success(null));
+                // Option B: only update current user's doc (rules prevent updating other users)
+                userRepository.removeTripFromUser(uid, tripId, ignored -> {
+                    deleteTripLiveData.postValue(Resource.success(null));
+                    return Unit.INSTANCE;
+                });
                 return Unit.INSTANCE;
             });
             return Unit.INSTANCE;

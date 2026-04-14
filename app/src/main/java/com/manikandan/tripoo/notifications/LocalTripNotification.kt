@@ -11,6 +11,7 @@ import com.manikandan.tripoo.R
 object LocalTripNotification {
 
     fun show(context: Context, tripId: String, title: String, body: String, notificationId: Int) {
+        if (!NotificationPrefs.areTripNotificationsEnabled(context)) return
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             putExtra(NotificationConstants.EXTRA_OPEN_TRIP_ID, tripId)

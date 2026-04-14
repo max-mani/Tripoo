@@ -25,6 +25,86 @@
         <item name="android:textColorSecondary">@color/tripoo_text_secondary</item>
     </style>
 
+    <!-- Dialog panel uses M3 macros tied to colorSurfaceContainer*; force light surfaces for DayNight. -->
+    <style name="Tripoo.MaterialAlertDialog" parent="MaterialAlertDialog.Material3">
+        <item name="backgroundTint">@color/tripoo_surface</item>
+    </style>
+
+    <!-- Material alert dialogs (profile edit fields, language, currency, delete confirm).
+         Title/body styles must extend MaterialAlertDialog.Material3.* (widget styles), not TextAppearance.*,
+         or dialog inflation crashes. -->
+    <style name="ThemeOverlay.Tripoo.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="alertDialogStyle">@style/Tripoo.MaterialAlertDialog</item>
+        <item name="colorPrimary">@color/tripoo_orange</item>
+        <item name="colorOnPrimary">@color/tripoo_surface</item>
+        <item name="colorAccent">@color/tripoo_orange</item>
+        <item name="android:colorAccent">@color/tripoo_orange</item>
+        <item name="colorSurface">@color/tripoo_surface</item>
+        <item name="colorSurfaceBright">@color/tripoo_surface</item>
+        <item name="colorSurfaceContainer">@color/tripoo_surface</item>
+        <item name="colorSurfaceContainerLow">@color/tripoo_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/tripoo_surface</item>
+        <item name="colorSurfaceContainerHighest">@color/tripoo_surface</item>
+        <item name="colorOnSurface">@color/tripoo_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/tripoo_text_secondary</item>
+        <item name="android:windowBackground">@color/tripoo_surface</item>
+        <item name="android:colorBackground">@color/tripoo_surface</item>
+        <item name="android:textColorPrimary">@color/tripoo_text_primary</item>
+        <item name="android:textColorSecondary">@color/tripoo_text_secondary</item>
+        <item name="android:textColorHint">@color/tripoo_text_hint</item>
+        <item name="android:textColorAlertDialogListItem">@color/tripoo_text_primary</item>
+        <item name="android:colorControlNormal">@color/tripoo_text_hint</item>
+        <item name="android:colorControlActivated">@color/tripoo_orange</item>
+        <item name="colorControlNormal">@color/tripoo_text_hint</item>
+        <item name="colorControlActivated">@color/tripoo_orange</item>
+        <item name="materialAlertDialogTitleTextStyle">@style/Tripoo.MaterialAlertDialog.Title.Text</item>
+        <item name="materialAlertDialogBodyTextStyle">@style/Tripoo.MaterialAlertDialog.Body.Text</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.Tripoo.AlertDialog.Button</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.Tripoo.AlertDialog.Button.Neutral</item>
+    </style>
+
+    <style name="Widget.Tripoo.AlertDialog.EditText" parent="Widget.AppCompat.EditText">
+        <item name="android:textColor">@color/tripoo_text_primary</item>
+        <item name="android:textColorHint">@color/tripoo_text_hint</item>
+    </style>
+
+    <!-- Used with ContextThemeWrapper for EditText fields so typed text, hints, and cursor use Tripoo colors. -->
+    <style name="ThemeOverlay.Tripoo.AlertDialogField" parent="">
+        <item name="editTextStyle">@style/Widget.Tripoo.AlertDialog.EditText</item>
+        <item name="android:editTextStyle">@style/Widget.Tripoo.AlertDialog.EditText</item>
+        <item name="colorPrimary">@color/tripoo_orange</item>
+        <item name="colorAccent">@color/tripoo_orange</item>
+        <item name="android:colorAccent">@color/tripoo_orange</item>
+        <item name="colorOnSurface">@color/tripoo_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/tripoo_text_secondary</item>
+        <item name="android:textColorPrimary">@color/tripoo_text_primary</item>
+        <item name="android:textColorSecondary">@color/tripoo_text_secondary</item>
+        <item name="android:textColorHint">@color/tripoo_text_hint</item>
+        <item name="android:colorControlNormal">@color/tripoo_text_hint</item>
+        <item name="android:colorControlActivated">@color/tripoo_orange</item>
+        <item name="colorControlNormal">@color/tripoo_text_hint</item>
+        <item name="colorControlActivated">@color/tripoo_orange</item>
+    </style>
+
+    <style name="Tripoo.MaterialAlertDialog.Title.Text" parent="MaterialAlertDialog.Material3.Title.Text">
+        <item name="android:textColor">@color/tripoo_orange</item>
+    </style>
+
+    <style name="Tripoo.MaterialAlertDialog.Body.Text" parent="MaterialAlertDialog.Material3.Body.Text">
+        <item name="android:textColor">@color/tripoo_text_primary</item>
+    </style>
+
+    <style name="Widget.Tripoo.AlertDialog.Button" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/tripoo_orange</item>
+        <item name="android:textStyle">bold</item>
+        <item name="rippleColor">@color/tripoo_orange_12</item>
+    </style>
+
+    <style name="Widget.Tripoo.AlertDialog.Button.Neutral" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/tripoo_text_secondary</item>
+        <item name="rippleColor">@color/tripoo_orange_12</item>
+    </style>
+
     <!-- DatePickerDialog: MC alert base fixes OK/Cancel contrast; explicit header + buttons -->
     <style name="ThemeOverlay.Tripoo.DatePickerDialog" parent="Theme.MaterialComponents.Light.Dialog.Alert">
         <item name="android:windowBackground">@color/tripoo_surface</item>

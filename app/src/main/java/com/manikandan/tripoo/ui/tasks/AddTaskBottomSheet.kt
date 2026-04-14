@@ -38,6 +38,7 @@ import com.manikandan.tripoo.data.repository.TaskRepository
 import com.manikandan.tripoo.data.repository.TripRepository
 import com.manikandan.tripoo.databinding.BottomSheetAddTaskBinding
 import com.manikandan.tripoo.utils.ImageUtils
+import com.manikandan.tripoo.utils.UserAvatarIdentity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -61,15 +62,6 @@ class AddTaskBottomSheet : BottomSheetDialogFragment() {
     private var members: List<TripMember> = emptyList()
     private val memberChips = mutableListOf<Chip>()
     private var updatingChips = false
-
-    private val avatarPalette = listOf(
-        Color.parseColor("#FFEDD5") to Color.parseColor("#C05C00"),
-        Color.parseColor("#DCFCE7") to Color.parseColor("#16A34A"),
-        Color.parseColor("#DBEAFE") to Color.parseColor("#2563EB"),
-        Color.parseColor("#F3E8FF") to Color.parseColor("#9333EA"),
-        Color.parseColor("#FEF9C3") to Color.parseColor("#CA8A04"),
-        Color.parseColor("#FEE2E2") to Color.parseColor("#DC2626"),
-    )
 
     companion object {
         fun newInstance(tripId: String, task: Task?): AddTaskBottomSheet {
@@ -192,8 +184,8 @@ class AddTaskBottomSheet : BottomSheetDialogFragment() {
         val chipIconPx = (24 * resources.displayMetrics.density).toInt()
 
         members.forEachIndexed { idx, member ->
-            val (bgColor, txtColor) = avatarPalette[idx % avatarPalette.size]
-            val letter = (member.name.firstOrNull() ?: '?').uppercaseChar()
+            val (bgColor, txtColor) = UserAvatarIdentity.chipColors(member, idx)
+            val letter = UserAvatarIdentity.displayLetter(member)
 
             val chip = Chip(requireContext()).apply {
                 text = member.name.split(" ").firstOrNull() ?: member.name

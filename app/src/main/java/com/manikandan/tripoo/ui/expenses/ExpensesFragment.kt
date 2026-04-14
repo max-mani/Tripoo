@@ -24,6 +24,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.gms.ads.AdRequest
 import com.google.android.material.snackbar.Snackbar
 import com.manikandan.tripoo.R
 import com.manikandan.tripoo.ads.TripExitInterstitialHelper
@@ -90,10 +91,17 @@ class ExpensesFragment : Fragment() {
         setActiveBottomNav("expenses")
         observeViewModel()
         selectTab(0)
+        binding.adViewTripGroup.loadAd(AdRequest.Builder().build())
+    }
+
+    override fun onPause() {
+        binding.adViewTripGroup.pause()
+        super.onPause()
     }
 
     override fun onResume() {
         super.onResume()
+        binding.adViewTripGroup.resume()
         if (args.tripId.isNotEmpty()) {
             TripExitInterstitialHelper.preload(requireContext())
         }
@@ -206,6 +214,19 @@ class ExpensesFragment : Fragment() {
         binding.tvNavGroups.setTextColor(if (tab == "groups") orange else grey)
     }
 
+    /** Co-organisers ([TripMember.isAdmin]) and the trip organiser can mark expenses settled. */
+    private fun syncExpenseSettlePermission() {
+        val members = viewModel.members.value.orEmpty()
+        val trip = viewModel.trip.value
+        val currentUid = viewModel.currentUserId
+        isCurrentUserAdmin =
+            members.firstOrNull { it.userId == currentUid }?.isAdmin == true ||
+                trip?.adminId == currentUid
+        if (::expenseAdapter.isInitialized) {
+            expenseAdapter.setCanMarkSettled(isCurrentUserAdmin)
+        }
+    }
+
     private fun observeViewModel() {
         viewModel.trip.observe(viewLifecycleOwner) { trip ->
             binding.tvTripName.text = trip?.name.orEmpty()
@@ -219,6 +240,7 @@ class ExpensesFragment : Fragment() {
             binding.tvTripSubtitle.text =
                 if (dateRange.isEmpty()) "$memberCount participants"
                 else "$memberCount participants · $dateRange"
+            syncExpenseSettlePermission()
         }
 
         viewModel.members.observe(viewLifecycleOwner) { members ->
@@ -483,6 +505,7 @@ class ExpensesFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        binding.adViewTripGroup.destroy()
         super.onDestroyView()
         _binding = null
     }

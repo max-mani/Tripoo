@@ -35,9 +35,11 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
+import com.google.android.gms.ads.AdRequest
 import com.manikandan.tripoo.R
 import com.manikandan.tripoo.ads.TripExitInterstitialHelper
 import com.manikandan.tripoo.utils.ImageUtils
+import com.manikandan.tripoo.utils.UserAvatarIdentity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -63,15 +65,8 @@ class TasksFragment : Fragment() {
 
     private lateinit var taskAdapter: TaskAdapter
     private var currentTab = 0
-    private var memberNames = emptyMap<String, String>()
+    private var membersById = emptyMap<String, TripMember>()
     private var searchQuery = ""
-
-    private val avatarBgColors = listOf(
-        "#DBEAFE", "#DCFCE7", "#F3E8FF", "#FEF9C3", "#FFEDD5"
-    )
-    private val avatarTextColors = listOf(
-        "#2563EB", "#16A34A", "#9333EA", "#CA8A04", "#C05C00"
-    )
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -101,10 +96,17 @@ class TasksFragment : Fragment() {
                 }
             }
         )
+        binding.adViewTripGroup.loadAd(AdRequest.Builder().build())
+    }
+
+    override fun onPause() {
+        binding.adViewTripGroup.pause()
+        super.onPause()
     }
 
     override fun onResume() {
         super.onResume()
+        binding.adViewTripGroup.resume()
         val tid = arguments?.getString("tripId").orEmpty()
         if (tid.isNotEmpty()) {
             TripExitInterstitialHelper.preload(requireContext())
@@ -135,7 +137,7 @@ class TasksFragment : Fragment() {
     }
 
     private fun createAdapter() = TaskAdapter(
-        memberNames = memberNames,
+        membersById = membersById,
         onToggle = { task -> viewModel.toggleTask(task) },
         onEdit = { task -> onEditTask(task) },
         onDelete = { task -> onDeleteTask(task) }
@@ -231,7 +233,7 @@ class TasksFragment : Fragment() {
         }
 
         viewModel.members.observe(viewLifecycleOwner) { members ->
-            memberNames = members.associate { it.userId to it.name }
+            membersById = members.associateBy { it.userId }
             taskAdapter = createAdapter()
             binding.rvTasks.adapter = taskAdapter
             buildAvatarStack(members)
@@ -275,9 +277,8 @@ class TasksFragment : Fragment() {
         val overlap = (-5 * dp).toInt()
 
         members.take(2).forEachIndexed { index, member ->
-            val bgColor = Color.parseColor(avatarBgColors[index % avatarBgColors.size])
-            val textColor = Color.parseColor(avatarTextColors[index % avatarTextColors.size])
-            val initial = member.name.firstOrNull()?.uppercase() ?: "?"
+            val (bgColor, textColor) = UserAvatarIdentity.chipColors(member, index)
+            val initial = UserAvatarIdentity.displayLetter(member).toString()
 
             // Initial letter avatar — always shown immediately as placeholder
             val avatar = TextView(requireContext()).apply {
@@ -436,6 +437,7 @@ class TasksFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        binding.adViewTripGroup.destroy()
         super.onDestroyView()
         _binding = null
     }

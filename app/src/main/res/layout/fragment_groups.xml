@@ -15,7 +15,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/tripoo_surface"
+            android:background="@drawable/bg_topbar_with_divider"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:paddingTop="50dp"
@@ -27,17 +27,17 @@
                 android:id="@+id/btnBack"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
+                android:background="@drawable/bg_circle_orange_12"
                 android:foreground="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_gravity="center"
-                    style="@style/Tripoo.Icon"
-                    android:text="arrow_back"
-                    android:textColor="@color/tripoo_orange"
-                    android:textSize="20sp" />
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_arrow_back"
+                    app:tint="@color/tripoo_orange" />
             </FrameLayout>
 
             <LinearLayout
@@ -48,29 +48,42 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/tvTripTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Participants"
                     android:textColor="@color/tripoo_text_primary"
                     android:textSize="17sp"
                     android:textStyle="bold"
+                    tools:text="Bali Trip"
+                    tools:ignore="HardcodedText" />
+
+                <TextView
+                    android:id="@+id/tvTripSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textColor="@color/tripoo_orange"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.04"
+                    tools:text="8 PARTICIPANTS · JUL 15 – JUL 30"
                     tools:ignore="HardcodedText" />
             </LinearLayout>
 
             <FrameLayout
+                android:id="@+id/btnMore"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:foreground="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
                     android:layout_gravity="center"
-                    style="@style/Tripoo.Icon"
-                    android:text="more_vert"
-                    android:textColor="@color/tripoo_text_primary"
-                    android:textSize="22sp" />
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_more_horiz"
+                    app:tint="@color/tripoo_text_primary" />
             </FrameLayout>
         </LinearLayout>
 
@@ -80,11 +93,16 @@
             android:layout_height="0dp"
             android:layout_weight="1">
 
-            <androidx.core.widget.NestedScrollView
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:fillViewport="true"
-                android:paddingBottom="90dp">
+                android:layout_height="match_parent">
+
+                <androidx.core.widget.NestedScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top"
+                    android:clipToPadding="false"
+                    android:paddingBottom="8dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -99,7 +117,10 @@
                     android:layout_marginEnd="16dp"
                     android:layout_marginTop="13dp"
                     app:cardCornerRadius="14dp"
-                    app:cardElevation="0dp"
+                    app:cardElevation="6dp"
+                    app:cardMaxElevation="8dp"
+                    app:strokeWidth="0dp"
+                    app:strokeColor="@android:color/transparent"
                     app:cardBackgroundColor="@color/tripoo_orange">
 
                     <LinearLayout
@@ -148,15 +169,15 @@
                         app:icon="@drawable/ic_content_copy"
                         app:iconGravity="textStart"
                         app:iconTint="@color/tripoo_surface"
-                            android:textAllCaps="false"
-                            android:textStyle="bold"
-                            android:textColor="@color/tripoo_surface"
-                            app:backgroundTint="#33FFFFFF"
-                            app:strokeColor="#4DFFFFFF"
-                            app:strokeWidth="1dp"
-                            app:cornerRadius="8dp"
-                            app:iconPadding="6dp"
-                            tools:ignore="HardcodedText" />
+                        android:textAllCaps="false"
+                        android:textStyle="bold"
+                        android:textColor="@color/tripoo_surface"
+                        app:backgroundTint="#33FFFFFF"
+                        app:strokeWidth="0dp"
+                        app:strokeColor="@android:color/transparent"
+                        app:cornerRadius="8dp"
+                        app:iconPadding="6dp"
+                        tools:ignore="HardcodedText" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -172,6 +193,7 @@
                     android:orientation="horizontal">
 
                     <TextView
+                        android:id="@+id/tvMembersHeader"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -182,27 +204,51 @@
                         tools:ignore="HardcodedText" />
 
                     <LinearLayout
+                        android:id="@+id/btnInvite"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:background="@color/tripoo_orange_12"
+                        android:background="@drawable/bg_invite_chip"
                         android:paddingStart="11dp"
                         android:paddingEnd="11dp"
                         android:paddingTop="4dp"
                         android:paddingBottom="4dp"
                         android:orientation="horizontal"
-                        android:gravity="center_vertical">
-                        <TextView style="@style/Tripoo.Icon" android:text="person_add" android:textSize="14sp" android:textColor="@color/tripoo_orange" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="4dp" android:text="Invite" android:textSize="11sp" android:textStyle="bold" android:textColor="@color/tripoo_orange" tools:ignore="HardcodedText"/>
+                        android:gravity="center_vertical"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackgroundBorderless">
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_person_add" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:text="Invite"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/tripoo_orange"
+                            tools:ignore="HardcodedText" />
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Members list -->
+                <!-- Members list (white strip like design) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@color/tripoo_surface"
+                    android:orientation="vertical">
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvMembers"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:nestedScrollingEnabled="false"
                     tools:listitem="@layout/item_member" />
+                </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -217,13 +263,26 @@
                         style="@style/Tripoo.Button.Destructive"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:gravity="center"
                         android:text="Leave Trip"
                         app:icon="@drawable/ic_logout"
+                        app:iconGravity="textStart"
+                        app:iconPadding="8dp"
+                        app:iconTint="@color/tripoo_red"
                         tools:ignore="HardcodedText" />
                 </LinearLayout>
             </LinearLayout>
-            </androidx.core.widget.NestedScrollView>
+                </androidx.core.widget.NestedScrollView>
+            </FrameLayout>
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/adViewTripGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/tripoo_bg"
+            app:adSize="BANNER"
+            app:adUnitId="@string/admob_banner_trip_group" />
 
         <!-- Bottom nav -->
         <LinearLayout

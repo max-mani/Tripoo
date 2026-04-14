@@ -1,6 +1,7 @@
 package com.manikandan.tripoo.data.repository
 
 import com.manikandan.tripoo.data.model.User
+import com.manikandan.tripoo.utils.UserAvatarIdentity
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -40,6 +41,28 @@ class UserRepository {
         }
     }
 
+    suspend fun deleteUserDocument(uid: String) {
+        users.document(uid).delete().await()
+    }
+
+    suspend fun updatePhoneNumber(uid: String, phone: String) {
+        users.document(uid).update("phoneNumber", phone.trim()).await()
+    }
+
+    suspend fun updateDocumentEmail(uid: String, email: String) {
+        users.document(uid).update("email", email.trim()).await()
+    }
+
+    suspend fun updatePreferences(uid: String, language: String?, currency: String?) {
+        val map = buildMap<String, Any> {
+            language?.let { put("preferredLanguage", it) }
+            currency?.let { put("preferredCurrency", it) }
+        }
+        if (map.isNotEmpty()) {
+            users.document(uid).update(map).await()
+        }
+    }
+
     suspend fun removeTripFromUser(uid: String, tripId: String) {
         try {
             db.runTransaction { tx ->
@@ -67,14 +90,57 @@ class UserRepository {
 
     suspend fun updateProfile(uid: String, name: String, photoUrl: String?) {
         try {
+            val trimmed = name.trim()
+            val letter = UserAvatarIdentity.letterFromName(trimmed)
             val updates = mutableMapOf<String, Any?>(
-                "name" to name,
-                "photoUrl" to (photoUrl ?: "")
+                "name" to trimmed,
+                "photoUrl" to (photoUrl ?: ""),
+                "avatarLetter" to letter
             )
+            val blankPhoto = photoUrl.isNullOrBlank()
+            if (blankPhoto) {
+                val existing = getUser(uid)
+                if (existing?.avatarColorHex.isNullOrBlank()) {
+                    updates["avatarColorHex"] = UserAvatarIdentity.bgForSeed(uid)
+                }
+            }
             users.document(uid).update(updates as Map<String, Any>).await()
         } catch (e: Exception) {
             throw e
         }
+    }
+
+    /**
+     * When the user has no photo, ensure [User.avatarLetter] and [User.avatarColorHex] exist in Firestore.
+     * Returns the resolved letter and background color for UI.
+     */
+    suspend fun ensureAvatarIdentityFields(uid: String): Pair<String, String> {
+        val user = getUser(uid) ?: return Pair(UserAvatarIdentity.letterFromName(""), UserAvatarIdentity.bgForSeed(uid))
+        val photoEmpty = user.photoUrl.isNullOrBlank()
+        if (!photoEmpty) {
+            return Pair(
+                user.avatarLetter?.ifBlank { UserAvatarIdentity.letterFromName(user.name) }
+                    ?: UserAvatarIdentity.letterFromName(user.name),
+                user.avatarColorHex ?: UserAvatarIdentity.bgForSeed(uid)
+            )
+        }
+        var letter = user.avatarLetter?.trim()?.take(1)?.uppercase()
+        if (letter.isNullOrEmpty()) {
+            letter = UserAvatarIdentity.letterFromName(user.name.ifBlank { user.email.substringBefore("@") })
+        }
+        var color = user.avatarColorHex?.trim()
+        if (color.isNullOrEmpty()) {
+            color = UserAvatarIdentity.bgForSeed(uid)
+        }
+        if (user.avatarLetter.isNullOrBlank() || user.avatarColorHex.isNullOrBlank()) {
+            users.document(uid).update(
+                mapOf(
+                    "avatarLetter" to letter,
+                    "avatarColorHex" to color
+                )
+            ).await()
+        }
+        return Pair(letter, color)
     }
 
     fun getUser(uid: String, callback: (User?) -> Unit) {

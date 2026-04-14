@@ -41,6 +41,7 @@ import com.google.android.material.chip.Chip
 import com.manikandan.tripoo.R
 import com.manikandan.tripoo.data.model.Expense
 import com.manikandan.tripoo.data.model.TripMember
+import com.manikandan.tripoo.utils.UserAvatarIdentity
 import com.manikandan.tripoo.databinding.BottomSheetAddExpenseBinding
 import com.manikandan.tripoo.utils.ImageUtils
 import java.text.SimpleDateFormat
@@ -65,16 +66,6 @@ class AddExpenseBottomSheet(
 
     private var splitMode = "equally"
     private val memberChips = mutableListOf<Chip>()
-
-    // Avatar colour palette cycling through members (matches HTML design colours)
-    private val avatarPalette = listOf(
-        Color.parseColor("#FFEDD5") to Color.parseColor("#C05C00"),
-        Color.parseColor("#DCFCE7") to Color.parseColor("#16A34A"),
-        Color.parseColor("#DBEAFE") to Color.parseColor("#2563EB"),
-        Color.parseColor("#F3E8FF") to Color.parseColor("#9333EA"),
-        Color.parseColor("#FEF9C3") to Color.parseColor("#CA8A04"),
-        Color.parseColor("#FEE2E2") to Color.parseColor("#DC2626"),
-    )
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = super.onCreateDialog(savedInstanceState) as BottomSheetDialog
@@ -279,8 +270,8 @@ class AddExpenseBottomSheet(
 
         members.forEachIndexed { idx, member ->
             selectedMemberIds.add(member.userId)
-            val (bgColor, txtColor) = avatarPalette[idx % avatarPalette.size]
-            val letter = (member.name.firstOrNull() ?: '?').uppercaseChar()
+            val (bgColor, txtColor) = UserAvatarIdentity.chipColors(member, idx)
+            val letter = UserAvatarIdentity.displayLetter(member)
             val chipIconPx = (24 * resources.displayMetrics.density).toInt()
 
             val chip = Chip(requireContext()).apply {

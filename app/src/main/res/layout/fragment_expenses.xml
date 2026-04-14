@@ -408,7 +408,7 @@
                 android:layout_height="match_parent"
                 android:background="@color/tripoo_section_bg"
                 android:clipToPadding="false"
-                android:paddingBottom="90dp"
+                android:paddingBottom="142dp"
                 tools:listitem="@layout/item_expense" />
 
             <TextView
@@ -430,7 +430,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:clipToPadding="false"
-                android:paddingBottom="132dp"
+                android:paddingBottom="184dp"
                 android:visibility="gone">
 
                 <include
@@ -439,6 +439,14 @@
             </androidx.core.widget.NestedScrollView>
             </FrameLayout>
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/adViewTripGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/tripoo_section_bg"
+            app:adSize="BANNER"
+            app:adUnitId="@string/admob_banner_trip_group" />
 
         <!-- Bottom nav -->
         <LinearLayout
@@ -577,7 +585,7 @@
         android:layout_height="56dp"
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="18dp"
-        android:layout_marginBottom="86dp"
+        android:layout_marginBottom="138dp"
         android:contentDescription="@string/add_expense"
         app:backgroundTint="@color/tripoo_orange"
         app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Tripoo.FabCircle"

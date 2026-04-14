@@ -47,6 +47,8 @@ class TripDeadlineWorker(appContext: Context, params: WorkerParameters) : Corout
 
                 if (!notifyThisUser) continue
 
+                if (!NotificationPrefs.areTripNotificationsEnabled(applicationContext)) continue
+
                 LocalTripNotification.show(
                     applicationContext,
                     tripId,

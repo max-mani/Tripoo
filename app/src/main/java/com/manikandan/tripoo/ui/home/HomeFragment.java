@@ -28,6 +28,7 @@ import com.manikandan.tripoo.databinding.FragmentHomeBinding;
 import com.manikandan.tripoo.utils.DateFormatter;
 import com.manikandan.tripoo.utils.Resource;
 import com.manikandan.tripoo.viewmodel.HomeViewModel;
+import com.google.android.gms.ads.AdRequest;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.ListenerRegistration;
@@ -257,8 +258,10 @@ public class HomeFragment extends Fragment {
                 } catch (Exception e) {
                     Navigation.findNavController(view).navigate(R.id.tripDashboardFragment);
                 }
+                viewModel.acknowledgeDeleteTripResult();
             } else if (res.isError()) {
                 Toast.makeText(requireContext(), res.getMessage() != null ? res.getMessage() : "Delete failed", Toast.LENGTH_SHORT).show();
+                viewModel.acknowledgeDeleteTripResult();
             }
         });
 
@@ -285,6 +288,8 @@ public class HomeFragment extends Fragment {
             }
         });
 
+        binding.adViewTripGroup.loadAd(new AdRequest.Builder().build());
+
         requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(),
                 new androidx.activity.OnBackPressedCallback(true) {
                     @Override
@@ -292,6 +297,12 @@ public class HomeFragment extends Fragment {
                         goToTripDashboard(view);
                     }
                 });
+    }
+
+    @Override
+    public void onPause() {
+        binding.adViewTripGroup.pause();
+        super.onPause();
     }
 
     private void goToTripDashboard(View view) {
@@ -310,6 +321,7 @@ public class HomeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        binding.adViewTripGroup.resume();
         if (getActivity() instanceof MainActivity) {
             String pending = ((MainActivity) getActivity()).consumePendingOpenTripId();
             if (pending != null && !pending.isEmpty()) {
@@ -348,9 +360,9 @@ public class HomeFragment extends Fragment {
         PopupMenu menu = new PopupMenu(new ContextThemeWrapper(requireContext(), R.style.ThemeOverlay_Tripoo_PopupMenu), binding.btnMore);
         final int MENU_EDIT = 2;
         final int MENU_DELETE = 1;
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        boolean isAdmin = user != null && trip.getAdminId() != null && trip.getAdminId().equals(user.getUid());
-        if (isAdmin) {
+        Boolean canManage = viewModel.getCanManageTripLiveData().getValue();
+        boolean showEdit = Boolean.TRUE.equals(canManage);
+        if (showEdit) {
             menu.getMenu().add(0, MENU_EDIT, 0, "Edit trip");
         }
         menu.getMenu().add(0, MENU_DELETE, 1, "Delete trip");
@@ -404,6 +416,16 @@ public class HomeFragment extends Fragment {
         long now = System.currentTimeMillis();
         long start = trip.getStartDate();
         long end = trip.getEndDate();
+
+        if (binding != null && binding.tvCountdownSectionTitle != null) {
+            if (now < start) {
+                binding.tvCountdownSectionTitle.setText(R.string.home_countdown_upcoming_title);
+            } else if (now <= end) {
+                binding.tvCountdownSectionTitle.setText(R.string.home_countdown_current_title);
+            } else {
+                binding.tvCountdownSectionTitle.setText(R.string.home_countdown_past_title);
+            }
+        }
 
         if (now < start) {
             startCountDownTo(start);
@@ -505,6 +527,7 @@ public class HomeFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
+        binding.adViewTripGroup.destroy();
         super.onDestroyView();
         if (expensesListener != null) {
             expensesListener.remove();
