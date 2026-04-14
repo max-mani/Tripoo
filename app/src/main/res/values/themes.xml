@@ -11,8 +11,11 @@
         <item name="colorOnSurface">@color/tripoo_text_primary</item>
         <item name="android:fontFamily">@font/inter</item>
         <item name="android:windowBackground">@color/tripoo_bg</item>
-        <item name="android:statusBarColor">@color/tripoo_surface</item>
+        <!-- Edge-to-edge (Android 15+): draw behind system bars; insets handled in MainActivity / screens. -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
         <item name="bottomNavigationStyle">@style/Tripoo.BottomNav</item>
         <!-- Android 12+ splash: orange background + SVG logo with thin border for visibility -->
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_icon_with_border</item>
