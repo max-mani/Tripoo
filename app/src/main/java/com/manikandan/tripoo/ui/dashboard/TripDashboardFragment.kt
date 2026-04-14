@@ -11,6 +11,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.google.android.gms.ads.AdRequest
 import com.manikandan.tripoo.R
 import com.manikandan.tripoo.databinding.FragmentTripDashboardBinding
 import com.manikandan.tripoo.utils.ImageUtils
@@ -106,6 +107,13 @@ class TripDashboardFragment : Fragment() {
         }
 
         viewModel.loadTrips()
+
+        binding.adViewDashboard.loadAd(AdRequest.Builder().build())
+    }
+
+    override fun onPause() {
+        binding.adViewDashboard.pause()
+        super.onPause()
     }
 
     private fun updateChipState(selected: String) {
@@ -128,10 +136,12 @@ class TripDashboardFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        binding.adViewDashboard.resume()
         viewModel.loadTrips()
     }
 
     override fun onDestroyView() {
+        binding.adViewDashboard.destroy()
         super.onDestroyView()
         _binding = null
     }

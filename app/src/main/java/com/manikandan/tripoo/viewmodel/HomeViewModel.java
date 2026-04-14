@@ -27,6 +27,7 @@ public class HomeViewModel extends AndroidViewModel {
     private final MutableLiveData<Resource<String>> joinTripLiveData = new MutableLiveData<>();
     private final MutableLiveData<Double> totalExpensesLiveData = new MutableLiveData<>();
     private final MutableLiveData<Resource<Void>> deleteTripLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Resource<Void>> updateTripLiveData = new MutableLiveData<>();
     private ListenerRegistration tripListener;
 
     public HomeViewModel(@NonNull Application application) {
@@ -94,7 +95,7 @@ public class HomeViewModel extends AndroidViewModel {
         return t.getSeconds() * 1000L + t.getNanoseconds() / 1_000_000;
     }
 
-    public void createTrip(String name, String destination, Timestamp startDate, Timestamp endDate, double budget) {
+    public void createTrip(String name, String destination, String description, Timestamp startDate, Timestamp endDate, double budget) {
         createTripLiveData.setValue(Resource.loading());
         FirebaseUser firebaseUser = authRepository.getCurrentUser();
         if (firebaseUser == null) {
@@ -105,6 +106,7 @@ public class HomeViewModel extends AndroidViewModel {
                 "",
                 name != null ? name.trim() : "",
                 destination != null ? destination.trim() : "",
+                description != null ? description.trim() : "",
                 timestampToMillis(startDate),
                 timestampToMillis(endDate),
                 budget,
@@ -222,6 +224,53 @@ public class HomeViewModel extends AndroidViewModel {
 
     public LiveData<Resource<Void>> getDeleteTripLiveData() {
         return deleteTripLiveData;
+    }
+
+    public LiveData<Resource<Void>> getUpdateTripLiveData() {
+        return updateTripLiveData;
+    }
+
+    public void updateTrip(String tripId, String name, String destination, String description, Timestamp startDate, Timestamp endDate, double budget) {
+        updateTripLiveData.setValue(Resource.loading());
+        FirebaseUser firebaseUser = authRepository.getCurrentUser();
+        if (firebaseUser == null) {
+            updateTripLiveData.setValue(Resource.error("Not logged in"));
+            return;
+        }
+        Resource<Trip> tripRes = tripLiveData.getValue();
+        Trip trip = (tripRes != null && tripRes.isSuccess()) ? tripRes.getData() : null;
+        if (trip == null) {
+            updateTripLiveData.setValue(Resource.error("Trip not loaded"));
+            return;
+        }
+        if (trip.getAdminId() == null || !trip.getAdminId().equals(firebaseUser.getUid())) {
+            updateTripLiveData.setValue(Resource.error("Only admin can edit this trip"));
+            return;
+        }
+        if (trip.getId() == null || !trip.getId().equals(tripId)) {
+            updateTripLiveData.setValue(Resource.error("Trip mismatch"));
+            return;
+        }
+
+        long startMs = timestampToMillis(startDate);
+        long endMs = timestampToMillis(endDate);
+        tripRepository.updateTripDetails(
+                tripId,
+                name != null ? name.trim() : "",
+                destination != null ? destination.trim() : "",
+                description != null ? description.trim() : "",
+                startMs,
+                endMs,
+                budget,
+                err -> {
+                    if (err != null) {
+                        updateTripLiveData.postValue(Resource.error(err.getMessage() != null ? err.getMessage() : "Update failed"));
+                    } else {
+                        updateTripLiveData.postValue(Resource.success(null));
+                    }
+                    return Unit.INSTANCE;
+                }
+        );
     }
 
     public void deleteTrip(String tripId) {

@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -16,6 +17,7 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.core.content.ContextCompat;
 import com.manikandan.tripoo.R;
+import com.manikandan.tripoo.ads.TripExitInterstitialHelper;
 import com.manikandan.tripoo.data.model.Trip;
 import com.manikandan.tripoo.data.model.TripMember;
 import com.manikandan.tripoo.data.model.User;
@@ -66,8 +68,15 @@ public class GroupsFragment extends Fragment {
         });
 
         if (binding.btnBack != null) {
-            binding.btnBack.setOnClickListener(v -> Navigation.findNavController(view).popBackStack());
+            binding.btnBack.setOnClickListener(v -> navigateToTripDashboard(view));
         }
+
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                navigateToTripDashboard(view);
+            }
+        });
         if (binding.btnLeaveTrip != null) {
             binding.btnLeaveTrip.setOnClickListener(v ->
                     Toast.makeText(requireContext(), "Leave trip dialog", Toast.LENGTH_SHORT).show());
@@ -140,6 +149,28 @@ public class GroupsFragment extends Fragment {
                 adapter.updateMembers(resource.getData());
             }
         });
+    }
+
+    private void navigateToTripDashboard(View anchor) {
+        String tripId = getCurrentTripId();
+        TripExitInterstitialHelper.navigateToTripDashboard(requireActivity(), tripId, () -> {
+            try {
+                if (!Navigation.findNavController(anchor).popBackStack(R.id.tripDashboardFragment, false)) {
+                    Navigation.findNavController(anchor).navigate(R.id.tripDashboardFragment);
+                }
+            } catch (Exception e) {
+                Navigation.findNavController(anchor).navigate(R.id.tripDashboardFragment);
+            }
+        });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        String tripId = getCurrentTripId();
+        if (tripId != null && !tripId.isEmpty()) {
+            TripExitInterstitialHelper.preload(requireContext());
+        }
     }
 
     private String getCurrentTripId() {

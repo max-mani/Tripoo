@@ -25,6 +25,55 @@
         <item name="android:textColorSecondary">@color/tripoo_text_secondary</item>
     </style>
 
+    <!-- DatePickerDialog: MC alert base fixes OK/Cancel contrast; explicit header + buttons -->
+    <style name="ThemeOverlay.Tripoo.DatePickerDialog" parent="Theme.MaterialComponents.Light.Dialog.Alert">
+        <item name="android:windowBackground">@color/tripoo_surface</item>
+        <item name="android:colorBackground">@color/tripoo_surface</item>
+        <item name="colorPrimary">@color/tripoo_orange</item>
+        <item name="colorAccent">@color/tripoo_orange</item>
+        <item name="android:colorAccent">@color/tripoo_orange</item>
+        <item name="colorSurface">@color/tripoo_surface</item>
+        <item name="colorOnSurface">@color/tripoo_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/tripoo_text_primary</item>
+        <item name="android:textColorPrimary">@color/tripoo_text_primary</item>
+        <item name="android:textColorSecondary">@color/tripoo_text_secondary</item>
+        <item name="android:textColorPrimaryInverse">@color/tripoo_text_primary</item>
+        <item name="android:textColorSecondaryInverse">@color/tripoo_text_secondary</item>
+        <item name="android:colorControlActivated">@color/tripoo_orange</item>
+        <item name="android:headerBackground">@color/tripoo_surface</item>
+        <item name="android:headerMonthTextAppearance">@style/Tripoo.DatePickerHeaderMonth</item>
+        <item name="android:headerYearTextAppearance">@style/Tripoo.DatePickerHeaderYear</item>
+        <item name="android:headerDayOfMonthTextAppearance">@style/Tripoo.DatePickerHeaderDay</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Tripoo.DatePickerDialog.Button</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Tripoo.DatePickerDialog.Button</item>
+        <item name="android:buttonBarPositiveButtonStyle">@style/Tripoo.DatePickerDialog.Button</item>
+        <item name="android:buttonBarNegativeButtonStyle">@style/Tripoo.DatePickerDialog.Button</item>
+    </style>
+
+    <style name="Tripoo.DatePickerDialog.Button" parent="Widget.MaterialComponents.Button.TextButton.Dialog.Flush">
+        <item name="android:textColor">@color/tripoo_orange</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="rippleColor">@color/tripoo_orange_12</item>
+    </style>
+
+    <style name="Tripoo.DatePickerHeaderMonth" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="android:textColor">@color/tripoo_text_primary</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="Tripoo.DatePickerHeaderYear" parent="TextAppearance.MaterialComponents.Headline5">
+        <item name="android:textColor">@color/tripoo_text_primary</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.02</item>
+    </style>
+    <style name="Tripoo.DatePickerHeaderDay" parent="TextAppearance.MaterialComponents.Headline2">
+        <item name="android:textColor">@color/tripoo_text_primary</item>
+        <item name="android:textSize">34sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
     <style name="Theme.Tripoo.BottomSheet" parent="Theme.Material3.Light.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/Widget.Tripoo.BottomSheet</item>
     </style>

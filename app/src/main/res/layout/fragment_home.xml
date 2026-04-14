@@ -248,6 +248,21 @@
                         android:textStyle="bold"
                         tools:ignore="HardcodedText" />
 
+                    <TextView
+                        android:id="@+id/tvTripDescription"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:textColor="#D9FFFFFF"
+                        android:textSize="12sp"
+                        android:lineSpacingExtra="2dp"
+                        android:maxLines="8"
+                        android:ellipsize="end"
+                        android:visibility="gone"
+                        tools:ignore="HardcodedText"
+                        tools:text="Weekend getaway with the crew."
+                        tools:visibility="visible" />
+
                     <LinearLayout
                         android:id="@+id/llCountdownTiles"
                         android:layout_width="match_parent"
@@ -474,14 +489,13 @@
                             <com.google.android.material.progressindicator.LinearProgressIndicator
                                 android:id="@+id/progressBudget"
                                 android:layout_width="match_parent"
-                                android:layout_height="8dp"
+                                android:layout_height="10dp"
                                 android:layout_marginBottom="7dp"
                                 android:indeterminate="false"
                                 app:indicatorColor="@color/tripoo_orange"
-                                app:trackColor="@color/tripoo_orange_12"
-                                app:trackStopIndicatorSize="0dp"
+                                app:trackColor="#E8E4DF"
                                 app:trackCornerRadius="999dp"
-                                app:trackThickness="8dp" />
+                                app:trackThickness="10dp" />
                         </LinearLayout>
 
                         <LinearLayout

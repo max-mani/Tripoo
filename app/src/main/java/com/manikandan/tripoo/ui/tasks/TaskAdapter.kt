@@ -37,8 +37,13 @@ class TaskAdapter(
         const val TYPE_HEADER = 0
         const val TYPE_ROW = 1
 
-        // Must match values stored by AddTaskBottomSheet / Task.CATEGORY_* constants
-        private val CATEGORY_ORDER = listOf("general", "booking", "packing", "documents", "other")
+        // Must match values stored by AddTaskBottomSheet; normalize legacy "booking" → "bookings"
+        private val CATEGORY_ORDER = listOf("general", "bookings", "packing", "documents", "other")
+
+        private fun normalizeCategoryKey(cat: String?): String {
+            val c = (cat as? String ?: "general").lowercase()
+            return if (c == "booking") "bookings" else c
+        }
 
         val DIFF = object : DiffUtil.ItemCallback<TaskItem>() {
             override fun areItemsTheSame(a: TaskItem, b: TaskItem) = when {
@@ -54,7 +59,7 @@ class TaskAdapter(
             return CATEGORY_ORDER.flatMap { cat ->
                 // Safe cast required: Firestore sets Kotlin non-null fields to null via reflection.
                 // Elvis on a non-null Kotlin type is optimized away by the compiler; `as? String` forces a nullable cast.
-                val catTasks = tasks.filter { (it.category as? String ?: "general").lowercase() == cat }
+                val catTasks = tasks.filter { normalizeCategoryKey(it.category as? String) == cat }
                 if (catTasks.isEmpty()) return@flatMap emptyList()
                 val items = mutableListOf<TaskItem>(TaskItem.Header(cat, catTasks.size))
                 catTasks.forEachIndexed { i, task ->
@@ -71,7 +76,7 @@ class TaskAdapter(
         }
 
         private fun categoryIcon(cat: String) = when (cat.lowercase()) {
-            "booking" -> R.drawable.ic_confirmation
+            "bookings", "booking" -> R.drawable.ic_confirmation
             "packing" -> R.drawable.ic_luggage
             "documents" -> R.drawable.ic_description
             "other" -> R.drawable.ic_more_horiz
@@ -79,7 +84,7 @@ class TaskAdapter(
         }
 
         private fun categoryLabel(cat: String) = when (cat.lowercase()) {
-            "booking" -> "Bookings"
+            "bookings", "booking" -> "Bookings"
             "packing" -> "Packing"
             "documents" -> "Documents"
             "other" -> "Other"
@@ -164,6 +169,15 @@ class TaskAdapter(
             }
             b.tvAssigned.text = "Assigned to $assigneeName"
 
+            val noteText = (task.notes as? String)?.trim().orEmpty()
+            if (noteText.isNotEmpty()) {
+                b.tvTaskNotes.visibility = View.VISIBLE
+                b.tvTaskNotes.text = noteText
+            } else {
+                b.tvTaskNotes.visibility = View.GONE
+                b.tvTaskNotes.text = ""
+            }
+
             // Completed state
             val checked = task.completed as? Boolean ?: false
 
@@ -198,31 +212,37 @@ class TaskAdapter(
                 )
             }
 
-            // Assignee avatar
-            val isEveryone = rawAssigned.equals("everyone", ignoreCase = true) || rawAssigned.isEmpty()
-            if (isEveryone) {
-                b.tvAssigneeAvatar.text = ""
-                b.tvAssigneeAvatar.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
-                val groupIcon = ContextCompat.getDrawable(ctx, R.drawable.ic_group)
-                groupIcon?.setTint(Color.parseColor("#F48C25"))
-                b.tvAssigneeAvatar.setCompoundDrawablesRelativeWithIntrinsicBounds(
-                    null, groupIcon, null, null
-                )
-                val avatarBg = GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL
-                    setColor(Color.parseColor("#1FF48C25"))
+            b.tvTaskNotes.apply {
+                if (visibility == View.VISIBLE) {
+                    paintFlags = if (checked)
+                        paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+                    else
+                        paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+                    setTextColor(
+                        if (checked) ContextCompat.getColor(ctx, R.color.tripoo_text_hint)
+                        else ContextCompat.getColor(ctx, R.color.tripoo_text_secondary)
+                    )
                 }
-                b.tvAssigneeAvatar.background = avatarBg
+            }
+
+            // Assignee badge: centered group icon or initial
+            val isEveryone = rawAssigned.equals("everyone", ignoreCase = true) || rawAssigned.isEmpty()
+            val avatarBg = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(Color.parseColor("#1FF48C25"))
+            }
+            if (isEveryone) {
+                b.ivAssigneeGroup.visibility = View.VISIBLE
+                b.tvAssigneeAvatar.visibility = View.GONE
+                b.tvAssigneeAvatar.text = ""
+                b.flAssigneeBadge.background = avatarBg
             } else {
-                b.tvAssigneeAvatar.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
+                b.ivAssigneeGroup.visibility = View.GONE
+                b.tvAssigneeAvatar.visibility = View.VISIBLE
                 val initial = (memberNames[rawAssigned] ?: assigneeName)
                     .firstOrNull()?.uppercase() ?: "?"
                 b.tvAssigneeAvatar.text = initial
-                val avatarBg = GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL
-                    setColor(Color.parseColor("#1FF48C25"))
-                }
-                b.tvAssigneeAvatar.background = avatarBg
+                b.flAssigneeBadge.background = avatarBg
                 b.tvAssigneeAvatar.setTextColor(Color.parseColor("#F48C25"))
             }
 

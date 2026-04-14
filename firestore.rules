@@ -83,6 +83,13 @@ service cloud.firestore {
         allow read, write: if isAuthenticated() &&
           request.auth.uid in get(/databases/$(database)/documents/trips/$(tripId)).data.memberIds;
       }
+
+      // In-app notification fan-out (one write per event; members listen and show local notifications)
+      match /fanoutNotifications/{notificationId} {
+        allow read, create, delete: if isAuthenticated() &&
+          request.auth.uid in get(/databases/$(database)/documents/trips/$(tripId)).data.memberIds;
+        allow update: if false;
+      }
     }
   }
 }

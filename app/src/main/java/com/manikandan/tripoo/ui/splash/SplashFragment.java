@@ -10,8 +10,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
+
 import com.manikandan.tripoo.R;
 import com.manikandan.tripoo.databinding.FragmentSplashBinding;
+import com.manikandan.tripoo.notifications.NotificationConstants;
 import com.manikandan.tripoo.viewmodel.SplashNavigationState;
 import com.manikandan.tripoo.viewmodel.SplashViewModelKt;
 
@@ -36,7 +38,15 @@ public class SplashFragment extends Fragment {
             if (state == SplashNavigationState.TO_AUTH) {
                 Navigation.findNavController(view).navigate(R.id.action_splash_to_auth);
             } else if (state == SplashNavigationState.TO_DASHBOARD) {
-                Navigation.findNavController(view).navigate(R.id.action_splash_to_dashboard);
+                String openTripId = requireActivity().getIntent().getStringExtra(NotificationConstants.EXTRA_OPEN_TRIP_ID);
+                if (openTripId != null && !openTripId.isEmpty()) {
+                    Bundle args = new Bundle();
+                    args.putString("tripId", openTripId);
+                    Navigation.findNavController(view).navigate(R.id.action_splash_to_home, args);
+                    requireActivity().getIntent().removeExtra(NotificationConstants.EXTRA_OPEN_TRIP_ID);
+                } else {
+                    Navigation.findNavController(view).navigate(R.id.action_splash_to_dashboard);
+                }
             }
         });
     }

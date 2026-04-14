@@ -435,8 +435,11 @@ class AddExpenseBottomSheet(
 
     private fun setupPaidByDropdown() {
         selectedPaidByUid = currentUserMember.userId
-        val defaultName = members.firstOrNull { it.userId == currentUserMember.userId }?.name
-            ?: members.firstOrNull()?.name.orEmpty()
+        val paidByChoices = if (members.isNotEmpty()) members else listOf(currentUserMember)
+        val defaultName = paidByChoices.firstOrNull { it.userId == currentUserMember.userId }?.name
+            ?.takeIf { it.isNotBlank() }
+            ?: currentUserMember.name.takeIf { it.isNotBlank() }
+            ?: paidByChoices.firstOrNull()?.name.orEmpty()
         binding.tvPaidBySelected.text = defaultName
 
         binding.containerPaidBy.setOnClickListener { anchor ->
@@ -445,9 +448,9 @@ class AddExpenseBottomSheet(
                 androidx.appcompat.R.style.ThemeOverlay_AppCompat_Light
             )
             val popup = PopupMenu(wrapper, anchor)
-            members.forEachIndexed { i, m -> popup.menu.add(0, i, i, m.name) }
+            paidByChoices.forEachIndexed { i, m -> popup.menu.add(0, i, i, m.name) }
             popup.setOnMenuItemClickListener { item ->
-                val picked = members.getOrNull(item.itemId) ?: return@setOnMenuItemClickListener false
+                val picked = paidByChoices.getOrNull(item.itemId) ?: return@setOnMenuItemClickListener false
                 selectedPaidByUid = picked.userId
                 binding.tvPaidBySelected.text = picked.name
                 true
@@ -464,7 +467,7 @@ class AddExpenseBottomSheet(
         binding.etDate.setOnClickListener {
             val cal = Calendar.getInstance().apply { timeInMillis = selectedDate }
             DatePickerDialog(
-                requireContext(),
+                ContextThemeWrapper(requireContext(), R.style.ThemeOverlay_Tripoo_DatePickerDialog),
                 { _, year, month, day ->
                     cal.set(year, month, day)
                     selectedDate = cal.timeInMillis

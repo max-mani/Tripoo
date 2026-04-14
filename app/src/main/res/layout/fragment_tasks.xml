@@ -118,14 +118,14 @@
             <com.google.android.material.progressindicator.LinearProgressIndicator
                 android:id="@+id/progressTasks"
                 android:layout_width="match_parent"
-                android:layout_height="8dp"
+                android:layout_height="10dp"
                 android:indeterminate="false"
                 android:max="100"
                 android:progress="0"
                 app:indicatorColor="@color/tripoo_orange"
-                app:trackColor="@color/tripoo_orange_12"
+                app:trackColor="#E8E4DF"
                 app:trackCornerRadius="999dp"
-                app:trackThickness="8dp" />
+                app:trackThickness="10dp" />
 
             <!-- Row 4: Progress note -->
             <TextView

@@ -12,6 +12,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.Gravity
@@ -35,6 +36,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.manikandan.tripoo.R
+import com.manikandan.tripoo.ads.TripExitInterstitialHelper
 import com.manikandan.tripoo.utils.ImageUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -90,6 +92,37 @@ class TasksFragment : Fragment() {
         setupBottomNav()
         setupFab()
         observeViewModel()
+
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    navigateToTripDashboard()
+                }
+            }
+        )
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val tid = arguments?.getString("tripId").orEmpty()
+        if (tid.isNotEmpty()) {
+            TripExitInterstitialHelper.preload(requireContext())
+        }
+    }
+
+    private fun navigateToTripDashboard() {
+        val nav = findNavController()
+        val tripId = arguments?.getString("tripId").orEmpty().takeIf { it.isNotEmpty() }
+        TripExitInterstitialHelper.navigateToTripDashboard(requireActivity(), tripId) {
+            try {
+                if (!nav.popBackStack(R.id.tripDashboardFragment, false)) {
+                    nav.navigate(R.id.tripDashboardFragment)
+                }
+            } catch (_: Exception) {
+                nav.navigate(R.id.tripDashboardFragment)
+            }
+        }
     }
 
     // ── RecyclerView ─────────────────────────────────────────────────────────

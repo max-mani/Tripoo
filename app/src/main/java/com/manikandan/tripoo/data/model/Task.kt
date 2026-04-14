@@ -8,7 +8,9 @@ data class Task(
     val completed: Boolean = false,
     val dueDate: Long? = null,
     val priority: String = "medium",
-    val notes: String? = null
+    val notes: String? = null,
+    /** Set by Cloud Functions after a deadline notification is sent. */
+    val deadlineNotified: Boolean = false
 ) {
     companion object {
         const val CATEGORY_BOOKING = "booking"

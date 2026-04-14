@@ -1,11 +1,12 @@
 package com.manikandan.tripoo.ui.home;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -91,41 +92,38 @@ public class JoinTripFragment extends Fragment {
                     Navigation.findNavController(view).navigate(R.id.profileFragment)
             );
         }
-        if (binding.btnAcceptInvite != null) {
-            binding.btnAcceptInvite.setOnClickListener(v -> {
-                Toast.makeText(requireContext(), "Accept invite - would join trip", Toast.LENGTH_SHORT).show();
-                Navigation.findNavController(view).navigate(R.id.action_join_to_home);
-            });
+
+        View.OnClickListener focusTripCodeField = v -> {
+            binding.etTripCodeSuffix.requestFocus();
+            InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.showSoftInput(binding.etTripCodeSuffix, InputMethodManager.SHOW_IMPLICIT);
+            }
+        };
+        if (binding.rowTripCode != null) {
+            binding.rowTripCode.setOnClickListener(focusTripCodeField);
         }
 
         binding.btnJoinTrip.setOnClickListener(v -> {
-            String tripCode = binding.etTripCode.getText().toString();
-            if (tripCode == null) tripCode = "";
-            tripCode = tripCode.trim().toUpperCase();
-            // Normalize common copy/paste variants (different dashes, spaces/newlines)
-            tripCode = tripCode
-                    .replace("\u2013", "-")  // en-dash
-                    .replace("\u2014", "-")  // em-dash
-                    .replace("\u2011", "-")  // non-breaking hyphen
-                    .replace("\u2212", "-")  // minus sign
+            String suffix = binding.etTripCodeSuffix.getText().toString();
+            if (suffix == null) suffix = "";
+            suffix = suffix.trim().toUpperCase()
+                    .replace("\u2013", "")
+                    .replace("\u2014", "")
+                    .replace("\u2011", "")
+                    .replace("\u2212", "")
                     .replace(" ", "")
+                    .replace("-", "")
                     .replace("\n", "")
                     .replace("\t", "");
-            // Allow users to paste just the 3 chars (e.g., ABC)
-            if (tripCode.matches("^[A-Z0-9]{3}$")) {
-                tripCode = "TRP-" + tripCode;
-            }
-            
-            if (TextUtils.isEmpty(tripCode)) {
-                Toast.makeText(requireContext(), "Please enter trip code", Toast.LENGTH_SHORT).show();
+            suffix = suffix.replaceAll("[^A-Z0-9]", "");
+
+            if (suffix.length() != 3) {
+                Toast.makeText(requireContext(), "Enter the last 3 characters (e.g. ABC)", Toast.LENGTH_SHORT).show();
                 return;
             }
-            
-            if (!tripCode.matches("TRP-[A-Z0-9]{3}")) {
-                Toast.makeText(requireContext(), "Invalid trip code format (e.g. TRP-ABC)", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            
+
+            String tripCode = "TRP-" + suffix;
             viewModel.joinTrip(tripCode);
         });
         

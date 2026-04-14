@@ -82,15 +82,14 @@
                 android:layout_height="50dp"
                 android:background="@drawable/bg_input_outline">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_gravity="start|center_vertical"
                     android:layout_marginStart="13dp"
-                    style="@style/Tripoo.Icon"
-                    android:text="checklist"
-                    android:textColor="@color/tripoo_text_secondary"
-                    android:textSize="20sp" />
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_checklist"
+                    app:tint="#8A7560" />
 
                 <EditText
                     android:id="@+id/etTitle"
@@ -123,15 +122,14 @@
                 android:layout_height="50dp"
                 android:background="@drawable/bg_input_outline">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_gravity="start|center_vertical"
                     android:layout_marginStart="13dp"
-                    style="@style/Tripoo.Icon"
-                    android:text="label"
-                    android:textColor="@color/tripoo_text_secondary"
-                    android:textSize="20sp" />
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_label"
+                    app:tint="#8A7560" />
 
                 <AutoCompleteTextView
                     android:id="@+id/actvCategory"
@@ -149,16 +147,14 @@
                     android:hint="Select category"
                     tools:ignore="HardcodedText,LabelFor" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
                     android:layout_gravity="end|center_vertical"
                     android:layout_marginEnd="13dp"
-                    style="@style/Tripoo.Icon"
-                    android:text="expand_more"
-                    android:textColor="@color/tripoo_text_secondary"
-                    android:textSize="18sp"
-                    android:importantForAccessibility="no" />
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_expand_more"
+                    app:tint="#8A7560" />
             </FrameLayout>
 
             <!-- ── Assign To ── -->
@@ -175,12 +171,13 @@
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipEveryone"
                 android:layout_width="match_parent"
-                android:layout_height="44dp"
+                android:layout_height="50dp"
                 android:text="Everyone"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/tripoo_text_primary"
                 app:chipCornerRadius="10dp"
+                app:chipMinHeight="50dp"
                 app:chipBackgroundColor="#F8F7F5"
                 app:chipStrokeColor="@color/tripoo_border"
                 app:chipStrokeWidth="1.5dp"
@@ -220,15 +217,14 @@
                 android:clickable="true"
                 android:focusable="true">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_gravity="start|center_vertical"
                     android:layout_marginStart="13dp"
-                    style="@style/Tripoo.Icon"
-                    android:text="event"
-                    android:textColor="@color/tripoo_text_secondary"
-                    android:textSize="20sp" />
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_calendar"
+                    app:tint="#8A7560" />
 
                 <TextView
                     android:id="@+id/etDueDate"
@@ -411,8 +407,10 @@
                 android:textStyle="bold"
                 android:textColor="@android:color/white"
                 app:icon="@drawable/ic_add_task"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:iconSize="18dp"
                 app:iconTint="@android:color/white"
-                app:iconGravity="start"
                 tools:ignore="HardcodedText" />
 
         </LinearLayout>

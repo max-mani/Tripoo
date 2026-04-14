@@ -1,6 +1,7 @@
 package com.manikandan.tripoo.data.repository
 
 import com.manikandan.tripoo.data.model.Expense
+import com.manikandan.tripoo.notifications.FanoutNotificationPublisher
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
@@ -29,6 +30,12 @@ class ExpenseRepository {
             val ref = db.collection("trips").document(tripId).collection("expenses").document()
             db.collection("trips").document(tripId).collection("expenses")
                 .document(ref.id).set(expense.copy(id = ref.id)).await()
+            FanoutNotificationPublisher.publishAsync(
+                tripId,
+                "Expense",
+                "New expense: ${expense.title}",
+                "expense_added"
+            )
         } catch (e: Exception) {
             throw e
         }
@@ -117,10 +124,19 @@ class ExpenseRepository {
     }
 
     suspend fun markExpenseSettled(tripId: String, expenseId: String, isSettled: Boolean = true) {
-        db.collection("trips").document(tripId).collection("expenses")
-            .document(expenseId)
-            .update("settled", isSettled)
-            .await()
+        val ref = db.collection("trips").document(tripId).collection("expenses").document(expenseId)
+        val snap = ref.get().await()
+        val title = snap.getString("title").orEmpty().ifBlank { "Expense" }
+        val wasSettled = snap.getBoolean("settled") == true
+        ref.update("settled", isSettled).await()
+        if (isSettled && !wasSettled) {
+            FanoutNotificationPublisher.publishAsync(
+                tripId,
+                "Expense",
+                "Expense settled: $title",
+                "expense_settled"
+            )
+        }
     }
 
     fun listenToExpenses(tripId: String, callback: (List<Expense>, Exception?) -> Unit): ListenerRegistration {
@@ -166,6 +182,21 @@ class ExpenseRepository {
                 "settled" to finalSettled
             )
             docRef.update(updates).await()
+            if (!existingSettled && finalSettled) {
+                FanoutNotificationPublisher.publishAsync(
+                    tripId,
+                    "Expense",
+                    "Expense settled: ${expense.title}",
+                    "expense_settled"
+                )
+            } else {
+                FanoutNotificationPublisher.publishAsync(
+                    tripId,
+                    "Expense",
+                    "Expense updated: ${expense.title}",
+                    "expense_edited"
+                )
+            }
         } catch (e: Exception) {
             throw e
         }
@@ -184,7 +215,15 @@ class ExpenseRepository {
 
     suspend fun deleteExpense(tripId: String, expenseId: String) {
         try {
-            db.collection("trips").document(tripId).collection("expenses").document(expenseId).delete().await()
+            val ref = db.collection("trips").document(tripId).collection("expenses").document(expenseId)
+            val title = ref.get().await().getString("title").orEmpty().ifBlank { "Expense" }
+            ref.delete().await()
+            FanoutNotificationPublisher.publishAsync(
+                tripId,
+                "Expense",
+                "Expense deleted: $title",
+                "expense_deleted"
+            )
         } catch (e: Exception) {
             throw e
         }

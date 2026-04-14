@@ -17,7 +17,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
+import com.manikandan.tripoo.MainActivity;
 import com.manikandan.tripoo.R;
+import com.manikandan.tripoo.ads.TripExitInterstitialHelper;
 import com.manikandan.tripoo.data.model.Expense;
 import com.manikandan.tripoo.data.model.Trip;
 import com.manikandan.tripoo.data.model.User;
@@ -26,6 +28,8 @@ import com.manikandan.tripoo.databinding.FragmentHomeBinding;
 import com.manikandan.tripoo.utils.DateFormatter;
 import com.manikandan.tripoo.utils.Resource;
 import com.manikandan.tripoo.viewmodel.HomeViewModel;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.ListenerRegistration;
 import androidx.core.content.ContextCompat;
 
@@ -61,13 +65,7 @@ public class HomeFragment extends Fragment {
                 Navigation.findNavController(view).navigate(R.id.action_home_to_join_trip));
 
         if (binding.btnBackToDashboard != null) {
-            binding.btnBackToDashboard.setOnClickListener(v -> {
-                try {
-                    Navigation.findNavController(view).popBackStack(R.id.tripDashboardFragment, false);
-                } catch (Exception e) {
-                    Navigation.findNavController(view).navigate(R.id.tripDashboardFragment);
-                }
-            });
+            binding.btnBackToDashboard.setOnClickListener(v -> goToTripDashboard(view));
         }
 
         if (binding.btnMore != null) {
@@ -206,6 +204,14 @@ public class HomeFragment extends Fragment {
                 Trip trip = resource.getData();
                 binding.tvTripTitle.setText(trip.getName() != null ? trip.getName() : "");
                 binding.tvTripPlace.setText(trip.getDestination());
+                String tripDesc = trip.getDescription();
+                if (tripDesc != null && !tripDesc.trim().isEmpty()) {
+                    binding.tvTripDescription.setVisibility(View.VISIBLE);
+                    binding.tvTripDescription.setText(tripDesc.trim());
+                } else {
+                    binding.tvTripDescription.setVisibility(View.GONE);
+                    binding.tvTripDescription.setText("");
+                }
                 binding.tvMapDestination.setText("Destination: " + (trip.getDestination() != null ? trip.getDestination() : ""));
                 if (binding.tvBudgetSharedAcross != null) {
                     int count = 0;
@@ -278,8 +284,44 @@ public class HomeFragment extends Fragment {
                 binding.progressBudget.setProgress(0);
             }
         });
-        
-        // Create/Join navigation is handled by CreateTripFragment and JoinTripFragment
+
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(),
+                new androidx.activity.OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        goToTripDashboard(view);
+                    }
+                });
+    }
+
+    private void goToTripDashboard(View view) {
+        String tripId = getCurrentTripId();
+        TripExitInterstitialHelper.navigateToTripDashboard(requireActivity(), tripId, () -> {
+            try {
+                if (!Navigation.findNavController(view).popBackStack(R.id.tripDashboardFragment, false)) {
+                    Navigation.findNavController(view).navigate(R.id.tripDashboardFragment);
+                }
+            } catch (Exception e) {
+                Navigation.findNavController(view).navigate(R.id.tripDashboardFragment);
+            }
+        });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (getActivity() instanceof MainActivity) {
+            String pending = ((MainActivity) getActivity()).consumePendingOpenTripId();
+            if (pending != null && !pending.isEmpty()) {
+                viewModel.loadTrip(pending);
+                binding.llNoTrip.setVisibility(View.GONE);
+                binding.llInTrip.setVisibility(View.VISIBLE);
+            }
+        }
+        String tripId = getCurrentTripId();
+        if (tripId != null && !tripId.isEmpty()) {
+            TripExitInterstitialHelper.preload(requireContext());
+        }
     }
 
     private void setActiveBottomNav(String tab) {
@@ -301,11 +343,27 @@ public class HomeFragment extends Fragment {
     private void showMoreMenu(View rootView) {
         Resource<Trip> tripRes = viewModel.getTripLiveData().getValue();
         if (tripRes == null || !tripRes.isSuccess() || tripRes.getData() == null) return;
+        Trip trip = tripRes.getData();
 
         PopupMenu menu = new PopupMenu(new ContextThemeWrapper(requireContext(), R.style.ThemeOverlay_Tripoo_PopupMenu), binding.btnMore);
+        final int MENU_EDIT = 2;
         final int MENU_DELETE = 1;
-        menu.getMenu().add(0, MENU_DELETE, 0, "Delete trip");
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        boolean isAdmin = user != null && trip.getAdminId() != null && trip.getAdminId().equals(user.getUid());
+        if (isAdmin) {
+            menu.getMenu().add(0, MENU_EDIT, 0, "Edit trip");
+        }
+        menu.getMenu().add(0, MENU_DELETE, 1, "Delete trip");
         menu.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == MENU_EDIT) {
+                String tripId = getCurrentTripId();
+                if (tripId != null && !tripId.isEmpty()) {
+                    Bundle args = new Bundle();
+                    args.putString("editTripId", tripId);
+                    Navigation.findNavController(rootView).navigate(R.id.action_home_to_edit_trip, args);
+                }
+                return true;
+            }
             if (item.getItemId() == MENU_DELETE) {
                 showDeleteTripConfirm();
                 return true;

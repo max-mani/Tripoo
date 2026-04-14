@@ -1,6 +1,7 @@
 package com.manikandan.tripoo.ui.expenses
 
 import android.app.AlertDialog
+import androidx.activity.OnBackPressedCallback
 import android.view.ContextThemeWrapper
 import android.graphics.Color
 import android.os.Bundle
@@ -25,6 +26,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.manikandan.tripoo.R
+import com.manikandan.tripoo.ads.TripExitInterstitialHelper
 import com.manikandan.tripoo.data.model.Expense
 import com.manikandan.tripoo.data.model.TripMember
 import com.manikandan.tripoo.databinding.FragmentExpensesBinding
@@ -78,10 +80,23 @@ class ExpensesFragment : Fragment() {
         setupRecycler()
         setupTabs()
         setupActions()
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() = navigateToTripDashboard()
+            }
+        )
         setupBottomNav()
         setActiveBottomNav("expenses")
         observeViewModel()
         selectTab(0)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (args.tripId.isNotEmpty()) {
+            TripExitInterstitialHelper.preload(requireContext())
+        }
     }
 
     private fun setupRecycler() {
@@ -105,8 +120,24 @@ class ExpensesFragment : Fragment() {
         binding.tabStats.setOnClickListener { selectTab(3) }
     }
 
+    private fun navigateToTripDashboard() {
+        val nav = findNavController()
+        TripExitInterstitialHelper.navigateToTripDashboard(
+            requireActivity(),
+            args.tripId.takeIf { it.isNotEmpty() }
+        ) {
+            try {
+                if (!nav.popBackStack(R.id.tripDashboardFragment, false)) {
+                    nav.navigate(R.id.tripDashboardFragment)
+                }
+            } catch (_: Exception) {
+                nav.navigate(R.id.tripDashboardFragment)
+            }
+        }
+    }
+
     private fun setupActions() {
-        binding.btnBack.setOnClickListener { findNavController().popBackStack() }
+        binding.btnBack.setOnClickListener { navigateToTripDashboard() }
         binding.btnSearch.setOnClickListener {
             binding.etSearchExpenses.visibility =
                 if (binding.etSearchExpenses.visibility == View.VISIBLE) View.GONE else View.VISIBLE
@@ -134,9 +165,7 @@ class ExpensesFragment : Fragment() {
         })
 
         binding.fabAddExpense.setOnClickListener {
-            val members = viewModel.members.value.orEmpty()
-            val currentUserMember = members.firstOrNull { it.userId == viewModel.currentUserId }
-                ?: TripMember(userId = viewModel.currentUserId, name = "You")
+            val (members, currentUserMember) = membersForExpenseSheet()
             AddExpenseBottomSheet(members, currentUserMember = currentUserMember) { expense ->
                 viewModel.addExpense(expense)
                 Snackbar.make(binding.root, "Expense added!", Snackbar.LENGTH_SHORT)
@@ -148,7 +177,7 @@ class ExpensesFragment : Fragment() {
     }
 
     private fun setupBottomNav() {
-        binding.navHome.setOnClickListener { findNavController().popBackStack() }
+        binding.navHome.setOnClickListener { navigateToTripDashboard() }
         binding.navExpenses.setOnClickListener {
             setActiveBottomNav("expenses")
         }
@@ -378,10 +407,20 @@ class ExpensesFragment : Fragment() {
         popup.show()
     }
 
-    private fun openEditExpense(expense: Expense) {
+    /**
+     * Trip members may not be in [ExpensesViewModel.members] yet on first paint;
+     * the sheet still needs a non-empty list so "Paid by" and split chips work.
+     */
+    private fun membersForExpenseSheet(): Pair<List<TripMember>, TripMember> {
         val members = viewModel.members.value.orEmpty()
         val currentUserMember = members.firstOrNull { it.userId == viewModel.currentUserId }
             ?: TripMember(userId = viewModel.currentUserId, name = "You")
+        val list = if (members.isNotEmpty()) members else listOf(currentUserMember)
+        return list to currentUserMember
+    }
+
+    private fun openEditExpense(expense: Expense) {
+        val (members, currentUserMember) = membersForExpenseSheet()
         AddExpenseBottomSheet(members, currentUserMember = currentUserMember, initialExpense = expense) { updated ->
             viewModel.updateExpense(updated)
             Snackbar.make(binding.root, "Expense updated", Snackbar.LENGTH_SHORT).show()

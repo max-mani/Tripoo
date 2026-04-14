@@ -4,6 +4,7 @@ data class Trip(
     val id: String = "",
     val name: String = "",
     val destination: String = "",
+    val description: String = "",
     val startDate: Long = 0L,
     val endDate: Long = 0L,
     val budget: Double = 0.0,

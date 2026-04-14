@@ -3,6 +3,7 @@ package com.manikandan.tripoo.data.repository
 import com.manikandan.tripoo.data.model.LeaveTripResult
 import com.manikandan.tripoo.data.model.Trip
 import com.manikandan.tripoo.data.model.TripMember
+import com.manikandan.tripoo.notifications.FanoutNotificationPublisher
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -65,6 +66,13 @@ class TripRepository {
             batch.set(tripDoc.reference.collection("members").document(member.userId), member)
             batch.update(tripDoc.reference, "memberIds", FieldValue.arrayUnion(member.userId))
             batch.commit().await()
+            val tripName = tripDoc.toObject(Trip::class.java)?.name?.trim().orEmpty().ifBlank { "Trip" }
+            FanoutNotificationPublisher.publishAsync(
+                tripId,
+                tripName,
+                "${member.name} joined the trip",
+                "member_joined"
+            )
             tripId
         } catch (e: Exception) {
             null
@@ -98,6 +106,57 @@ class TripRepository {
         } catch (e: Exception) {
             null
         }
+
+    private suspend fun updateTripDetailsSuspend(
+        tripId: String,
+        name: String,
+        destination: String,
+        description: String,
+        startDateMs: Long,
+        endDateMs: Long,
+        budget: Double
+    ) {
+        val status = deriveStatus(startDateMs, endDateMs)
+        trips.document(tripId).update(
+            mapOf(
+                "name" to name,
+                "destination" to destination,
+                "description" to description,
+                "startDate" to startDateMs,
+                "endDate" to endDateMs,
+                "budget" to budget,
+                "status" to status
+            )
+        ).await()
+        FanoutNotificationPublisher.publishAsync(
+            tripId,
+            name.ifBlank { "Trip" },
+            "Trip details were updated",
+            "trip_edited"
+        )
+    }
+
+    fun updateTripDetails(
+        tripId: String,
+        name: String,
+        destination: String,
+        description: String,
+        startDateMs: Long,
+        endDateMs: Long,
+        budget: Double,
+        callback: (Throwable?) -> Unit
+    ) {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    updateTripDetailsSuspend(tripId, name, destination, description, startDateMs, endDateMs, budget)
+                }
+                callback(null)
+            } catch (e: Exception) {
+                callback(e)
+            }
+        }
+    }
 
     suspend fun getTripMembers(tripId: String): List<TripMember> {
         return try {
@@ -165,6 +224,14 @@ class TripRepository {
                     return LeaveTripResult.MustTransferAdmin(members.filter { it.userId != uid })
                 }
             }
+            val tripName = trips.document(tripId).get().await().toObject(Trip::class.java)?.name?.trim()
+                .orEmpty().ifBlank { "Trip" }
+            FanoutNotificationPublisher.publishAsync(
+                tripId,
+                tripName,
+                "${me.name} left the trip",
+                "member_left"
+            )
             val batch = db.batch()
             batch.delete(trips.document(tripId).collection("members").document(uid))
             batch.update(trips.document(tripId), "memberIds", FieldValue.arrayRemove(uid))
@@ -177,6 +244,14 @@ class TripRepository {
 
     suspend fun transferAdminAndLeave(tripId: String, oldUid: String, newUid: String) {
         try {
+            val tripName = trips.document(tripId).get().await().toObject(Trip::class.java)?.name?.trim()
+                .orEmpty().ifBlank { "Trip" }
+            FanoutNotificationPublisher.publishAsync(
+                tripId,
+                tripName,
+                "Trip admin was transferred",
+                "admin_transfer"
+            )
             val batch = db.batch()
             val membersRef = trips.document(tripId).collection("members")
             batch.update(membersRef.document(newUid), "isAdmin", true)
@@ -192,6 +267,14 @@ class TripRepository {
     suspend fun deleteTripAsAdmin(tripId: String, adminUid: String) {
         try {
             val tripRef = trips.document(tripId)
+            val tripName = tripRef.get().await().toObject(Trip::class.java)?.name?.trim()
+                .orEmpty().ifBlank { "Trip" }
+            FanoutNotificationPublisher.publishAsync(
+                tripId,
+                tripName,
+                "This trip was deleted",
+                "trip_deleted"
+            )
 
             // 1) Delete expenses + tasks (batched)
             suspend fun deleteSubcollection(sub: String) {

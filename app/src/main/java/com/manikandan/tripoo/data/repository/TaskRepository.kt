@@ -1,6 +1,7 @@
 package com.manikandan.tripoo.data.repository
 
 import com.manikandan.tripoo.data.model.Task
+import com.manikandan.tripoo.notifications.FanoutNotificationPublisher
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.CoroutineScope
@@ -19,6 +20,12 @@ class TaskRepository {
         try {
             val ref = db.collection("trips").document(tripId).collection("tasks").document()
             ref.set(task.copy(id = ref.id)).await()
+            FanoutNotificationPublisher.publishAsync(
+                tripId,
+                "Task",
+                "New task: ${task.title}",
+                "task_added"
+            )
         } catch (e: Exception) {
             throw e
         }
@@ -38,6 +45,14 @@ class TaskRepository {
         try {
             db.collection("trips").document(tripId).collection("tasks")
                 .document(taskId).update("completed", completed).await()
+            val t = db.collection("trips").document(tripId).collection("tasks").document(taskId)
+                .get().await().getString("title").orEmpty().ifBlank { "Task" }
+            FanoutNotificationPublisher.publishAsync(
+                tripId,
+                "Task",
+                if (completed) "Task completed: $t" else "Task updated: $t",
+                "task_edited"
+            )
         } catch (e: Exception) {
             throw e
         }
@@ -80,7 +95,16 @@ class TaskRepository {
 
     suspend fun updateTask(tripId: String, taskId: String, task: Task) {
         try {
-            val updates = mapOf(
+            val docRef = db.collection("trips").document(tripId).collection("tasks").document(taskId)
+            val existing = docRef.get().await()
+            val prevDue = if (existing.contains("dueDate")) existing.getLong("dueDate") else null
+            val newDue = task.dueDate
+            val dueChanged = when {
+                prevDue == null && newDue == null -> false
+                prevDue == null || newDue == null -> true
+                else -> prevDue != newDue
+            }
+            val updates = mutableMapOf<String, Any?>(
                 "title" to task.title,
                 "category" to task.category,
                 "assignedTo" to task.assignedTo,
@@ -89,7 +113,17 @@ class TaskRepository {
                 "priority" to task.priority,
                 "notes" to task.notes
             )
-            db.collection("trips").document(tripId).collection("tasks").document(taskId).update(updates).await()
+            if (dueChanged) {
+                updates["deadlineNotified"] = false
+            }
+            @Suppress("UNCHECKED_CAST")
+            docRef.update(updates as Map<String, Any>).await()
+            FanoutNotificationPublisher.publishAsync(
+                tripId,
+                "Task",
+                "Task updated: ${task.title}",
+                "task_edited"
+            )
         } catch (e: Exception) {
             throw e
         }
@@ -108,7 +142,15 @@ class TaskRepository {
 
     suspend fun deleteTask(tripId: String, taskId: String) {
         try {
-            db.collection("trips").document(tripId).collection("tasks").document(taskId).delete().await()
+            val ref = db.collection("trips").document(tripId).collection("tasks").document(taskId)
+            val title = ref.get().await().getString("title").orEmpty().ifBlank { "Task" }
+            ref.delete().await()
+            FanoutNotificationPublisher.publishAsync(
+                tripId,
+                "Task",
+                "Task deleted: $title",
+                "task_deleted"
+            )
         } catch (e: Exception) {
             throw e
         }

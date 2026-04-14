@@ -33,8 +33,8 @@ android {
         applicationId = "com.manikandan.tripoo"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 4
+        versionName = "1.2.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -83,6 +83,9 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
 
+    // Local trip alerts (Firestore fan-out + WorkManager); no FCM server / no Blaze Functions.
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
+
     // Navigation Component
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
@@ -94,6 +97,9 @@ dependencies {
 
     // Glide
     implementation(libs.glide)
+
+    // AdMob
+    implementation(libs.play.services.ads)
 
     // Testing
     testImplementation(libs.junit)

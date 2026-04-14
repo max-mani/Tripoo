@@ -22,5 +22,17 @@
     <string name="save_changes">Save changes</string>
     <string name="add_task">Add task</string>
 
+    <string name="notification_default_title">Tripoo</string>
+    <string name="notification_default_body">You have a trip update.</string>
+    <string name="notification_channel_trip_name">Trip updates</string>
+    <string name="notification_channel_trip_desc">Alerts when your trips, expenses, tasks, or members change.</string>
+
     <string name="default_web_client_id">442908467947-xxxxxxxxxxxx.apps.googleusercontent.com</string>
+
+    <!-- AdMob App ID: Apps → your app → App settings (uses ~). -->
+    <string name="admob_app_id" translatable="false">ca-app-pub-2688489242058123~7006874625</string>
+    <!-- Banner ad unit for the trip dashboard (AdMob → Ad units). -->
+    <string name="admob_banner_dashboard" translatable="false">ca-app-pub-2688489242058123/8610991523</string>
+    <!-- Interstitial when leaving a trip (Home / Groups / Tasks / Expenses → trip list). -->
+    <string name="admob_interstitial_trip_exit" translatable="false">ca-app-pub-2688489242058123/4044014375</string>
 </resources>

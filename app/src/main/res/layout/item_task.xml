@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -59,20 +60,50 @@
                 android:textColor="@color/tripoo_text_secondary"
                 tools:text="Assigned to Everyone" />
 
+            <TextView
+                android:id="@+id/tvTaskNotes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textSize="11sp"
+                android:textColor="@color/tripoo_text_secondary"
+                android:maxLines="3"
+                android:ellipsize="end"
+                android:visibility="gone"
+                tools:text="Remember to confirm by 5pm"
+                tools:visibility="visible" />
+
         </LinearLayout>
 
-        <!-- Assignee avatar -->
-        <TextView
-            android:id="@+id/tvAssigneeAvatar"
+        <!-- Assignee: group icon (everyone) or initial letter -->
+        <FrameLayout
+            android:id="@+id/flAssigneeBadge"
             android:layout_width="23dp"
             android:layout_height="23dp"
-            android:layout_marginStart="6dp"
-            android:gravity="center"
-            android:textSize="9sp"
-            android:textStyle="bold"
-            android:textColor="@color/tripoo_orange"
-            android:background="@drawable/bg_avatar_circle_orange"
-            tools:text="J" />
+            android:layout_marginStart="6dp">
+
+            <ImageView
+                android:id="@+id/ivAssigneeGroup"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                android:src="@drawable/ic_group"
+                android:contentDescription="@null"
+                android:scaleType="fitCenter"
+                app:tint="#F48C25" />
+
+            <TextView
+                android:id="@+id/tvAssigneeAvatar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:textColor="@color/tripoo_orange"
+                android:background="@android:color/transparent"
+                tools:text="J" />
+        </FrameLayout>
 
         <!-- More menu button (edit/delete) -->
         <ImageButton

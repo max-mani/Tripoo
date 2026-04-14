@@ -14,6 +14,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -381,7 +382,7 @@ class AddTaskBottomSheet : BottomSheetDialogFragment() {
                 selectedDueDate?.let { timeInMillis = it }
             }
             DatePickerDialog(
-                requireContext(),
+                ContextThemeWrapper(requireContext(), R.style.ThemeOverlay_Tripoo_DatePickerDialog),
                 { _, y, m, d ->
                     cal.set(y, m, d)
                     selectedDueDate = cal.timeInMillis
@@ -408,12 +409,14 @@ class AddTaskBottomSheet : BottomSheetDialogFragment() {
         val categoryMap = mapOf(
             "general" to "General",
             "bookings" to "Bookings",
+            "booking" to "Bookings",
             "packing" to "Packing",
             "documents" to "Documents",
             "other" to "Other"
         )
-        selectedCategory = task.category
-        binding.actvCategory.setText(categoryMap[task.category] ?: "General", false)
+        val catKey = (task.category as? String ?: "general").lowercase()
+        selectedCategory = if (catKey == "booking") "bookings" else catKey
+        binding.actvCategory.setText(categoryMap[catKey] ?: "General", false)
 
         // Priority
         selectPriority(task.priority)
