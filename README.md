@@ -1,263 +1,145 @@
-# Tripoo - Group Trip Planner
+# Tripoo — Group trip planner
 
-A modern Android application for planning group trips with expense tracking, task management, and real-time collaboration.
+Android app for planning group trips: shared trip hub, expenses, tasks, and participants, backed by Firebase (Auth, Firestore, Storage). Local trip alerts use Firestore fan-out documents plus WorkManager (no FCM server or Cloud Functions required for notifications).
 
 ## Features
 
-- **Firebase Authentication**: Google Sign-In and Email/Password authentication
-- **Trip Management**: Create trips with unique codes, join trips via code
-- **Expense Tracking**: Track expenses, split costs among members, view who owes what
-- **Task Management**: Organize tasks by category (Booking, Packing, General)
-- **Real-time Updates**: Live synchronization using Firestore listeners
-- **Material Design 3**: Modern, beautiful UI following Material Design guidelines
+- **Authentication**: Email and password sign-in and sign-up (Firebase Auth). Google Sign-In UI is present in layouts but currently hidden in `AuthFragment`.
+- **Trip dashboard**: List of trips tied to the signed-in user; create a trip, join with a code, open a trip, or manage profile.
+- **Trip home**: Countdown / in-trip / post-trip messaging, trip summary, pull-to-refresh, and an in-trip **banner ad** (AdMob).
+- **Join codes**: Codes are generated as `TRP-` plus three random characters from `A–Z` and `0–9` (see `TripRepository`).
+- **Expenses**: Add and list expenses with categories, split among members, timestamps, and a **settled** flag; trip organiser or co-organisers (`TripMember.isAdmin`) can mark expenses settled in the UI.
+- **Tasks**: Categories (e.g. general, booking, packing), assignee, due date, priority, notes; deadline scheduling hooks into `TripDeadlineWorker` for local notifications.
+- **Groups / participants**: Member list for the active trip (navigation graph uses `GroupsFragment` with label “Participants”).
+- **Profile**: Display name, photo (camera / storage), language and currency preferences, trip list, spending summary, sign-out.
+- **Real-time data**: Firestore snapshot listeners in repositories; Kotlin **Flow** and coroutines in newer code paths alongside **LiveData** in older ViewModels.
+- **Local notifications**: `fanoutNotifications` subcollection per trip, `FanoutTripNotificationListener`, and notification tap handling in `MainActivity` / splash.
+- **Ads**: AdMob initialized in `TripooApplication`; banner placements and optional exit interstitial (`TripExitInterstitialHelper`).
 
-## Tech Stack
+## Tech stack
 
-- **Language**: Java 17
-- **Min SDK**: 24 (Android 7.0)
-- **Target SDK**: 36 (Android 15)
-- **Compile SDK**: 36
-- **Gradle**: 8.11.1
-- **Android Gradle Plugin**: 8.9.1
-- **Architecture**: MVVM (Model-View-ViewModel)
-- **Backend**: Firebase (Authentication, Firestore, Storage)
-- **UI**: Material Design 3, Navigation Component, ViewBinding
+| Item | Value |
+|------|--------|
+| **Languages** | Kotlin and Java (mixed module) |
+| **Package / applicationId** | `com.manikandan.tripoo` |
+| **Min SDK** | 24 |
+| **Target / compile SDK** | 36 |
+| **Java / Kotlin JVM** | 17 |
+| **Version** | `versionName` **1.3.2** (`versionCode` **8**) — see `app/build.gradle.kts` |
+| **Android Gradle Plugin** | 8.9.1 (`gradle/libs.versions.toml`) |
+| **Kotlin** | 1.9.0 |
+| **Gradle wrapper** | 8.11.1 (`gradle/wrapper/gradle-wrapper.properties`) |
+| **UI** | Material Design 3, View binding, Navigation Component (Kotlin Safe Args) |
+| **Async** | Kotlin coroutines, AndroidX Lifecycle (ViewModel / LiveData / runtime) |
+| **Backend** | Firebase Auth, Firestore, Storage; Firebase BOM 33.7.0 |
+| **Other** | Glide 4.14.2, WorkManager 2.9.1, Google Play services Ads 23.6.0 |
 
-## Project Structure
+## Project structure
+
+Source root: `app/src/main/java/com/manikandan/tripoo/`.
 
 ```
-app/src/main/java/com/example/tripoo/
+com/manikandan/tripoo/
+├── MainActivity.kt              # Nav host, edge-to-edge, notification permission, deep link from notifications
+├── TripooApplication.kt         # AdMob init, notification channel, auth listener → listeners / workers
+├── ads/                         # e.g. TripExitInterstitialHelper
 ├── data/
-│   ├── model/          # Data models (User, Trip, Expense, Task, TripMember)
-│   └── repository/     # Repository classes for data access
+│   ├── model/                   # Trip, TripMember, User, Expense, Task, TripWithMeta, …
+│   └── repository/              # Firestore access (Trip, User, Expense, Task, …)
+├── notifications/               # Fan-out publisher/listener, workers, prefs, constants
 ├── ui/
-│   ├── auth/          # Authentication fragments
-│   ├── splash/        # Splash screen
-│   ├── home/          # Home screen and trip creation/joining
-│   ├── expense/        # Expense tracking
-│   ├── tasks/          # Task management
-│   ├── groups/         # Group/member management
-│   └── profile/         # User profile
-├── viewmodel/          # ViewModels for each feature
-├── utils/              # Utility classes
-└── MainActivity.java   # Single Activity with Navigation Component
+│   ├── auth/                    # Auth, login, sign-up
+│   ├── splash/
+│   ├── dashboard/               # Trip list / dashboard
+│   ├── home/                    # Trip home shell, create/join (Java fragments used by nav graph)
+│   ├── expenses/
+│   ├── tasks/
+│   ├── groups/                  # Participants for active trip
+│   └── profile/
+├── view/                        # Custom views (e.g. TripCountdownView)
+├── viewmodel/                   # Java/Kotlin ViewModels
+└── utils/                       # Formatting, constants, trip code utilities, etc.
 ```
 
-## Setup Instructions
+Navigation is defined in `app/src/main/res/navigation/nav_graph.xml` (start: `splashFragment`). **Release builds** expect a `key.properties` file at the repo root and a keystore path referenced there — see `app/build.gradle.kts` `signingConfigs`.
+
+## Setup
 
 ### Prerequisites
 
-- Android Studio Hedgehog or newer
-- JDK 17 or higher
-- Gradle 8.11.1 or higher
-- Firebase account
+- Android Studio (recent stable; Ladybug / Narwhal-era or newer recommended)
+- JDK 17
+- A Firebase project
 
-### Firebase Configuration
+### Firebase
 
-1. **Create Firebase Project**
-   - Go to [Firebase Console](https://console.firebase.google.com/)
-   - Create a new project named "Tripoo"
+1. Create a project in the [Firebase Console](https://console.firebase.google.com/).
+2. Add an **Android** app with package name **`com.manikandan.tripoo`** (must match `applicationId`).
+3. Download **`google-services.json`** and place it in **`app/`**.  
+   - The real file is **gitignored** (see `.gitignore`).  
+   - You can start from `app/google-services.json.example` and replace placeholders; ensure `package_name` is **`com.manikandan.tripoo`** (the example file may still show a placeholder package).
+4. Enable **Authentication** → Email/Password (and Google later if you re-enable the buttons in `AuthFragment`).
+5. Create **Firestore** (start in locked mode, then deploy rules).
+6. Enable **Storage** if you use profile / trip images.
+7. For any Google Sign-In you enable later, add your app’s **SHA-1** / **SHA-256** in Firebase and use a valid Web client ID in `strings.xml` where needed.
 
-2. **Add Android App**
-   - Click "Add app" → Select Android
-   - Package name: `com.example.tripoo`
-   - Download `google-services.json`
-   - Place it in `app/` directory (already included)
+Deploy the rules in **`firestore.rules`** to the Firestore **Rules** tab in the console.
 
-3. **Enable Firebase Services**
-   - **Authentication**: 
-     - Go to Authentication → Sign-in method
-     - Enable "Email/Password"
-     - Enable "Google" (configure OAuth consent screen)
-   - **Firestore Database**:
-     - Go to Firestore Database → Create database
-     - Start in test mode (or use provided security rules)
-   - **Storage** (optional, for profile images):
-     - Go to Storage → Get started
-     - Start in test mode
+### AdMob
 
-4. **Configure Google Sign-In**
-   - In Firebase Console → Authentication → Sign-in method → Google
-   - Add SHA-1 fingerprint:
-     ```bash
-     keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
-     ```
-   - Copy the SHA-1 fingerprint and add it to Firebase Console
+The manifest references `@string/admob_app_id`. Replace ad unit strings in `app/src/main/res/values/strings.xml` with your own AdMob app and unit IDs for production.
 
-5. **Deploy Firestore Security Rules**
-   - Go to Firestore Database → Rules
-   - Copy contents from `firestore.rules`
-   - Paste and publish
+### Build and run
 
-### Build and Run
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd Tripoo
-   ```
-
-2. **Sync Gradle**
-   - Open project in Android Studio
-   - Wait for Gradle sync to complete
-
-3. **Build the project**
-   ```bash
-   ./gradlew clean
-   ./gradlew build
-   ```
-
-4. **Run on device/emulator**
-   - Connect Android device or start emulator (API 24+)
-   - Click "Run" in Android Studio or:
-   ```bash
-   ./gradlew installDebug
-   ```
-
-## Architecture
-
-### MVVM Pattern
-
-- **Model**: Data classes and Firestore models
-- **View**: Fragments with ViewBinding
-- **ViewModel**: Business logic, LiveData observation
-- **Repository**: Data access layer, Firestore operations
-
-### Single Activity Architecture
-
-- One `MainActivity` hosts all fragments
-- Navigation Component handles fragment transitions
-- Bottom Navigation for main screens (Home, Expense, Tasks, Groups)
-
-### Real-time Updates
-
-- Firestore snapshot listeners in repositories
-- LiveData in ViewModels for UI updates
-- Automatic synchronization across devices
-
-## Firestore Structure
-
-### Collections
-
-```
-users/
-  {userId}/
-    name: string
-    email: string
-    photoUrl: string
-    activeTripId: string
-
-trips/
-  {tripId}/
-    place: string
-    startDate: timestamp
-    endDate: timestamp
-    budget: number
-    tripCode: string (format: TRP-XXX)
-    adminId: string
-    isActive: boolean
-    
-    members/
-      {userId}/
-        userId: string
-        name: string
-        email: string
-        photoUrl: string
-        isAdmin: boolean
-    
-    expenses/
-      {expenseId}/
-        title: string
-        amount: number
-        paidBy: string (userId)
-        splitWith: array<string> (userIds)
-        createdBy: string (userId)
-        timestamp: timestamp
-    
-    tasks/
-      {taskId}/
-        title: string
-        category: string (Booking/Packing/General)
-        assignedTo: string (userId)
-        completed: boolean
-        createdBy: string (userId)
-        dueDate: timestamp
+```bash
+git clone <repository-url>
+cd Tripoo
 ```
 
-## Key Features Implementation
+On Windows:
 
-### Trip Code Generation
-- Format: `TRP-XXX` where XXX is 3-digit number (100-999)
-- Uniqueness checked against active trips
-- Codes become invalid after trip end date
-- Can be reused for new trips
+```bat
+gradlew.bat assembleDebug
+```
 
-### Expense Splitting
-- Calculate "You Owe" and "You Are Owed" amounts
-- Split expenses equally among selected members
-- Real-time updates when expenses are added/modified
+On macOS / Linux:
 
-### Task Categories
-- **Booking**: Flight, hotel, car rental, etc.
-- **Packing**: Items to pack, checklist
-- **General**: Other trip-related tasks
+```bash
+./gradlew assembleDebug
+```
 
-### Permissions
-- **Admin**: Can edit/delete any expense or task
-- **Creator**: Can edit/delete own expenses/tasks
-- **Member**: Can add expenses/tasks, view all data
+Open the project in Android Studio, sync Gradle, run on an emulator or device (API 24+).
 
-## Security Rules
+## Architecture notes
 
-Firestore security rules ensure:
-- Users can only access their own user document
-- Only trip members can read trip data
-- Only admin/creator can edit expenses and tasks
-- Members can add expenses/tasks but only edit their own
+- **Single activity**: `MainActivity` hosts `NavHostFragment`; fragments swap via the navigation graph.
+- **MVVM**: Fragments / binding + ViewModels; repositories encapsulate Firestore (and related side effects such as fan-out notification writes).
+- **Trip context**: After opening a trip, the custom bottom bar on **Home** switches between **Home**, **Expenses**, **Tasks**, and **Groups** (labels as in `fragment_home.xml`).
 
-See `firestore.rules` for complete rules.
+## Firestore shape (high level)
+
+Collections and fields follow the Kotlin/Java models (e.g. `Trip`, `User`, `Expense`, `Task`, `TripMember`). Typical layout:
+
+- **`users/{uid}`** — profile fields including `tripIds`, optional `lastActiveTripId`, preferences, avatar hints.
+- **`trips/{tripId}`** — trip document: e.g. `name`, `destination`, `description`, `startDate`, `endDate`, `budget`, `adminId`, `joinCode`, `memberIds`, `status` (`upcoming` / `active` / `past`).
+- **`trips/{tripId}/members/{userId}`** — `TripMember` (including `isAdmin` for co-organisers).
+- **`trips/{tripId}/expenses/{expenseId}`** — `Expense` (`splitWith`, `paidBy`, `category`, `settled`, …).
+- **`trips/{tripId}/tasks/{taskId}`** — `Task` (`category`, `assignedTo`, `completed`, `dueDate`, `priority`, `notes`, `deadlineNotified`, …).
+- **`trips/{tripId}/fanoutNotifications/{id}`** — short-lived notification payloads for clients; rules allow members to read/create/delete (no updates).
+
+Authoritative access control is in **`firestore.rules`** (e.g. authenticated reads on `users` for member display, join-by-code updates to `memberIds`, member-gated subcollections). **Do not rely on the app alone for security** — rules must match your data model.
 
 ## Troubleshooting
 
-### Build Errors
-- Ensure `google-services.json` is in `app/` directory
-- Check that all dependencies are synced in Gradle
-- Verify Java 17 is configured
-- Ensure Gradle wrapper version is 8.11.1 (check `gradle/wrapper/gradle-wrapper.properties`)
-- Verify Android Gradle Plugin is 8.9.1 (check `gradle/libs.versions.toml`)
-- If you encounter namespace errors in layout files, ensure `tools` namespace is declared: `xmlns:tools="http://schemas.android.com/tools"`
-- For `layout_gravity` errors, use `android:layout_gravity` instead of `app:layout_gravity` for MaterialCardView in CoordinatorLayout
-- If NavController errors occur, ensure NavHostFragment is properly initialized before accessing NavController
-
-### Common Issues Fixed
-- **Glide version**: Updated to 4.14.2 (latest stable 4.x version)
-- **Namespace declarations**: Fixed `tools` namespace missing in layout files
-- **Attribute errors**: Corrected `layout_gravity` and `enabled` attribute usage
-- **NavController initialization**: Fixed timing issue by using `post()` to ensure fragment is attached
-
-### Authentication Issues
-- Check SHA-1 fingerprint is added to Firebase
-- Verify Google Sign-In is enabled in Firebase Console
-- Ensure OAuth consent screen is configured
-
-### Firestore Permission Errors
-- Deploy security rules from `firestore.rules`
-- Check that user is authenticated
-- Verify user is a member of the trip
+- **Missing `google-services.json`**: Gradle will fail until the file exists under `app/` with the correct `package_name`.
+- **Auth / Dynamic Links**: Ensure Firebase Android app registration matches **`com.manikandan.tripoo`** and SHA keys are registered if using Google providers.
+- **Firestore permission errors**: Publish the rules from `firestore.rules` and confirm the user is signed in and appears in `memberIds` for that trip where required.
+- **Release signing**: Without `key.properties` and a valid keystore, release signing config may be incomplete; debug builds do not use that block the same way.
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+Fork, branch, change, and open a pull request with a short description of behaviour and any Firebase or config steps reviewers need.
 
 ## License
 
-This project is licensed under the MIT License.
-
-## Acknowledgments
-
-- Material Design 3 components
-- Firebase for backend services
-- Android Jetpack libraries
+No `LICENSE` file is included in this repository. Add one if you intend to distribute under a specific license.
