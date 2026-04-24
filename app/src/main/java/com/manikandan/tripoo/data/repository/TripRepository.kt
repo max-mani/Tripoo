@@ -10,7 +10,9 @@ import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -199,29 +201,8 @@ class TripRepository {
         return try {
             val memberDocs = trips.document(tripId).collection("members").get().await()
                 .documents.mapNotNull { doc -> parseTripMember(doc) }
-            if (memberDocs.isEmpty())
-                return emptyList()
-
-            // Member documents are written at join time and don't track profile photo changes.
-            // Enrich each member with the freshest photoUrl from the users collection.
-            val userIds = memberDocs.map { it.userId }.filter { it.isNotEmpty() }
-            val photoMap: Map<String, String> = userIds.chunked(10).flatMap { chunk ->
-                try {
-                    db.collection("users")
-                        .whereIn(FieldPath.documentId(), chunk)
-                        .get().await()
-                        .documents
-                        .mapNotNull { doc ->
-                            val photo = doc.getString("photoUrl")
-                            if (!photo.isNullOrEmpty()) doc.id to photo else null
-                        }
-                } catch (e: Exception) { emptyList() }
-            }.toMap()
-
-            val merged = memberDocs.map { member ->
-                photoMap[member.userId]?.let { member.copy(photoUrl = it) } ?: member
-            }
-            enrichMembersWithUserProfiles(merged)
+            if (memberDocs.isEmpty()) emptyList()
+            else enrichMembersWithUserProfiles(memberDocs)
         } catch (e: Exception) {
             emptyList()
         }
@@ -243,9 +224,13 @@ class TripRepository {
         return members.map { m ->
             val uid = m.userId
             val u = userById[uid] ?: userRepository.getUser(uid)
+            val displayName = u?.name?.trim()?.takeIf { it.isNotEmpty() } ?: m.name
+            val displayEmail = u?.email?.trim()?.takeIf { it.isNotEmpty() } ?: m.email
+            // users/{uid} is source of truth for profile media; blank there means no photo (ignore stale member doc).
             val mergedPhoto = when {
-                !m.photoUrl.isNullOrBlank() -> m.photoUrl
                 u != null && !u.photoUrl.isNullOrBlank() -> u.photoUrl
+                u != null -> null
+                !m.photoUrl.isNullOrBlank() -> m.photoUrl
                 else -> null
             }
             val noPhoto = mergedPhoto.isNullOrBlank()
@@ -253,18 +238,20 @@ class TripRepository {
                 userRepository.ensureAvatarIdentityFields(uid)
             } else if (noPhoto) {
                 Pair(
-                    com.manikandan.tripoo.utils.UserAvatarIdentity.letterFromName(m.name),
+                    com.manikandan.tripoo.utils.UserAvatarIdentity.letterFromName(displayName),
                     com.manikandan.tripoo.utils.UserAvatarIdentity.bgForSeed(uid)
                 )
             } else {
                 Pair(
                     u?.avatarLetter?.ifBlank { null }
-                        ?: com.manikandan.tripoo.utils.UserAvatarIdentity.letterFromName(m.name),
+                        ?: com.manikandan.tripoo.utils.UserAvatarIdentity.letterFromName(displayName),
                     u?.avatarColorHex?.ifBlank { null }
                         ?: com.manikandan.tripoo.utils.UserAvatarIdentity.bgForSeed(uid)
                 )
             }
             m.copy(
+                name = displayName,
+                email = displayEmail,
                 photoUrl = mergedPhoto,
                 avatarLetter = let,
                 avatarColorHex = bg
@@ -272,12 +259,76 @@ class TripRepository {
         }
     }
 
-    fun listenToTripMembers(tripId: String): Flow<List<TripMember>> = callbackFlow {
-        val listener = trips.document(tripId).collection("members")
-            .addSnapshotListener { snap, _ ->
-                trySend(snap?.documents?.mapNotNull { doc -> parseTripMember(doc) } ?: emptyList())
+    /**
+     * Pushes [User] profile fields into every [TripMember] doc for this user so trip listeners refresh
+     * and other devices see updated name/photo. Uses merge so [TripMember.isAdmin] is preserved.
+     */
+    suspend fun syncMemberProfileFromUser(uid: String) {
+        if (uid.isBlank()) return
+        val user = userRepository.getUser(uid) ?: return
+        val tripIds = user.tripIds.distinct().filter { it.isNotBlank() }
+        if (tripIds.isEmpty()) return
+
+        val name = user.name.trim()
+        val email = user.email.trim()
+        val photoUrl = user.photoUrl?.trim().orEmpty()
+        var letter = user.avatarLetter?.trim().orEmpty()
+        if (letter.isEmpty()) {
+            letter = com.manikandan.tripoo.utils.UserAvatarIdentity.letterFromName(
+                name.ifBlank { user.email.substringBefore("@") }
+            )
+        }
+        var colorHex = user.avatarColorHex?.trim().orEmpty()
+        if (colorHex.isEmpty()) {
+            colorHex = com.manikandan.tripoo.utils.UserAvatarIdentity.bgForSeed(uid)
+        }
+
+        val payload = mapOf(
+            "name" to name,
+            "email" to email,
+            "photoUrl" to photoUrl,
+            "avatarLetter" to letter,
+            "avatarColorHex" to colorHex
+        )
+
+        tripIds.chunked(400).forEach { chunk ->
+            val batch = db.batch()
+            for (tripId in chunk) {
+                batch.set(
+                    trips.document(tripId).collection("members").document(uid),
+                    payload,
+                    SetOptions.merge()
+                )
             }
-        awaitClose { listener.remove() }
+            batch.commit().await()
+        }
+    }
+
+    fun listenToTripMembers(tripId: String): Flow<List<TripMember>> = callbackFlow {
+        var enrichJob: Job? = null
+        val flowScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+        val listener = trips.document(tripId).collection("members")
+            .addSnapshotListener { snap, e ->
+                enrichJob?.cancel()
+                if (e != null) {
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+                val list = snap?.documents?.mapNotNull { doc -> parseTripMember(doc) } ?: emptyList()
+                enrichJob = flowScope.launch {
+                    val enriched = try {
+                        withContext(Dispatchers.IO) { enrichMembersWithUserProfiles(list) }
+                    } catch (_: Exception) {
+                        list
+                    }
+                    trySend(enriched)
+                }
+            }
+        awaitClose {
+            enrichJob?.cancel()
+            flowScope.cancel()
+            listener.remove()
+        }
     }
 
     fun listenToTripMembers(tripId: String, callback: (List<TripMember>, Exception?) -> Unit): ListenerRegistration {

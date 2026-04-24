@@ -501,7 +501,8 @@ class AddTaskBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun makeCircularBitmap(src: Bitmap, size: Int): Bitmap {
-        val scaled = Bitmap.createScaledBitmap(src, size, size, true)
+        val square = ImageUtils.cropToCenterSquare(src)
+        val scaled = Bitmap.createScaledBitmap(square, size, size, true)
         val result = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(result)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {

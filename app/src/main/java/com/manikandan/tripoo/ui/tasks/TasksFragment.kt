@@ -348,7 +348,7 @@ class TasksFragment : Fragment() {
 
     /**
      * Composites a circular photo (with a white border ring) onto the avatar TextView background.
-     * Uses BitmapShader for clean anti-aliased edge.
+     * Uses BitmapShader for clean anti-aliased edge. Center 1:1 crop first so non-square images are not stretched.
      */
     private fun applyCircularPhoto(avatar: TextView, src: Bitmap, size: Int, borderStroke: Int, innerSize: Int) {
         val result = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
@@ -359,8 +359,8 @@ class TasksFragment : Fragment() {
         paint.color = Color.WHITE
         canvas.drawCircle(size / 2f, size / 2f, size / 2f, paint)
 
-        // Circular photo centred inside the ring via BitmapShader
-        val scaled = Bitmap.createScaledBitmap(src, innerSize, innerSize, true)
+        val square = ImageUtils.cropToCenterSquare(src)
+        val scaled = Bitmap.createScaledBitmap(square, innerSize, innerSize, true)
         val shader = BitmapShader(scaled, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
         val matrix = Matrix().apply { setTranslate(borderStroke.toFloat(), borderStroke.toFloat()) }
         shader.setLocalMatrix(matrix)

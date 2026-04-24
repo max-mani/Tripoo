@@ -1,10 +1,12 @@
 package com.manikandan.tripoo.ui.dashboard
 
-import android.graphics.Bitmap
+import android.graphics.Outline
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewOutlineProvider
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -61,6 +63,21 @@ class TripDashboardFragment : Fragment() {
             )
         }
 
+        // Parent clipToOutline is unreliable on some API 24–28 devices; clip the ImageView itself.
+        // (ViewOutlineProvider.OVAL is API 30+; use setOval for API 21–29.)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            binding.ivAvatar.outlineProvider = object : ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: Outline) {
+                    val w = view.width
+                    val h = view.height
+                    if (w > 0 && h > 0) {
+                        outline.setOval(0, 0, w, h)
+                    }
+                }
+            }
+            binding.ivAvatar.clipToOutline = true
+        }
+
         viewModel.filteredTrips.observe(viewLifecycleOwner) { trips ->
             adapter.submitList(trips ?: emptyList())
             val activeCount = (trips ?: emptyList()).count { it.trip.status == "active" }
@@ -76,9 +93,12 @@ class TripDashboardFragment : Fragment() {
                 binding.ivAvatar.visibility = View.VISIBLE
                 binding.tvAvatar.visibility = View.GONE
                 if (ImageUtils.isBase64Image(photoUrl)) {
-                    val bmp: Bitmap? = ImageUtils.base64ToBitmap(photoUrl)
+                    val bmp = ImageUtils.base64ToBitmap(photoUrl)
                     if (bmp != null) {
-                        binding.ivAvatar.setImageBitmap(bmp)
+                        Glide.with(this)
+                            .load(bmp)
+                            .circleCrop()
+                            .into(binding.ivAvatar)
                     } else {
                         binding.ivAvatar.visibility = View.GONE
                         binding.tvAvatar.visibility = View.VISIBLE
@@ -87,10 +107,11 @@ class TripDashboardFragment : Fragment() {
                 } else {
                     Glide.with(this)
                         .load(photoUrl)
-                        .centerCrop()
+                        .circleCrop()
                         .into(binding.ivAvatar)
                 }
             } else {
+                Glide.with(this).clear(binding.ivAvatar)
                 binding.ivAvatar.visibility = View.GONE
                 binding.tvAvatar.visibility = View.VISIBLE
                 binding.tvAvatar.text = viewModel.getCurrentUserInitials()

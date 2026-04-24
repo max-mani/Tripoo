@@ -8,6 +8,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Shader
 import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
@@ -357,13 +358,14 @@ class AddExpenseBottomSheet(
         return bmp
     }
 
-    /** Crops a source bitmap into a circle of the given pixel size using BitmapShader. */
+    /** Center 1:1 crop then circle via BitmapShader (avoids stretching non-square photos in chips). */
     private fun makeCircularPhotoBitmap(src: Bitmap, size: Int): Bitmap {
-        val scaled = Bitmap.createScaledBitmap(src, size, size, true)
+        val square = ImageUtils.cropToCenterSquare(src)
+        val scaled = Bitmap.createScaledBitmap(square, size, size, true)
         val result = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(result)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            shader = android.graphics.BitmapShader(scaled, android.graphics.Shader.TileMode.CLAMP, android.graphics.Shader.TileMode.CLAMP)
+            shader = android.graphics.BitmapShader(scaled, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
         }
         canvas.drawCircle(size / 2f, size / 2f, size / 2f, paint)
         return result

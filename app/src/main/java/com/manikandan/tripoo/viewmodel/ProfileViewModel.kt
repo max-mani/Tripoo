@@ -123,13 +123,24 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         userLiveData.value = Resource.error("Logged out")
     }
 
+    private fun syncMemberDocsAfterProfileChange(uid: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                tripRepository.syncMemberProfileFromUser(uid)
+            } catch (_: Exception) {
+            }
+        }
+    }
+
     fun updateProfile(name: String, photoUrl: String?) {
         updateProfileLiveData.value = Resource.loading()
         val firebaseUser = authRepository.getCurrentUser()
         if (firebaseUser != null) {
-            userRepository.updateProfile(firebaseUser.uid, name, photoUrl) { err ->
+            val uid = firebaseUser.uid
+            userRepository.updateProfile(uid, name, photoUrl) { err ->
                 if (err == null) {
                     updateProfileLiveData.value = Resource.success("Profile updated successfully")
+                    syncMemberDocsAfterProfileChange(uid)
                     loadUser()
                 } else {
                     updateProfileLiveData.value =
@@ -160,8 +171,12 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 val currentName =
                     user.name.takeIf { it.isNotBlank() }
                         ?: (firebaseUser.displayName ?: "User")
-                userRepository.updateProfile(firebaseUser.uid, currentName, base64Photo) { err ->
-                    if (err == null) loadUser()
+                val uid = firebaseUser.uid
+                userRepository.updateProfile(uid, currentName, base64Photo) { err ->
+                    if (err == null) {
+                        syncMemberDocsAfterProfileChange(uid)
+                        loadUser()
+                    }
                 }
             }
         }
@@ -175,6 +190,10 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 withContext(Dispatchers.IO) {
                     u.updateEmail(trimmed).await()
                     userRepository.updateDocumentEmail(u.uid, trimmed)
+                    try {
+                        tripRepository.syncMemberProfileFromUser(u.uid)
+                    } catch (_: Exception) {
+                    }
                 }
                 loadUser()
                 accountMessageLiveData.postValue(Resource.success("Email updated"))

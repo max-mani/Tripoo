@@ -5,7 +5,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
-import android.provider.MediaStore;
 import android.content.Context;
 
 import java.io.ByteArrayOutputStream;
@@ -13,69 +12,107 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class ImageUtils {
-    
-    // Keep under Firestore 1MB doc limit: 256px at 70% gives ~20-40KB base64
-    private static final int MAX_IMAGE_SIZE = 256;
-    private static final int COMPRESSION_QUALITY = 70;
-    
+
+    /** Stored image is always this square edge (px); JPEG stays well under Firestore 1MB. */
+    private static final int MAX_IMAGE_SIZE = 384;
+    private static final int COMPRESSION_QUALITY = 82;
+    /** Max dimension while decoding before crop (reduces OOM; keeps detail for 1:1 center crop). */
+    private static final int MAX_DECODE_DIMENSION = 2048;
+
     /**
-     * Crop image to 1:1 ratio and convert to base64 string
-     * @param context Context for accessing content resolver
-     * @param imageUri Uri of the image
-     * @return Base64 encoded string of the cropped image
+     * Center-crops to 1:1, scales to a square, encodes as JPEG/base64 for Firestore.
      */
     public static String cropAndConvertToBase64(Context context, Uri imageUri) throws IOException {
         Bitmap bitmap = loadBitmapFromUri(context, imageUri);
-        Bitmap croppedBitmap = cropToSquare(bitmap);
-        Bitmap resizedBitmap = resizeBitmap(croppedBitmap, MAX_IMAGE_SIZE);
-        return bitmapToBase64(resizedBitmap);
-    }
-    
-    /**
-     * Load bitmap from URI
-     */
-    private static Bitmap loadBitmapFromUri(Context context, Uri uri) throws IOException {
-        InputStream inputStream = context.getContentResolver().openInputStream(uri);
-        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-        if (inputStream != null) {
-            inputStream.close();
+        Bitmap croppedBitmap = cropToCenterSquare(bitmap);
+        if (croppedBitmap != bitmap) {
+            bitmap.recycle();
         }
-        
-        // Handle image orientation
-        bitmap = rotateImageIfRequired(context, bitmap, uri);
-        return bitmap;
+        Bitmap resizedBitmap = resizeBitmapToSquare(croppedBitmap, MAX_IMAGE_SIZE);
+        if (resizedBitmap != croppedBitmap) {
+            croppedBitmap.recycle();
+        }
+        Bitmap finalSquare = ensureSquare(resizedBitmap);
+        if (finalSquare != resizedBitmap) {
+            resizedBitmap.recycle();
+        }
+        String encoded = bitmapToBase64(finalSquare);
+        finalSquare.recycle();
+        return encoded;
     }
-    
+
     /**
-     * Crop bitmap to square (1:1 ratio)
+     * Center-crops to the largest inscribed square (1:1). If already square, returns the same instance.
      */
-    private static Bitmap cropToSquare(Bitmap bitmap) {
+    public static Bitmap cropToCenterSquare(Bitmap bitmap) {
+        if (bitmap == null) {
+            return null;
+        }
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
-        int size = Math.min(width, height);
-        
-        int x = (width - size) / 2;
-        int y = (height - size) / 2;
-        
-        return Bitmap.createBitmap(bitmap, x, y, size, size);
-    }
-    
-    /**
-     * Resize bitmap to max size while maintaining aspect ratio
-     */
-    private static Bitmap resizeBitmap(Bitmap bitmap, int maxSize) {
-        int width = bitmap.getWidth();
-        int height = bitmap.getHeight();
-        
-        if (width <= maxSize && height <= maxSize) {
+        if (width <= 0 || height <= 0) {
             return bitmap;
         }
-        
-        float scale = Math.min((float) maxSize / width, (float) maxSize / height);
-        int newWidth = Math.round(width * scale);
-        int newHeight = Math.round(height * scale);
-        
-        return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true);
+        if (width == height) {
+            return bitmap;
+        }
+        int size = Math.min(width, height);
+        int x = (width - size) / 2;
+        int y = (height - size) / 2;
+        return Bitmap.createBitmap(bitmap, x, y, size, size);
+    }
+
+    private static Bitmap loadBitmapFromUri(Context context, Uri uri) throws IOException {
+        BitmapFactory.Options bounds = new BitmapFactory.Options();
+        bounds.inJustDecodeBounds = true;
+        InputStream boundsStream = context.getContentResolver().openInputStream(uri);
+        if (boundsStream == null) {
+            throw new IOException("Could not open image");
+        }
+        BitmapFactory.decodeStream(boundsStream, null, bounds);
+        boundsStream.close();
+
+        int maxDim = Math.max(bounds.outWidth, bounds.outHeight);
+        int inSampleSize = 1;
+        while (maxDim / (inSampleSize * 2) > MAX_DECODE_DIMENSION) {
+            inSampleSize *= 2;
+        }
+
+        BitmapFactory.Options opts = new BitmapFactory.Options();
+        opts.inSampleSize = inSampleSize;
+
+        InputStream inputStream = context.getContentResolver().openInputStream(uri);
+        if (inputStream == null) {
+            throw new IOException("Could not open image");
+        }
+        Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, opts);
+        inputStream.close();
+        if (bitmap == null) {
+            throw new IOException("Could not decode image");
+        }
+
+        return rotateImageIfRequired(context, bitmap, uri);
+    }
+
+    private static Bitmap resizeBitmapToSquare(Bitmap bitmap, int maxEdgePx) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        if (width <= maxEdgePx && height <= maxEdgePx) {
+            return bitmap;
+        }
+        return Bitmap.createScaledBitmap(bitmap, maxEdgePx, maxEdgePx, true);
+    }
+
+    private static Bitmap ensureSquare(Bitmap bitmap) {
+        if (bitmap == null) {
+            return null;
+        }
+        int w = bitmap.getWidth();
+        int h = bitmap.getHeight();
+        if (w == h) {
+            return bitmap;
+        }
+        return cropToCenterSquare(bitmap);
     }
     
     /**
@@ -121,8 +158,10 @@ public class ImageUtils {
                 default:
                     return bitmap;
             }
-            
-            return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+
+            Bitmap rotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+            bitmap.recycle();
+            return rotated;
         } catch (Exception e) {
             // If EXIF reading fails, return original bitmap
             return bitmap;
