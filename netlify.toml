@@ -1,5 +1,6 @@
+# Netlify runs from repo root. Copy .env.example so Vite sees VITE_* (Vite does not load .env.example by name).
 [build]
-  command = "cd frontend && npm ci && npm run build"
+  command = "cd frontend && cp .env.example .env && npm ci && npm run build"
   publish = "frontend/dist"
 
 [[redirects]]
