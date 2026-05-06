@@ -3,7 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Box, CircularProgress } from '@mui/material'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ProtectedLayout } from './components/ProtectedLayout'
-import SplashPage from './pages/SplashPage'
+import { SplashOverlay } from './components/SplashOverlay'
 import LoginPage from './pages/LoginPage'
 import SignUpPage from './pages/SignUpPage'
 import DashboardPage from './pages/DashboardPage'
@@ -30,13 +30,24 @@ function LoginGate({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+function RootRedirect() {
+  const { firebaseUser, loading } = useAuth()
+  if (loading) {
+    return (
+      <Box sx={{ minHeight: '100dvh', bgcolor: tripooColors.bg }} />
+    )
+  }
+  if (firebaseUser) return <Navigate to="/dashboard" replace />
+  return <Navigate to="/login" replace />
+}
+
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
+    <AuthProvider>
+      <BrowserRouter>
+        <SplashOverlay />
         <Routes>
-          <Route path="/splash" element={<SplashPage />} />
-          <Route path="/" element={<Navigate to="/splash" replace />} />
+          <Route path="/" element={<RootRedirect />} />
           <Route
             path="/login"
             element={
@@ -65,9 +76,9 @@ export default function App() {
               <Route path="groups" element={<GroupsPage />} />
             </Route>
           </Route>
-          <Route path="*" element={<Navigate to="/splash" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }

@@ -17,9 +17,9 @@ import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import AddIcon from '@mui/icons-material/Add'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { useAuth } from '../context/AuthContext'
+import { AppCheckCircleIcon } from '../components/icons/AppCheckCircleIcon'
 import { fileToProfileBase64, photoSrcForDisplay } from '../lib/imageToBase64'
 import { tripooColors } from '../theme'
 
@@ -89,13 +89,6 @@ export default function SignUpPage() {
     }
   }
 
-  const ringBg =
-    avatarBase64 || avatarPreview
-      ? 'transparent'
-      : initials
-        ? tripooColors.orange
-        : `linear-gradient(180deg, ${tripooColors.orange} 0%, ${tripooColors.orangeDark} 100%)`
-
   return (
     <Box sx={{ minHeight: '100dvh', bgcolor: tripooColors.bg, display: 'flex', flexDirection: 'column' }}>
       <Box
@@ -162,22 +155,23 @@ export default function SignUpPage() {
                 width: 86,
                 height: 86,
                 borderRadius: '50%',
-                background: ringBg,
-                p: '3px',
-                cursor: 'pointer',
                 boxSizing: 'border-box',
+                bgcolor: 'rgba(244, 140, 37, 0.12)',
+                border: '3px dashed rgba(244, 140, 37, 0.35)',
+                cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                flexShrink: 0,
               }}
             >
               <Box
                 sx={{
-                  width: '100%',
-                  height: '100%',
+                  width: 80,
+                  height: 80,
                   borderRadius: '50%',
                   overflow: 'hidden',
-                  bgcolor: avatarPreview ? '#fff' : initials ? tripooColors.orange : 'rgba(255,255,255,0.25)',
+                  bgcolor: avatarPreview ? tripooColors.surface : initials ? tripooColors.orange : 'rgba(255,255,255,0.94)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -190,7 +184,7 @@ export default function SignUpPage() {
                     {initials}
                   </Typography>
                 ) : (
-                  <AddIcon sx={{ color: tripooColors.orange, fontSize: 30 }} />
+                  <AddIcon sx={{ color: tripooColors.orange, fontSize: 28 }} />
                 )}
               </Box>
             </Box>
@@ -307,8 +301,16 @@ export default function SignUpPage() {
             disabled={loading}
             fullWidth
             size="large"
-            startIcon={<CheckCircleIcon />}
-            sx={{ py: 1.2, fontWeight: 700 }}
+            startIcon={
+              <AppCheckCircleIcon sx={{ color: tripooColors.surface, fontSize: 22 }} />
+            }
+            sx={{
+              py: 1.2,
+              fontWeight: 700,
+              bgcolor: tripooColors.orange,
+              color: tripooColors.surface,
+              '&:hover': { bgcolor: tripooColors.orangeDark },
+            }}
           >
             Create Account
           </Button>
