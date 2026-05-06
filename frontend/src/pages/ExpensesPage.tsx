@@ -7,7 +7,7 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle,
+  Fab,
   FormControlLabel,
   FormGroup,
   IconButton,
@@ -20,11 +20,17 @@ import {
   Typography,
   Chip,
   Card,
+  Menu,
+  MenuItem,
+  Divider,
+  InputAdornment,
 } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import AddIcon from '@mui/icons-material/Add'
 import SearchIcon from '@mui/icons-material/Search'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
+import CloseIcon from '@mui/icons-material/Close'
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong'
 import TrendingDownIcon from '@mui/icons-material/TrendingDown'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
 import { useAuth } from '../context/AuthContext'
@@ -41,6 +47,8 @@ import { categoryMeta, EXPENSE_CATEGORIES } from '../lib/constants'
 import { tripooColors } from '../theme'
 import { computeYouOweYouAreOwed, computeOweOwedTrends } from '../lib/expenseBalances'
 import { TripTabScaffold } from '../components/TripTabScaffold'
+import { FAB_BOTTOM_FROM_VIEWPORT } from '../lib/tripChrome'
+import { AppCheckCircleIcon } from '../components/icons/AppCheckCircleIcon'
 
 const SECTION_BG = '#F9FAFB'
 
@@ -53,6 +61,22 @@ function shortTripDates(startMs: number, endMs: number): string {
 
 function formatRs2(n: number) {
   return `₹${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+type SortMode = 'latest' | 'oldest' | 'highest' | 'lowest'
+
+function sortExpensesList(list: Expense[], mode: SortMode): Expense[] {
+  const copy = [...list]
+  switch (mode) {
+    case 'oldest':
+      return copy.sort((a, b) => a.timestamp - b.timestamp)
+    case 'highest':
+      return copy.sort((a, b) => b.amount - a.amount)
+    case 'lowest':
+      return copy.sort((a, b) => a.amount - b.amount)
+    default:
+      return copy.sort((a, b) => b.timestamp - a.timestamp)
+  }
 }
 
 type ExpTab = 'all' | 'my' | 'settled' | 'stats'
@@ -81,6 +105,9 @@ export default function ExpensesPage() {
   const [paidBy, setPaidBy] = useState('')
   const [splitWith, setSplitWith] = useState<string[]>([])
   const [q, setQ] = useState('')
+  const [sortMode, setSortMode] = useState<SortMode>('latest')
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [moreEl, setMoreEl] = useState<null | HTMLElement>(null)
 
   useEffect(() => {
     if (!tripId) return
@@ -149,8 +176,8 @@ export default function ExpensesPage() {
     }
     const s = q.trim().toLowerCase()
     if (s) list = list.filter((e) => e.title.toLowerCase().includes(s))
-    return list
-  }, [expenses, expTab, firebaseUser, q])
+    return sortExpensesList(list, sortMode)
+  }, [expenses, expTab, firebaseUser, q, sortMode])
 
   function openNew() {
     setEdit(null)
@@ -203,7 +230,7 @@ export default function ExpensesPage() {
 
   async function onDelete(e: Expense) {
     if (!tripId) return
-    if (!window.confirm('Delete this expense?')) return
+    if (!window.confirm(`Delete "${e.title}"?`)) return
     await deleteExpense(tripId, e.id)
     setOpen(false)
   }
@@ -221,13 +248,12 @@ export default function ExpensesPage() {
           px: 2,
           pt: `calc(12px + env(safe-area-inset-top, 0px))`,
           pb: 1.5,
-          borderBottom: `1px solid ${tripooColors.border}`,
-          boxShadow: '0 2px 6px rgba(24,20,17,0.04)',
+          boxShadow: '0 2px 4px rgba(24,20,17,0.06)',
         }}
       >
-        <Stack direction="row" alignItems="center" spacing={1}>
+        <Stack direction="row" alignItems="center" spacing={0.75}>
           <IconButton
-            onClick={() => navigate(`/trips/${tripId}`)}
+            onClick={() => navigate('/dashboard')}
             sx={{
               width: 36,
               height: 36,
@@ -248,19 +274,14 @@ export default function ExpensesPage() {
             </Typography>
           </Box>
           <IconButton
-            onClick={openNew}
-            sx={{
-              width: 36,
-              height: 36,
-              bgcolor: '#FDE7D2',
-              color: tripooColors.orange,
-              '&:hover': { bgcolor: '#FCD9B8' },
+            onClick={() => {
+              if (searchOpen) {
+                setSearchOpen(false)
+                setQ('')
+              } else {
+                setSearchOpen(true)
+              }
             }}
-            aria-label="Add expense"
-          >
-            <AddIcon sx={{ fontSize: 20 }} />
-          </IconButton>
-          <IconButton
             sx={{
               width: 36,
               height: 36,
@@ -273,10 +294,11 @@ export default function ExpensesPage() {
             <SearchIcon sx={{ fontSize: 20 }} />
           </IconButton>
           <IconButton
+            onClick={(e) => setMoreEl(e.currentTarget)}
             sx={{
               width: 36,
               height: 36,
-              marginLeft: '-4px',
+              ml: 0.25,
               bgcolor: '#FDE7D2',
               color: tripooColors.orange,
               '&:hover': { bgcolor: '#FCD9B8' },
@@ -285,6 +307,40 @@ export default function ExpensesPage() {
           >
             <MoreHorizIcon sx={{ fontSize: 20 }} />
           </IconButton>
+          <Menu anchorEl={moreEl} open={Boolean(moreEl)} onClose={() => setMoreEl(null)}>
+            <MenuItem
+              onClick={() => {
+                setSortMode('latest')
+                setMoreEl(null)
+              }}
+            >
+              Latest first
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setSortMode('oldest')
+                setMoreEl(null)
+              }}
+            >
+              Oldest first
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setSortMode('highest')
+                setMoreEl(null)
+              }}
+            >
+              Highest amount
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setSortMode('lowest')
+                setMoreEl(null)
+              }}
+            >
+              Lowest amount
+            </MenuItem>
+          </Menu>
         </Stack>
       </Box>
 
@@ -423,28 +479,29 @@ export default function ExpensesPage() {
   return (
     <>
       <TripTabScaffold header={header}>
-        <Box sx={{ bgcolor: SECTION_BG, minHeight: '40%', flex: 1 }}>
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="Search expenses"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            sx={{
-              mx: 2,
-              mt: 1,
-              mb: 1,
-              '& .MuiOutlinedInput-root': {
-                bgcolor: tripooColors.surface,
-                borderRadius: 1.25,
-                '& fieldset': { borderColor: tripooColors.border },
-              },
-            }}
-            InputProps={{
-              sx: { fontSize: 13, pl: 1 },
-              startAdornment: <SearchIcon sx={{ color: tripooColors.textSecondary, mr: 0.5, fontSize: 20 }} />,
-            }}
-          />
+        <Box sx={{ bgcolor: SECTION_BG, minHeight: '40%', flex: 1, pb: '88px' }}>
+          {searchOpen && expTab !== 'stats' ? (
+            <TextField
+              fullWidth
+              size="small"
+              placeholder="Search expenses"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              autoFocus
+              sx={{
+                mx: 2,
+                mt: 1,
+                mb: 1,
+                '& .MuiOutlinedInput-root': {
+                  minHeight: 40,
+                  bgcolor: tripooColors.surface,
+                  borderRadius: 1.25,
+                  fontSize: 13,
+                  '& fieldset': { borderColor: tripooColors.border },
+                },
+              }}
+            />
+          ) : null}
 
           {expTab === 'stats' ? (
             <Box sx={{ px: 2, py: 1.5, pb: 4 }}>
@@ -576,24 +633,133 @@ export default function ExpensesPage() {
         </Box>
       </TripTabScaffold>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>{edit ? 'Edit expense' : 'New expense'}</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField label="Title" fullWidth value={title} onChange={(e) => setTitleInput(e.target.value)} />
-            <TextField label="Amount" type="number" fullWidth value={amount} onChange={(e) => setAmount(e.target.value)} />
-            <Typography variant="subtitle2">Category</Typography>
-            <Stack direction="row" flexWrap="wrap" gap={1}>
-              {EXPENSE_CATEGORIES.map((c) => (
-                <Chip
-                  key={c.key}
-                  label={c.label}
-                  onClick={() => setCategory(c.key)}
-                  color={category === c.key ? 'primary' : 'default'}
-                  variant={category === c.key ? 'filled' : 'outlined'}
-                />
-              ))}
-            </Stack>
+      <Fab
+        color="primary"
+        aria-label="Add expense"
+        onClick={openNew}
+        sx={{
+          position: 'fixed',
+          right: 18,
+          bottom: FAB_BOTTOM_FROM_VIEWPORT,
+          zIndex: 1100,
+          width: 56,
+          height: 56,
+          bgcolor: tripooColors.orange,
+          boxShadow: '0 8px 16px rgba(24,20,17,0.18)',
+          '&:hover': { bgcolor: tripooColors.orangeDark },
+        }}
+      >
+        <AddIcon sx={{ color: tripooColors.surface }} />
+      </Fab>
+
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        slotProps={{
+          paper: {
+            sx: {
+              m: 0,
+              mx: 'auto',
+              width: '100%',
+              maxWidth: 480,
+              position: 'fixed',
+              bottom: 0,
+              maxHeight: 'min(92vh, 640px)',
+              borderRadius: '16px 16px 0 0',
+              overflow: 'hidden',
+            },
+          },
+        }}
+      >
+        <Box sx={{ width: 36, height: 4, borderRadius: 99, bgcolor: '#E0D8CF', mx: 'auto', mt: 1.5 }} />
+        <Stack direction="row" alignItems="center" sx={{ px: 2.25, pt: 1.75, pb: 1 }}>
+          <Typography sx={{ flex: 1, fontWeight: 800, fontSize: 17, color: tripooColors.textPrimary }}>
+            {edit ? 'Edit Expense' : 'Add Expense'}
+          </Typography>
+          <IconButton aria-label="Close" onClick={() => setOpen(false)} size="small" sx={{ color: tripooColors.textPrimary }}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Stack>
+        <Divider sx={{ borderColor: 'rgba(244,140,37,0.08)' }} />
+        <DialogContent sx={{ px: 2.25, pt: 2, pb: 2, overflowY: 'auto' }}>
+          <Stack spacing={2}>
+            <Box>
+              <Typography sx={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: tripooColors.textSecondary, mb: 0.9 }}>
+                AMOUNT
+              </Typography>
+              <TextField
+                fullWidth
+                placeholder="0.00"
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Typography sx={{ fontWeight: 900, fontSize: 22, color: '#8A7560' }}>₹</Typography>
+                    </InputAdornment>
+                  ),
+                  sx: { pl: 1, '& input': { fontWeight: 800, fontSize: 22 } },
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    minHeight: 56,
+                    bgcolor: tripooColors.surface,
+                    borderRadius: 1.25,
+                    '& fieldset': { borderColor: tripooColors.border },
+                  },
+                }}
+              />
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: tripooColors.textSecondary, mb: 0.9 }}>
+                DESCRIPTION
+              </Typography>
+              <TextField
+                fullWidth
+                placeholder="e.g. Hotel booking, Dinner, Taxi..."
+                value={title}
+                onChange={(e) => setTitleInput(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.75 }}>
+                      <ReceiptLongIcon sx={{ color: '#8A7560', fontSize: 22 }} />
+                    </InputAdornment>
+                  ),
+                  sx: { pl: 0.5, alignItems: 'flex-start' },
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    bgcolor: tripooColors.surface,
+                    borderRadius: 1.25,
+                    '& fieldset': { borderColor: tripooColors.border },
+                  },
+                }}
+              />
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: tripooColors.textSecondary, mb: 0.9 }}>
+                CATEGORY
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {EXPENSE_CATEGORIES.map((c) => (
+                  <Chip
+                    key={c.key}
+                    label={c.label}
+                    onClick={() => setCategory(c.key)}
+                    variant={category === c.key ? 'filled' : 'outlined'}
+                    sx={{
+                      borderColor: tripooColors.border,
+                      ...(category === c.key
+                        ? { bgcolor: tripooColors.orange, color: tripooColors.surface, borderColor: tripooColors.orange }
+                        : {}),
+                    }}
+                  />
+                ))}
+              </Box>
+            </Box>
             <TextField
               label="Paid by"
               fullWidth
@@ -601,6 +767,7 @@ export default function ExpensesPage() {
               SelectProps={{ native: true }}
               value={paidBy}
               onChange={(e) => setPaidBy(e.target.value)}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.25 } }}
             >
               {members.map((m) => (
                 <option key={m.userId} value={m.userId}>
@@ -608,7 +775,7 @@ export default function ExpensesPage() {
                 </option>
               ))}
             </TextField>
-            <Typography variant="subtitle2">Split with</Typography>
+            <Typography sx={{ fontSize: 13, fontWeight: 800, color: tripooColors.textSecondary }}>Split with</Typography>
             <FormGroup>
               {members.map((m) => (
                 <FormControlLabel
@@ -625,15 +792,27 @@ export default function ExpensesPage() {
             </FormGroup>
           </Stack>
         </DialogContent>
-        <DialogActions>
-          {edit && (
-            <Button color="error" onClick={() => void onDelete(edit)}>
-              Delete
+        <DialogActions sx={{ px: 2.25, pb: 2, pt: 0, flexDirection: 'column', gap: 1, alignItems: 'stretch' }}>
+          {edit ? (
+            <Button color="error" variant="outlined" onClick={() => void onDelete(edit)}>
+              Delete expense
             </Button>
-          )}
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={() => void saveExpense()}>
-            Save
+          ) : null}
+          <Button
+            variant="contained"
+            fullWidth
+            size="large"
+            startIcon={<AppCheckCircleIcon sx={{ color: tripooColors.surface, fontSize: 20 }} />}
+            onClick={() => void saveExpense()}
+            sx={{
+              py: 1.35,
+              fontWeight: 800,
+              bgcolor: tripooColors.orange,
+              color: tripooColors.surface,
+              '&:hover': { bgcolor: tripooColors.orangeDark },
+            }}
+          >
+            {edit ? 'Save changes' : 'Add Expense'}
           </Button>
         </DialogActions>
       </Dialog>

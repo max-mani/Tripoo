@@ -5,6 +5,7 @@ import {
   setDoc,
   updateDoc,
   arrayUnion,
+  arrayRemove,
   writeBatch,
   query,
   collection,
@@ -84,6 +85,15 @@ export async function addTripToUser(uid: string, tripId: string): Promise<void> 
     tripIds: arrayUnion(tripId),
     lastActiveTripId: tripId,
   })
+}
+
+export async function removeTripFromUser(uid: string, tripId: string): Promise<void> {
+  const u = await getUser(uid)
+  const updates: Record<string, unknown> = {
+    tripIds: arrayRemove(tripId),
+  }
+  if (u?.lastActiveTripId === tripId) updates.lastActiveTripId = null
+  await updateDoc(userDocRef(uid), updates)
 }
 
 export async function setLastActiveTrip(uid: string, tripId: string): Promise<void> {

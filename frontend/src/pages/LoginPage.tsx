@@ -92,6 +92,9 @@ export default function LoginPage() {
         }}
       >
         <Box
+          component="img"
+          src="/travel.png"
+          alt=""
           sx={{
             position: 'absolute',
             left: '50%',
@@ -99,8 +102,9 @@ export default function LoginPage() {
             transform: 'translate(-50%, -50%)',
             width: 260,
             height: 260,
-            borderRadius: '50%',
-            bgcolor: 'rgba(255,255,255,0.16)',
+            objectFit: 'contain',
+            opacity: 0.16,
+            pointerEvents: 'none',
           }}
         />
         <Stack

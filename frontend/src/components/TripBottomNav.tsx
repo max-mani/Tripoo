@@ -40,7 +40,8 @@ export function TripBottomNav() {
           showLabels
           value={value}
           onChange={(_, v) => {
-            if (v === 0) navigate(base)
+            // Matches Android: Home on bottom nav returns to trip dashboard (all trips).
+            if (v === 0) navigate('/dashboard')
             else if (v === 1) navigate(`${base}/expenses`)
             else if (v === 2) navigate(`${base}/tasks`)
             else navigate(`${base}/groups`)

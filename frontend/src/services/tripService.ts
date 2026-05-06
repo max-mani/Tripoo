@@ -8,16 +8,19 @@ import {
   writeBatch,
   onSnapshot,
   updateDoc,
+  deleteDoc,
   documentId,
   arrayUnion,
+  arrayRemove,
   limit,
+  type DocumentReference,
   type Unsubscribe,
 } from 'firebase/firestore'
 import { db } from '../firebase'
 import type { Trip, TripMember } from '../types/models'
 import { deriveStatus, generateJoinCode } from '../lib/tripUtils'
 import { bgForSeed, letterFromName } from '../lib/avatarIdentity'
-import { fetchUsersByIds, getUser } from './userService'
+import { fetchUsersByIds, getUser, removeTripFromUser } from './userService'
 
 export function tripDocRef(tripId: string) {
   return doc(db, 'trips', tripId)
@@ -263,4 +266,97 @@ export async function setMemberAdminRole(
     throw new Error('The organiser cannot be demoted')
   }
   await updateDoc(doc(db, 'trips', tripId, 'members', targetUserId), { isAdmin: asAdmin })
+}
+
+function chunkIds<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = []
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size))
+  return out
+}
+
+async function deleteDocRefs(refs: DocumentReference[]): Promise<void> {
+  for (const group of chunkIds(refs, 400)) {
+    const batch = writeBatch(db)
+    for (const r of group) batch.delete(r)
+    await batch.commit()
+  }
+}
+
+/** Mirrors `TripRepository.deleteTripAsAdmin` — caller must verify leader permission. */
+export async function deleteTripAsLeader(tripId: string, organiserUid: string): Promise<void> {
+  const tripRef = tripDocRef(tripId)
+
+  async function wipeSubcollection(name: string) {
+    const snap = await getDocs(collection(db, 'trips', tripId, name))
+    await deleteDocRefs(snap.docs.map((d) => d.ref))
+  }
+
+  await wipeSubcollection('expenses')
+  await wipeSubcollection('tasks')
+
+  const memberSnap = await getDocs(collection(db, 'trips', tripId, 'members'))
+  const nonOrganiser = memberSnap.docs.filter((d) => d.id !== organiserUid)
+  await deleteDocRefs(nonOrganiser.map((d) => d.ref))
+
+  await deleteDoc(tripRef)
+  await deleteDoc(doc(db, 'trips', tripId, 'members', organiserUid))
+}
+
+export async function deleteTripForCurrentUser(
+  tripId: string,
+  uid: string,
+  organiserUid: string,
+): Promise<void> {
+  const allowed = await canUserManageTripAsLeader(tripId, uid)
+  if (!allowed) {
+    throw new Error('Only the organiser or a co-organiser can delete this trip')
+  }
+  await deleteTripAsLeader(tripId, organiserUid)
+  await removeTripFromUser(uid, tripId)
+}
+
+export type LeaveTripResult =
+  | { ok: true }
+  | { ok: false; reason: 'last_member' }
+  | { ok: false; reason: 'need_transfer'; candidates: TripMember[] }
+
+/**
+ * Leave a trip (member removes themselves). If the user is the only admin left, a new organiser must be chosen.
+ */
+export async function leaveTripAsMember(
+  tripId: string,
+  uid: string,
+  trip: Trip,
+  members: TripMember[],
+  transferOrganiserToUserId?: string,
+): Promise<LeaveTripResult> {
+  if (members.length <= 1) {
+    return { ok: false, reason: 'last_member' }
+  }
+  const me = members.find((m) => m.userId === uid)
+  if (!me) {
+    throw new Error('Not a member of this trip')
+  }
+
+  const otherAdmins = members.filter((m) => m.isAdmin && m.userId !== uid)
+  const elevated = me.isAdmin || trip.adminId === uid
+  if (elevated && otherAdmins.length === 0) {
+    const candidates = members.filter((m) => m.userId !== uid)
+    if (candidates.length === 0) return { ok: false, reason: 'last_member' }
+    if (!transferOrganiserToUserId) {
+      return { ok: false, reason: 'need_transfer', candidates }
+    }
+    await updateDoc(tripDocRef(tripId), { adminId: transferOrganiserToUserId })
+    await updateDoc(doc(db, 'trips', tripId, 'members', transferOrganiserToUserId), {
+      isAdmin: true,
+    })
+  }
+
+  const tripRef = tripDocRef(tripId)
+  const batch = writeBatch(db)
+  batch.delete(doc(db, 'trips', tripId, 'members', uid))
+  batch.update(tripRef, { memberIds: arrayRemove(uid) })
+  await batch.commit()
+  await removeTripFromUser(uid, tripId)
+  return { ok: true }
 }

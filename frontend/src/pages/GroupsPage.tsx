@@ -1,14 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import {
   Avatar,
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   List,
   ListItem,
   ListItemAvatar,
   ListItemText,
+  Menu,
+  MenuItem,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
   Switch,
   Typography,
   Stack,
@@ -17,8 +26,17 @@ import {
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import PersonAddIcon from '@mui/icons-material/PersonAdd'
+import EditIcon from '@mui/icons-material/Edit'
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
+import LogoutIcon from '@mui/icons-material/Logout'
 import { useAuth } from '../context/AuthContext'
-import { setMemberAdminRole, subscribeTripMembers } from '../services/tripService'
+import {
+  deleteTripForCurrentUser,
+  leaveTripAsMember,
+  setMemberAdminRole,
+  subscribeTripMembers,
+} from '../services/tripService'
 import type { Trip, TripMember } from '../types/models'
 import { photoSrcForDisplay } from '../lib/imageToBase64'
 import { textColorForSeed, letterFromName } from '../lib/avatarIdentity'
@@ -29,10 +47,20 @@ import { TripTabScaffold } from '../components/TripTabScaffold'
 export default function GroupsPage() {
   const { trip } = useOutletContext<{ trip: Trip }>()
   const { tripId } = useParams<{ tripId: string }>()
-  const { firebaseUser } = useAuth()
+  const { firebaseUser, refreshUser } = useAuth()
   const navigate = useNavigate()
   const [members, setMembers] = useState<TripMember[]>([])
+  const [menuEl, setMenuEl] = useState<null | HTMLElement>(null)
+  const [transferOpen, setTransferOpen] = useState(false)
+  const [transferPick, setTransferPick] = useState<string>('')
+  const [transferList, setTransferList] = useState<TripMember[]>([])
+
   const isOrganiser = firebaseUser?.uid === trip.adminId
+  const canManageTrip = useMemo(() => {
+    if (!firebaseUser) return false
+    if (trip.adminId === firebaseUser.uid) return true
+    return members.some((m) => m.userId === firebaseUser.uid && m.isAdmin)
+  }, [firebaseUser, members, trip.adminId])
 
   useEffect(() => {
     if (!tripId) return
@@ -48,7 +76,66 @@ export default function GroupsPage() {
     }
   }
 
+  async function onInviteShare() {
+    const code = trip.joinCode
+    const text = `Join my Tripoo trip! Code: ${code}`
+    try {
+      if (navigator.share) {
+        await navigator.share({ text })
+      } else {
+        await navigator.clipboard.writeText(text)
+        window.alert('Invite text copied to clipboard')
+      }
+    } catch {
+      /* user cancelled share */
+    }
+  }
+
+  async function onConfirmDelete() {
+    if (!firebaseUser) return
+    if (!window.confirm('Delete trip? This will permanently delete the trip for everyone.')) return
+    try {
+      await deleteTripForCurrentUser(trip.id, firebaseUser.uid, trip.adminId)
+      await refreshUser()
+      navigate('/dashboard', { replace: true })
+    } catch (e: unknown) {
+      window.alert(e instanceof Error ? e.message : 'Delete failed')
+    }
+  }
+
+  async function tryLeave() {
+    if (!tripId || !firebaseUser) return
+    if (!window.confirm('Leave this trip? You can rejoin with the code if invited again.')) return
+    const r = await leaveTripAsMember(tripId, firebaseUser.uid, trip, members)
+    if (!r.ok && r.reason === 'last_member') {
+      window.alert('You are the only member. Delete the trip or invite someone before leaving.')
+      return
+    }
+    if (!r.ok && r.reason === 'need_transfer') {
+      setTransferList(r.candidates)
+      setTransferPick(r.candidates[0]?.userId ?? '')
+      setTransferOpen(true)
+      setMenuEl(null)
+      return
+    }
+    await refreshUser()
+    navigate('/dashboard', { replace: true })
+  }
+
+  async function confirmTransferAndLeave() {
+    if (!tripId || !firebaseUser || !transferPick) return
+    const r = await leaveTripAsMember(tripId, firebaseUser.uid, trip, members, transferPick)
+    if (!r.ok) {
+      window.alert('Could not leave trip. Try again.')
+      return
+    }
+    setTransferOpen(false)
+    await refreshUser()
+    navigate('/dashboard', { replace: true })
+  }
+
   const subtitle = `${members.length} PARTICIPANTS · ${formatTripDates(trip.startDate, trip.endDate).toUpperCase()}`
+  const base = `/trips/${tripId}`
 
   const header = (
     <Box
@@ -64,13 +151,13 @@ export default function GroupsPage() {
       }}
     >
       <IconButton
-        onClick={() => navigate(`/trips/${tripId}`)}
+        onClick={() => navigate('/dashboard')}
         sx={{
           width: 36,
           height: 36,
-          bgcolor: '#FDE7D2',
+          bgcolor: 'rgba(244, 140, 37, 0.12)',
           color: tripooColors.orange,
-          '&:hover': { bgcolor: '#FCD9B8' },
+          '&:hover': { bgcolor: 'rgba(244, 140, 37, 0.18)' },
         }}
         aria-label="Back"
       >
@@ -93,95 +180,181 @@ export default function GroupsPage() {
           {subtitle}
         </Typography>
       </Box>
-      <IconButton sx={{ width: 36, height: 36 }}>
-        <MoreHorizIcon />
+      <IconButton sx={{ width: 36, height: 36 }} onClick={(e) => setMenuEl(e.currentTarget)} aria-label="More">
+        <MoreHorizIcon sx={{ color: tripooColors.textPrimary }} />
       </IconButton>
+      <Menu anchorEl={menuEl} open={Boolean(menuEl)} onClose={() => setMenuEl(null)}>
+        {canManageTrip && (
+          <MenuItem
+            onClick={() => {
+              setMenuEl(null)
+              navigate(`${base}?edit=1`)
+            }}
+          >
+            <EditIcon sx={{ fontSize: 18, mr: 1 }} /> Edit trip
+          </MenuItem>
+        )}
+        {canManageTrip && (
+          <MenuItem
+            onClick={() => {
+              setMenuEl(null)
+              void onConfirmDelete()
+            }}
+          >
+            <DeleteOutlineIcon sx={{ fontSize: 18, mr: 1 }} /> Delete trip
+          </MenuItem>
+        )}
+      </Menu>
     </Box>
   )
 
   return (
-    <TripTabScaffold header={header}>
-      <Box sx={{ px: 2, pt: 1.6 }}>
-        <Card
-          sx={{
-            borderRadius: 2,
-            bgcolor: tripooColors.orange,
-            color: '#fff',
-            boxShadow: '0 6px 20px rgba(244, 140, 37, 0.35)',
-            mb: 2,
-            overflow: 'hidden',
-          }}
-        >
-          <Stack direction="row" alignItems="center" sx={{ px: 2.25, py: 2 }}>
-            <Box sx={{ flex: 1 }}>
-              <Typography sx={{ fontSize: 11, color: 'rgba(255,255,255,0.76)', fontWeight: 600 }}>
-                Trip Join Code
-              </Typography>
-              <Typography sx={{ fontWeight: 900, fontSize: 26, letterSpacing: 2, mt: 0.35 }}>
-                {trip.joinCode}
-              </Typography>
-            </Box>
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<ContentCopyIcon sx={{ fontSize: 18 }} />}
-              onClick={() => void navigator.clipboard.writeText(trip.joinCode)}
+    <>
+      <TripTabScaffold header={header}>
+        <Box sx={{ px: 2, pt: 1.6, pb: 3 }}>
+          <Card
+            sx={{
+              borderRadius: '14px',
+              bgcolor: tripooColors.orange,
+              color: '#fff',
+              boxShadow: '0 6px 20px rgba(244, 140, 37, 0.35)',
+              mb: 2,
+              overflow: 'hidden',
+            }}
+          >
+            <Stack direction="row" alignItems="center" sx={{ px: 2.25, py: 2 }}>
+              <Box sx={{ flex: 1 }}>
+                <Typography sx={{ fontSize: 11, color: 'rgba(255,255,255,0.76)', fontWeight: 600 }}>
+                  Trip Join Code
+                </Typography>
+                <Typography sx={{ fontWeight: 900, fontSize: 26, letterSpacing: 3.5, mt: 0.35 }}>
+                  {trip.joinCode}
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<ContentCopyIcon sx={{ fontSize: 18 }} />}
+                onClick={() => void navigator.clipboard.writeText(trip.joinCode)}
+                sx={{
+                  bgcolor: 'rgba(255,255,255,0.2)',
+                  color: '#fff',
+                  fontWeight: 800,
+                  textTransform: 'none',
+                  borderRadius: 1,
+                  boxShadow: 'none',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+                }}
+              >
+                Copy
+              </Button>
+            </Stack>
+          </Card>
+
+          <Stack direction="row" alignItems="center" sx={{ mb: 1 }}>
+            <Typography sx={{ flex: 1, fontWeight: 800, fontSize: 14, color: tripooColors.textPrimary }}>
+              Members
+            </Typography>
+            <Stack
+              direction="row"
+              alignItems="center"
+              onClick={() => void onInviteShare()}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  void onInviteShare()
+                }
+              }}
               sx={{
-                bgcolor: 'rgba(255,255,255,0.22)',
-                color: '#fff',
-                fontWeight: 800,
-                textTransform: 'none',
-                boxShadow: 'none',
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.32)' },
+                cursor: 'pointer',
+                borderRadius: 99,
+                px: 1.4,
+                py: 0.5,
+                border: `1px solid rgba(244, 140, 37, 0.45)`,
+                bgcolor: '#FFF7F0',
+                '&:hover': { bgcolor: '#FFECD9' },
               }}
             >
-              Copy
-            </Button>
+              <PersonAddIcon sx={{ fontSize: 14, color: tripooColors.orange }} />
+              <Typography sx={{ ml: 0.5, fontSize: 11, fontWeight: 800, color: tripooColors.orange }}>Invite</Typography>
+            </Stack>
           </Stack>
-        </Card>
 
-        <Typography sx={{ fontWeight: 900, fontSize: 13, color: tripooColors.textPrimary, mb: 1 }}>
-          Members ({members.length})
-        </Typography>
+          <Box sx={{ bgcolor: tripooColors.surface }}>
+            <List sx={{ py: 0 }}>
+              {members.map((m) => {
+                const src = photoSrcForDisplay(m.photoUrl)
+                const letter = m.avatarLetter?.trim() || letterFromName(m.name)
+                const bg = m.avatarColorHex?.trim() || tripooColors.orange
+                const tc = textColorForSeed(m.userId)
+                const showSwitch = isOrganiser && m.userId !== trip.adminId
+                return (
+                  <ListItem
+                    key={m.userId}
+                    divider
+                    secondaryAction={
+                      showSwitch ? (
+                        <Switch
+                          edge="end"
+                          checked={m.isAdmin}
+                          onChange={(e) => void toggleAdmin(m, e.target.checked)}
+                          inputProps={{ 'aria-label': 'Co-organiser' }}
+                        />
+                      ) : m.isAdmin ? (
+                        <Typography variant="caption" sx={{ color: tripooColors.textSecondary }}>
+                          {m.userId === trip.adminId ? 'Organiser' : 'Co-organiser'}
+                        </Typography>
+                      ) : null
+                    }
+                  >
+                    <ListItemAvatar>
+                      {src ? (
+                        <Avatar src={src} />
+                      ) : (
+                        <Avatar sx={{ bgcolor: bg, color: tc, fontWeight: 700 }}>{letter}</Avatar>
+                      )}
+                    </ListItemAvatar>
+                    <ListItemText primary={m.name} secondary={m.email} />
+                  </ListItem>
+                )
+              })}
+            </List>
+          </Box>
 
-        <List sx={{ bgcolor: tripooColors.surface, borderRadius: 2, border: `1px solid ${tripooColors.border}` }}>
-          {members.map((m) => {
-            const src = photoSrcForDisplay(m.photoUrl)
-            const letter = m.avatarLetter?.trim() || letterFromName(m.name)
-            const bg = m.avatarColorHex?.trim() || tripooColors.orange
-            const tc = textColorForSeed(m.userId)
-            const showSwitch = isOrganiser && m.userId !== trip.adminId
-            return (
-              <ListItem
-                key={m.userId}
-                secondaryAction={
-                  showSwitch ? (
-                    <Switch
-                      edge="end"
-                      checked={m.isAdmin}
-                      onChange={(e) => void toggleAdmin(m, e.target.checked)}
-                      inputProps={{ 'aria-label': 'Co-organiser' }}
-                    />
-                  ) : m.isAdmin ? (
-                    <Typography variant="caption" color="text.secondary">
-                      {m.userId === trip.adminId ? 'Organiser' : 'Co-organiser'}
-                    </Typography>
-                  ) : null
-                }
-              >
-                <ListItemAvatar>
-                  {src ? (
-                    <Avatar src={src} />
-                  ) : (
-                    <Avatar sx={{ bgcolor: bg, color: tc, fontWeight: 700 }}>{letter}</Avatar>
-                  )}
-                </ListItemAvatar>
-                <ListItemText primary={m.name} secondary={m.email} />
-              </ListItem>
-            )
-          })}
-        </List>
-      </Box>
-    </TripTabScaffold>
+          <Button
+            fullWidth
+            variant="outlined"
+            color="error"
+            startIcon={<LogoutIcon />}
+            onClick={() => void tryLeave()}
+            sx={{ mt: 2, py: 1.15, fontWeight: 800, borderRadius: 1.5, borderWidth: 2 }}
+          >
+            Leave Trip
+          </Button>
+        </Box>
+      </TripTabScaffold>
+
+      <Dialog open={transferOpen} onClose={() => setTransferOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle>Choose new organiser</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontSize: 13, color: tripooColors.textSecondary, mb: 1.5 }}>
+            You must transfer the organiser role before leaving.
+          </Typography>
+          <RadioGroup value={transferPick} onChange={(e) => setTransferPick(e.target.value)}>
+            {transferList.map((m) => (
+              <FormControlLabel key={m.userId} value={m.userId} control={<Radio color="primary" />} label={m.name} />
+            ))}
+          </RadioGroup>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setTransferOpen(false)}>Cancel</Button>
+          <Button variant="contained" disabled={!transferPick} onClick={() => void confirmTransferAndLeave()}>
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   )
 }
