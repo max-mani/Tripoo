@@ -16,7 +16,7 @@ import {
   Typography,
   Alert,
 } from '@mui/material'
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import EditIcon from '@mui/icons-material/Edit'
 import ScheduleIcon from '@mui/icons-material/Schedule'
@@ -126,12 +126,13 @@ export default function TripHomePage() {
 
   const header = (
     <Box
-      sx={{
+        sx={{
         bgcolor: tripooColors.surface,
         px: 2,
         pt: `calc(12px + env(safe-area-inset-top, 0px))`,
         pb: 1.5,
         borderBottom: `1px solid ${tripooColors.border}`,
+        boxShadow: '0 2px 6px rgba(24,20,17,0.04)',
         display: 'flex',
         alignItems: 'center',
         gap: 1,
@@ -148,7 +149,7 @@ export default function TripHomePage() {
         }}
         aria-label="Back"
       >
-        <ArrowBackIosNewIcon sx={{ fontSize: 16, ml: 0.5 }} />
+        <ArrowBackIcon sx={{ fontSize: 20 }} />
       </IconButton>
       <Box sx={{ flex: 1, textAlign: 'center', minWidth: 0 }}>
         <Typography sx={{ fontWeight: 800, fontSize: 17, lineHeight: 1.2 }} noWrap>

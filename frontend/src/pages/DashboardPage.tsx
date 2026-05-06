@@ -14,8 +14,6 @@ import { setLastActiveTrip } from '../services/userService'
 import { getTotalExpenses } from '../services/expenseService'
 import type { TripWithMeta } from '../types/models'
 import { tripooColors } from '../theme'
-import { AdBanner } from '../components/AdBanner'
-import { AD_SLOT_DASHBOARD } from '../config/ads'
 import { DashboardProfileAvatar } from '../components/DashboardProfileAvatar'
 import { TripCard } from '../components/TripCard'
 
@@ -224,10 +222,6 @@ export default function DashboardPage() {
             ))}
           </Box>
         )}
-
-        <Box sx={{ px: 0, pt: 1, pb: 3 }}>
-          <AdBanner adSlot={AD_SLOT_DASHBOARD} minHeight={100} instanceKey="dashboard-feed" />
-        </Box>
       </Box>
 
       <Box

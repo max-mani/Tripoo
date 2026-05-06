@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { Box, BottomNavigation, BottomNavigationAction, Paper } from '@mui/material'
 import HomeIcon from '@mui/icons-material/Home'
@@ -7,12 +6,7 @@ import ChecklistIcon from '@mui/icons-material/Checklist'
 import GroupsIcon from '@mui/icons-material/Groups'
 import { tripooColors } from '../theme'
 
-type Props = {
-  /** e.g. trip-group AdSense banner (Android `admob_banner_trip_group`) */
-  bottomAd?: ReactNode
-}
-
-export function TripBottomNav({ bottomAd }: Props) {
+export function TripBottomNav() {
   const { tripId } = useParams<{ tripId: string }>()
   const navigate = useNavigate()
   const loc = useLocation()
@@ -34,7 +28,6 @@ export function TripBottomNav({ bottomAd }: Props) {
         bgcolor: 'background.default',
       }}
     >
-      {bottomAd}
       <Paper
         elevation={8}
         sx={{

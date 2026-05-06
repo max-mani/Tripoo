@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Box, CircularProgress } from '@mui/material'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ProtectedLayout } from './components/ProtectedLayout'
+import SplashPage from './pages/SplashPage'
 import LoginPage from './pages/LoginPage'
 import SignUpPage from './pages/SignUpPage'
 import DashboardPage from './pages/DashboardPage'
@@ -34,6 +35,8 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          <Route path="/splash" element={<SplashPage />} />
+          <Route path="/" element={<Navigate to="/splash" replace />} />
           <Route
             path="/login"
             element={
@@ -51,7 +54,6 @@ export default function App() {
             }
           />
           <Route element={<ProtectedLayout />}>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/trips/new" element={<CreateTripPage />} />
@@ -63,7 +65,7 @@ export default function App() {
               <Route path="groups" element={<GroupsPage />} />
             </Route>
           </Route>
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/splash" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

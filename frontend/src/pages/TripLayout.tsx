@@ -4,9 +4,7 @@ import { Box, CircularProgress, Typography } from '@mui/material'
 import { useAuth } from '../context/AuthContext'
 import { subscribeTrip } from '../services/tripService'
 import type { Trip } from '../types/models'
-import { AdBanner } from '../components/AdBanner'
 import { TripBottomNav } from '../components/TripBottomNav'
-import { AD_SLOT_TRIP } from '../config/ads'
 import { tripooColors } from '../theme'
 
 export default function TripLayout() {
@@ -52,9 +50,7 @@ export default function TripLayout() {
       <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <Outlet context={{ trip }} />
       </Box>
-      <TripBottomNav
-        bottomAd={<AdBanner adSlot={AD_SLOT_TRIP} minHeight={90} instanceKey={`trip-footer:${tripId}`} />}
-      />
+      <TripBottomNav />
     </Box>
   )
 }
