@@ -224,10 +224,10 @@ export default function DashboardPage() {
             ))}
           </Box>
         )}
-      </Box>
 
-      <Box sx={{ flexShrink: 0 }}>
-        <AdBanner adSlot={AD_SLOT_DASHBOARD} minHeight={100} />
+        <Box sx={{ px: 0, pt: 1, pb: 3 }}>
+          <AdBanner adSlot={AD_SLOT_DASHBOARD} minHeight={100} instanceKey="dashboard-feed" />
+        </Box>
       </Box>
 
       <Box

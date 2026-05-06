@@ -1,42 +1,86 @@
-import { useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import {
   Box,
   Button,
   Card,
-  CardContent,
+  IconButton,
   Link,
   Stack,
   TextField,
   Typography,
   Alert,
+  InputAdornment,
 } from '@mui/material'
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
+import AddIcon from '@mui/icons-material/Add'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { useAuth } from '../context/AuthContext'
+import { fileToProfileBase64, photoSrcForDisplay } from '../lib/imageToBase64'
 import { tripooColors } from '../theme'
+
+function liveInitial(name: string): string {
+  const t = name.trim()
+  if (!t) return ''
+  const parts = t.split(/\s+/).filter(Boolean)
+  if (parts.length >= 2) {
+    return `${parts[0]![0]!}${parts[parts.length - 1]![0]!}`.toUpperCase()
+  }
+  return t.slice(0, 2).toUpperCase()
+}
 
 export default function SignUpPage() {
   const { signUp } = useAuth()
   const navigate = useNavigate()
+  const fileRef = useRef<HTMLInputElement>(null)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [avatarBase64, setAvatarBase64] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  const initials = useMemo(() => liveInitial(name), [name])
+  const avatarPreview = photoSrcForDisplay(avatarBase64)
+
+  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0]
+    if (!f) return
+    try {
+      const b64 = await fileToProfileBase64(f)
+      setAvatarBase64(b64)
+    } catch {
+      setErr('Could not read image')
+    }
+  }
+
+  async function onSubmit(ev: React.FormEvent) {
+    ev.preventDefault()
     setErr(null)
-    if (!name.trim() || !email.trim() || !password) {
-      setErr('Please fill in all fields')
+    if (!name.trim()) {
+      setErr('Name is required')
       return
     }
-    if (password.length < 6) {
-      setErr('Password must be at least 6 characters')
+    if (!email.trim()) {
+      setErr('Email is required')
+      return
+    }
+    if (password.length < 8) {
+      setErr('Password must be at least 8 characters')
+      return
+    }
+    if (password !== confirm) {
+      setErr('Passwords do not match')
       return
     }
     setLoading(true)
     try {
-      await signUp(name, email, password)
+      await signUp(name, email, password, avatarBase64)
       navigate('/dashboard', { replace: true })
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : 'Sign up failed')
@@ -45,65 +89,240 @@ export default function SignUpPage() {
     }
   }
 
+  const ringBg =
+    avatarBase64 || avatarPreview
+      ? 'transparent'
+      : initials
+        ? tripooColors.orange
+        : `linear-gradient(180deg, ${tripooColors.orange} 0%, ${tripooColors.orangeDark} 100%)`
+
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        px: 2,
-        bgcolor: 'background.default',
-      }}
-    >
-      <Card sx={{ maxWidth: 420, width: 1, borderRadius: 3 }}>
-        <CardContent sx={{ p: 3 }}>
-          <Typography variant="h5" gutterBottom sx={{ color: tripooColors.orange, fontWeight: 800 }}>
-            Create account
+    <Box sx={{ minHeight: '100dvh', bgcolor: tripooColors.bg, display: 'flex', flexDirection: 'column' }}>
+      <Box
+        sx={{
+          flexShrink: 0,
+          bgcolor: tripooColors.surface,
+          px: 2,
+          pt: `calc(12px + env(safe-area-inset-top, 0px))`,
+          pb: 1.5,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+        }}
+      >
+        <IconButton
+          onClick={() => navigate('/login')}
+          sx={{
+            width: 36,
+            height: 36,
+            bgcolor: '#FDE7D2',
+            color: tripooColors.orange,
+            '&:hover': { bgcolor: '#FCD9B8' },
+          }}
+          aria-label="Back"
+        >
+          <ArrowBackIosNewIcon sx={{ fontSize: 16, ml: 0.5 }} />
+        </IconButton>
+        <Box>
+          <Typography sx={{ fontWeight: 700, fontSize: 17, color: tripooColors.textPrimary }}>
+            Create Account
           </Typography>
+          <Typography sx={{ fontSize: 11, color: tripooColors.textSecondary, mt: 0.1 }}>
+            Set up your Tripoo profile
+          </Typography>
+        </Box>
+      </Box>
+
+      <Box
+        sx={{
+          flex: 1,
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+        }}
+      >
+        <Box component="form" onSubmit={onSubmit} sx={{ px: 2.5, py: 2.5, pb: 4, maxWidth: 520, mx: 'auto' }}>
           {err && (
             <Alert severity="error" sx={{ mb: 2 }} onClose={() => setErr(null)}>
               {err}
             </Alert>
           )}
-          <form onSubmit={onSubmit}>
-            <Stack spacing={2}>
-              <TextField
-                label="Display name"
-                autoComplete="name"
-                fullWidth
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-              <TextField
-                label="Email"
-                type="email"
-                autoComplete="email"
-                fullWidth
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <TextField
-                label="Password"
-                type="password"
-                autoComplete="new-password"
-                fullWidth
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <Button type="submit" variant="contained" size="large" disabled={loading}>
-                Sign up
-              </Button>
-              <Typography variant="body2" color="text.secondary">
-                Already have an account?{' '}
-                <Link component={RouterLink} to="/login" fontWeight={700}>
-                  Sign in
-                </Link>
+
+          <Stack alignItems="center" sx={{ mb: 2 }}>
+            <Box
+              role="button"
+              tabIndex={0}
+              onClick={() => fileRef.current?.click()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  fileRef.current?.click()
+                }
+              }}
+              sx={{
+                width: 86,
+                height: 86,
+                borderRadius: '50%',
+                background: ringBg,
+                p: '3px',
+                cursor: 'pointer',
+                boxSizing: 'border-box',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Box
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  bgcolor: avatarPreview ? '#fff' : initials ? tripooColors.orange : 'rgba(255,255,255,0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {avatarPreview ? (
+                  <Box component="img" src={avatarPreview} alt="" sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : initials ? (
+                  <Typography sx={{ color: tripooColors.surface, fontWeight: 800, fontSize: 22 }}>
+                    {initials}
+                  </Typography>
+                ) : (
+                  <AddIcon sx={{ color: tripooColors.orange, fontSize: 30 }} />
+                )}
+              </Box>
+            </Box>
+            <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => void onPick(e)} />
+            <Typography sx={{ fontSize: 12, color: tripooColors.textSecondary, mt: 1.1 }}>
+              Profile Photo
+            </Typography>
+          </Stack>
+
+          <Typography sx={{ fontSize: 12, fontWeight: 700, color: tripooColors.textSecondary, mb: 0.75 }}>
+            Full Name
+          </Typography>
+          <TextField
+            fullWidth
+            placeholder="e.g. Faizal Noor"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoComplete="name"
+            sx={{ mb: 1.75 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <PersonOutlineIcon sx={{ color: tripooColors.textSecondary }} />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <Typography sx={{ fontSize: 12, fontWeight: 700, color: tripooColors.textSecondary, mb: 0.75 }}>
+            Email Address
+          </Typography>
+          <TextField
+            fullWidth
+            type="email"
+            placeholder="faizal@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            sx={{ mb: 1.75 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <EmailOutlinedIcon sx={{ color: tripooColors.textSecondary }} />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <Typography sx={{ fontSize: 12, fontWeight: 700, color: tripooColors.textSecondary, mb: 0.75 }}>
+            Password
+          </Typography>
+          <TextField
+            fullWidth
+            type="password"
+            placeholder="At least 8 characters"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password"
+            sx={{ mb: 1.75 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LockOutlinedIcon sx={{ color: tripooColors.textSecondary }} />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <Typography sx={{ fontSize: 12, fontWeight: 700, color: tripooColors.textSecondary, mb: 0.75 }}>
+            Confirm Password
+          </Typography>
+          <TextField
+            fullWidth
+            type="password"
+            placeholder="Repeat password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            autoComplete="new-password"
+            sx={{ mb: 1.75 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LockOutlinedIcon sx={{ color: tripooColors.textSecondary }} />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <Card
+            variant="outlined"
+            sx={{
+              mb: 1.75,
+              borderRadius: 1.5,
+              bgcolor: '#FFF7F0',
+              borderColor: 'rgba(244, 140, 37, 0.35)',
+              boxShadow: 'none',
+            }}
+          >
+            <Box sx={{ p: 1.75 }}>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.6 }}>
+                <InfoOutlinedIcon sx={{ color: tripooColors.orange, fontSize: 18 }} />
+                <Typography sx={{ fontWeight: 700, fontSize: 13 }}>Why we need this</Typography>
+              </Stack>
+              <Typography sx={{ fontSize: 12, color: tripooColors.textSecondary, lineHeight: 1.6 }}>
+                Your name and photo are visible to trip members so everyone knows who paid for what and who&apos;s
+                assigned each task.
               </Typography>
-            </Stack>
-          </form>
-        </CardContent>
-      </Card>
+            </Box>
+          </Card>
+
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={loading}
+            fullWidth
+            size="large"
+            startIcon={<CheckCircleIcon />}
+            sx={{ py: 1.2, fontWeight: 700 }}
+          >
+            Create Account
+          </Button>
+
+          <Stack direction="row" justifyContent="center" alignItems="center" sx={{ mt: 1.5 }}>
+            <Typography sx={{ fontSize: 13, color: tripooColors.textSecondary }}>
+              Already have an account?
+            </Typography>
+            <Link component={RouterLink} to="/login" sx={{ ml: 0.5, fontWeight: 700, fontSize: 13 }}>
+              Log In
+            </Link>
+          </Stack>
+        </Box>
+      </Box>
     </Box>
   )
 }

@@ -9,9 +9,6 @@ import { TripBottomNav } from '../components/TripBottomNav'
 import { AD_SLOT_TRIP } from '../config/ads'
 import { tripooColors } from '../theme'
 
-/** Trip tabs: banner (~90px) + bottom nav (~56px) + safe area */
-const TRIP_MAIN_PADDING_BOTTOM = 'calc(90px + 56px + env(safe-area-inset-bottom, 0px))'
-
 export default function TripLayout() {
   const { tripId } = useParams<{ tripId: string }>()
   const { firebaseUser } = useAuth()
@@ -44,9 +41,20 @@ export default function TripLayout() {
   }
 
   return (
-    <Box sx={{ pb: TRIP_MAIN_PADDING_BOTTOM }}>
-      <Outlet context={{ trip }} />
-      <TripBottomNav bottomAd={<AdBanner adSlot={AD_SLOT_TRIP} minHeight={90} />} />
+    <Box
+      sx={{
+        minHeight: '100dvh',
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: tripooColors.bg,
+      }}
+    >
+      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Outlet context={{ trip }} />
+      </Box>
+      <TripBottomNav
+        bottomAd={<AdBanner adSlot={AD_SLOT_TRIP} minHeight={90} instanceKey={`trip-footer:${tripId}`} />}
+      />
     </Box>
   )
 }

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import {
-  AppBar,
   Box,
   Button,
   Checkbox,
@@ -17,13 +16,16 @@ import {
   ListItemText,
   Stack,
   TextField,
-  Toolbar,
   Typography,
   Chip,
   Divider,
+  Card,
 } from '@mui/material'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import AddIcon from '@mui/icons-material/Add'
+import SearchIcon from '@mui/icons-material/Search'
+import TrendingDownIcon from '@mui/icons-material/TrendingDown'
+import TrendingUpIcon from '@mui/icons-material/TrendingUp'
 import { useAuth } from '../context/AuthContext'
 import {
   addExpense,
@@ -33,11 +35,16 @@ import {
   updateExpense,
 } from '../services/expenseService'
 import { canUserManageTripAsLeader, subscribeTripMembers } from '../services/tripService'
-import type { Expense, TripMember } from '../types/models'
+import type { Expense, Trip, TripMember } from '../types/models'
 import { categoryMeta, EXPENSE_CATEGORIES } from '../lib/constants'
 import { tripooColors } from '../theme'
+import { formatTripDates } from '../lib/tripUtils'
+import { computeYouOweYouAreOwed } from '../lib/expenseBalances'
+import { formatInrFull } from '../lib/inrFormat'
+import { TripTabScaffold } from '../components/TripTabScaffold'
 
 export default function ExpensesPage() {
+  const { trip } = useOutletContext<{ trip: Trip }>()
   const { tripId } = useParams<{ tripId: string }>()
   const { firebaseUser } = useAuth()
   const navigate = useNavigate()
@@ -51,6 +58,7 @@ export default function ExpensesPage() {
   const [category, setCategory] = useState('other')
   const [paidBy, setPaidBy] = useState('')
   const [splitWith, setSplitWith] = useState<string[]>([])
+  const [q, setQ] = useState('')
 
   useEffect(() => {
     if (!tripId) return
@@ -73,6 +81,17 @@ export default function ExpensesPage() {
   }, [members, firebaseUser, paidBy])
 
   const memberById = useMemo(() => new Map(members.map((m) => [m.userId, m])), [members])
+
+  const balances = useMemo(() => {
+    if (!firebaseUser) return { youOwe: 0, youAreOwed: 0 }
+    return computeYouOweYouAreOwed(expenses, firebaseUser.uid)
+  }, [expenses, firebaseUser])
+
+  const filtered = useMemo(() => {
+    const s = q.trim().toLowerCase()
+    if (!s) return expenses
+    return expenses.filter((e) => e.title.toLowerCase().includes(s))
+  }, [expenses, q])
 
   function openNew() {
     setEdit(null)
@@ -130,94 +149,189 @@ export default function ExpensesPage() {
     setOpen(false)
   }
 
+  const subtitle = `${members.length} participants · ${formatTripDates(trip.startDate, trip.endDate)}`
+
+  const header = (
+    <Box
+      sx={{
+        bgcolor: tripooColors.surface,
+        px: 2,
+        pt: `calc(12px + env(safe-area-inset-top, 0px))`,
+        pb: 1.5,
+        borderBottom: `1px solid ${tripooColors.border}`,
+        boxShadow: '0 2px 6px rgba(24,20,17,0.04)',
+      }}
+    >
+      <Stack direction="row" alignItems="center" spacing={1}>
+        <IconButton
+          onClick={() => navigate(`/trips/${tripId}`)}
+          sx={{
+            width: 36,
+            height: 36,
+            bgcolor: '#FDE7D2',
+            color: tripooColors.orange,
+            '&:hover': { bgcolor: '#FCD9B8' },
+          }}
+          aria-label="Back"
+        >
+          <ArrowBackIosNewIcon sx={{ fontSize: 16, ml: 0.5 }} />
+        </IconButton>
+        <Box sx={{ flex: 1, textAlign: 'center', minWidth: 0 }}>
+          <Typography sx={{ fontWeight: 800, fontSize: 17 }} noWrap>
+            {trip.name}
+          </Typography>
+          <Typography sx={{ fontSize: 11, color: tripooColors.textSecondary }} noWrap>
+            {subtitle}
+          </Typography>
+        </Box>
+        <IconButton
+          onClick={openNew}
+          sx={{
+            width: 36,
+            height: 36,
+            bgcolor: '#FDE7D2',
+            color: tripooColors.orange,
+            '&:hover': { bgcolor: '#FCD9B8' },
+          }}
+          aria-label="Add expense"
+        >
+          <AddIcon />
+        </IconButton>
+      </Stack>
+      <TextField
+        size="small"
+        fullWidth
+        placeholder="Search expenses…"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        sx={{ mt: 1.25, '& .MuiOutlinedInput-root': { bgcolor: tripooColors.surface } }}
+        InputProps={{
+          startAdornment: <SearchIcon sx={{ color: tripooColors.textSecondary, mr: 1, fontSize: 20 }} />,
+        }}
+      />
+    </Box>
+  )
+
   return (
     <>
-      <AppBar
-        position="sticky"
-        elevation={0}
-        sx={{
-          bgcolor: tripooColors.surface,
-          borderBottom: `1px solid ${tripooColors.border}`,
-          color: tripooColors.textPrimary,
-        }}
-      >
-        <Toolbar>
-          <IconButton edge="start" onClick={() => navigate(`/trips/${tripId}`)} sx={{ color: 'inherit' }}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 700 }}>
-            Expenses
-          </Typography>
-          <IconButton color="primary" onClick={openNew} aria-label="Add expense">
-            <AddIcon />
-          </IconButton>
-        </Toolbar>
-      </AppBar>
+      <TripTabScaffold header={header}>
+        <Box sx={{ px: 1.5, pt: 1.25, pb: 0 }}>
+          <Stack direction="row" spacing={0.75} sx={{ mb: 1.25 }}>
+            <Card
+              variant="outlined"
+              sx={{
+                flex: 1,
+                borderRadius: 1.5,
+                bgcolor: '#FEF2F2',
+                borderColor: '#FECACA',
+                boxShadow: 'none',
+              }}
+            >
+              <Box sx={{ p: 1.6 }}>
+                <Typography sx={{ fontSize: 9, fontWeight: 800, color: '#B91C1C', letterSpacing: 0.12 }}>
+                  YOU OWE
+                </Typography>
+                <Typography sx={{ fontWeight: 800, fontSize: 22, mt: 0.35 }}>
+                  {formatInrFull(balances.youOwe)}
+                </Typography>
+                <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.6 }}>
+                  <TrendingDownIcon sx={{ fontSize: 12, color: tripooColors.red }} />
+                  <Typography sx={{ fontSize: 10, color: tripooColors.red }}>unsettled splits</Typography>
+                </Stack>
+              </Box>
+            </Card>
+            <Card
+              variant="outlined"
+              sx={{
+                flex: 1,
+                borderRadius: 1.5,
+                bgcolor: '#FFF7ED',
+                borderColor: 'rgba(244, 140, 37, 0.35)',
+                boxShadow: 'none',
+              }}
+            >
+              <Box sx={{ p: 1.6 }}>
+                <Typography sx={{ fontSize: 9, fontWeight: 800, color: tripooColors.orangeDark, letterSpacing: 0.12 }}>
+                  YOU&apos;RE OWED
+                </Typography>
+                <Typography sx={{ fontWeight: 800, fontSize: 22, mt: 0.35 }}>
+                  {formatInrFull(balances.youAreOwed)}
+                </Typography>
+                <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.6 }}>
+                  <TrendingUpIcon sx={{ fontSize: 12, color: tripooColors.orange }} />
+                  <Typography sx={{ fontSize: 10, color: tripooColors.orange }}>from the group</Typography>
+                </Stack>
+              </Box>
+            </Card>
+          </Stack>
 
-      <Box sx={{ p: 2 }}>
-        <List sx={{ bgcolor: 'background.paper', borderRadius: 3 }}>
-          {expenses.length === 0 ? (
-            <ListItem>
-              <ListItemText primary="No expenses yet" secondary="Tap + to add one" />
-            </ListItem>
-          ) : (
-            expenses.map((e) => {
-              const meta = categoryMeta(e.category)
-              const payer = memberById.get(e.paidBy)?.name ?? 'Someone'
-              return (
-                <Box key={e.id}>
-                  <ListItem
-                    sx={{ alignItems: 'flex-start' }}
-                    secondaryAction={
-                      canManage && !e.settled ? (
-                        <Button size="small" onClick={() => void onToggleSettled(e)}>
-                          Settle
-                        </Button>
-                      ) : null
-                    }
-                  >
-                    <Box
-                      sx={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: '50%',
-                        bgcolor: meta.bg,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: meta.tint,
-                        mr: 1.5,
-                        fontWeight: 700,
-                      }}
-                    >
-                      {e.category[0]!.toUpperCase()}
-                    </Box>
-                    <ListItemText
-                      primary={
-                        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                          <Typography sx={{ fontWeight: 700 }}>{e.title}</Typography>
-                          {e.settled && <Chip size="small" label="Settled" color="success" />}
-                        </Stack>
-                      }
-                      secondary={
-                        <>
-                          <Typography variant="body2" component="span" sx={{ display: 'block' }}>
-                            {e.amount.toLocaleString()} · Paid by {payer}
-                          </Typography>
-                          <Button size="small" onClick={() => openEdit(e)}>
-                            Edit
+          <List sx={{ bgcolor: tripooColors.surface, borderRadius: 2, border: `1px solid ${tripooColors.border}` }}>
+            {filtered.length === 0 ? (
+              <ListItem>
+                <ListItemText
+                  primary="No expenses yet"
+                  secondary={q ? 'Try a different search' : 'Tap add expense to record spending'}
+                />
+              </ListItem>
+            ) : (
+              filtered.map((e) => {
+                const meta = categoryMeta(e.category)
+                const payer = memberById.get(e.paidBy)?.name ?? 'Someone'
+                return (
+                  <Box key={e.id}>
+                    <ListItem
+                      sx={{ alignItems: 'flex-start' }}
+                      secondaryAction={
+                        canManage && !e.settled ? (
+                          <Button size="small" onClick={() => void onToggleSettled(e)}>
+                            Settle
                           </Button>
-                        </>
+                        ) : null
                       }
-                    />
-                  </ListItem>
-                  <Divider component="li" />
-                </Box>
-              )
-            })
-          )}
-        </List>
-      </Box>
+                    >
+                      <Box
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: '50%',
+                          bgcolor: meta.bg,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: meta.tint,
+                          mr: 1.5,
+                          fontWeight: 700,
+                        }}
+                      >
+                        {e.category[0]!.toUpperCase()}
+                      </Box>
+                      <ListItemText
+                        primary={
+                          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                            <Typography sx={{ fontWeight: 700 }}>{e.title}</Typography>
+                            {e.settled && <Chip size="small" label="Settled" color="success" />}
+                          </Stack>
+                        }
+                        secondary={
+                          <>
+                            <Typography variant="body2" component="span" sx={{ display: 'block' }}>
+                              {formatInrFull(e.amount)} · Paid by {payer}
+                            </Typography>
+                            <Button size="small" onClick={() => openEdit(e)}>
+                              Edit
+                            </Button>
+                          </>
+                        }
+                      />
+                    </ListItem>
+                    <Divider component="li" />
+                  </Box>
+                )
+              })
+            )}
+          </List>
+        </Box>
+      </TripTabScaffold>
 
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>{edit ? 'Edit expense' : 'New expense'}</DialogTitle>

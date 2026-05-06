@@ -28,7 +28,12 @@ type AuthState = {
   error: string | null
   clearError: () => void
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (name: string, email: string, password: string) => Promise<void>
+  signUp: (
+    name: string,
+    email: string,
+    password: string,
+    avatarBase64?: string | null,
+  ) => Promise<void>
   signOut: () => Promise<void>
   resetPassword: (email: string) => Promise<void>
   refreshUser: () => Promise<void>
@@ -86,26 +91,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signInWithEmailAndPassword(auth, email.trim(), password)
   }, [])
 
-  const signUp = useCallback(async (name: string, email: string, password: string) => {
-    setError(null)
-    const cred = await createUserWithEmailAndPassword(auth, email.trim(), password)
-    const fu = cred.user
-    const displayName = name.trim()
-    await updateProfile(fu, { displayName })
-    await fu.reload()
-    const refreshed = auth.currentUser!
-    const avLetter = letterFromName(displayName)
-    const avColor = bgForSeed(refreshed.uid)
-    await createOrMergeUser({
-      uid: refreshed.uid,
-      name: displayName,
-      email: email.trim(),
-      photoUrl: refreshed.photoURL || null,
-      tripIds: [],
-      avatarLetter: avLetter,
-      avatarColorHex: avColor,
-    })
-  }, [])
+  const signUp = useCallback(
+    async (name: string, email: string, password: string, avatarBase64?: string | null) => {
+      setError(null)
+      const cred = await createUserWithEmailAndPassword(auth, email.trim(), password)
+      const fu = cred.user
+      const displayName = name.trim()
+      await updateProfile(fu, { displayName })
+      await fu.reload()
+      const refreshed = auth.currentUser!
+      const avLetter = letterFromName(displayName)
+      const avColor = bgForSeed(refreshed.uid)
+      const photoStored =
+        avatarBase64 != null && avatarBase64.trim() !== '' ? avatarBase64.trim() : null
+      await createOrMergeUser({
+        uid: refreshed.uid,
+        name: displayName,
+        email: email.trim(),
+        photoUrl: photoStored,
+        tripIds: [],
+        avatarLetter: avLetter,
+        avatarColorHex: avColor,
+      })
+    },
+    [],
+  )
 
   const signOut = useCallback(async () => {
     await firebaseSignOut(auth)

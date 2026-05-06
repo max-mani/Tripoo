@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
-import { Box } from '@mui/material'
-import { ADSENSE_CLIENT } from '../config/ads'
+import { useLayoutEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
+import { Box, Typography } from '@mui/material'
+import { ADSENSE_CLIENT, ADSENSE_PLACEHOLDER, ADSENSE_TEST } from '../config/ads'
 
 declare global {
   interface Window {
@@ -12,48 +13,86 @@ type Props = {
   adSlot: string
   /** Min height avoids layout jump while ad loads */
   minHeight?: number
+  /**
+   * Fresh `ins` per logical placement (SPA route changes).
+   * Defaults to `location.pathname` + slot.
+   */
+  instanceKey?: string
 }
 
 /**
- * Responsive display ad (AdSense). Uses the same pub id as the Android AdMob app id prefix.
+ * Responsive display ad (AdSense). AdMob numeric unit IDs often will not fill on web until you
+ * create real **AdSense → Ads → Display units** for this site URL and paste those slot IDs into env.
  */
-export function AdBanner({ adSlot, minHeight = 90 }: Props) {
+export function AdBanner({ adSlot, minHeight = 90, instanceKey }: Props) {
+  const location = useLocation()
+  const mountId = instanceKey ?? `${location.pathname}:${adSlot}`
   const insRef = useRef<HTMLModElement>(null)
-  const doneRef = useRef(false)
+  const pushedRef = useRef(false)
 
-  useEffect(() => {
-    if (!ADSENSE_CLIENT || !adSlot) return
+  useLayoutEffect(() => {
+    pushedRef.current = false
+  }, [mountId])
 
-    const push = () => {
-      if (doneRef.current || !insRef.current) return
+  useLayoutEffect(() => {
+    if (ADSENSE_PLACEHOLDER || !ADSENSE_CLIENT || !adSlot) return
+    const ins = insRef.current
+    if (!ins) return
+
+    const tryPush = () => {
+      if (pushedRef.current) return
+      const status = ins.getAttribute('data-adsbygoogle-status')
+      if (status === 'done' || status === 'filled') return
       try {
         window.adsbygoogle = window.adsbygoogle || []
         window.adsbygoogle.push({})
-        doneRef.current = true
+        pushedRef.current = true
       } catch {
-        /* filled slot or strict mode double-run */
+        /* slot already filled or duplicate request */
       }
+    }
+
+    const schedulePush = () => {
+      requestAnimationFrame(() => requestAnimationFrame(tryPush))
     }
 
     const existing = document.querySelector(
       'script[src^="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]',
-    ) as HTMLScriptElement | null
-
+    )
     if (existing) {
-      const t = window.setTimeout(push, 0)
-      return () => window.clearTimeout(t)
+      schedulePush()
+      return
     }
 
     const script = document.createElement('script')
     script.async = true
     script.crossOrigin = 'anonymous'
     script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`
-    script.onload = () => push()
+    script.onload = schedulePush
     document.head.appendChild(script)
-    return () => {
-      /* keep script for other banners */
-    }
-  }, [adSlot])
+  }, [adSlot, mountId])
+
+  if (ADSENSE_PLACEHOLDER) {
+    return (
+      <Box
+        sx={{
+          minHeight,
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: 'rgba(0,0,0,0.04)',
+          border: '1px dashed',
+          borderColor: 'divider',
+          boxSizing: 'border-box',
+        }}
+      >
+        <Typography variant="caption" color="text.secondary" sx={{ px: 2, textAlign: 'center' }}>
+          Ad space (set VITE_ADSENSE_PLACEHOLDER=0 and add web AdSense units to show live ads)
+        </Typography>
+      </Box>
+    )
+  }
 
   if (!ADSENSE_CLIENT || !adSlot) return null
 
@@ -70,6 +109,7 @@ export function AdBanner({ adSlot, minHeight = 90 }: Props) {
       }}
     >
       <ins
+        key={mountId}
         ref={insRef}
         className="adsbygoogle"
         style={{ display: 'block', textAlign: 'center', width: '100%', minHeight }}
@@ -77,6 +117,7 @@ export function AdBanner({ adSlot, minHeight = 90 }: Props) {
         data-ad-slot={adSlot}
         data-ad-format="auto"
         data-full-width-responsive="true"
+        {...(ADSENSE_TEST ? { 'data-adtest': 'on' as const } : {})}
       />
     </Box>
   )

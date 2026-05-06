@@ -10,7 +10,10 @@ import {
   TextField,
   Typography,
   Alert,
+  InputAdornment,
 } from '@mui/material'
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import { useAuth } from '../context/AuthContext'
 import { tripooColors } from '../theme'
 
@@ -60,21 +63,35 @@ export default function LoginPage() {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         px: 2,
-        bgcolor: 'background.default',
+        py: 3,
+        bgcolor: tripooColors.bg,
       }}
     >
-      <Card sx={{ maxWidth: 420, width: 1, borderRadius: 3 }}>
+      <Card
+        elevation={4}
+        sx={{
+          maxWidth: 440,
+          width: 1,
+          borderRadius: 2,
+          boxShadow: '0 4px 24px rgba(24,20,17,0.08)',
+        }}
+      >
         <CardContent sx={{ p: 3 }}>
-          <Typography variant="h5" gutterBottom sx={{ color: tripooColors.orange, fontWeight: 800 }}>
-            Tripoo
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Sign in to your trips
+          <Typography
+            sx={{
+              textAlign: 'center',
+              fontSize: 24,
+              fontWeight: 700,
+              color: tripooColors.textPrimary,
+              mb: 4,
+            }}
+          >
+            Login
           </Typography>
           {err && (
             <Alert severity="error" sx={{ mb: 2 }} onClose={() => setErr(null)}>
@@ -95,6 +112,13 @@ export default function LoginPage() {
                 fullWidth
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailOutlinedIcon sx={{ color: tripooColors.textSecondary, fontSize: 22 }} />
+                    </InputAdornment>
+                  ),
+                }}
               />
               <TextField
                 label="Password"
@@ -103,16 +127,29 @@ export default function LoginPage() {
                 fullWidth
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockOutlinedIcon sx={{ color: tripooColors.textSecondary, fontSize: 22 }} />
+                    </InputAdornment>
+                  ),
+                }}
               />
-              <Button type="submit" variant="contained" size="large" disabled={loading}>
-                Sign in
+              <Button
+                type="submit"
+                variant="contained"
+                size="large"
+                disabled={loading}
+                sx={{ py: 1.25, fontWeight: 700 }}
+              >
+                Login
               </Button>
-              <Button type="button" variant="text" onClick={onForgot}>
+              <Button type="button" variant="text" onClick={onForgot} sx={{ textTransform: 'none' }}>
                 Forgot password?
               </Button>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
                 No account?{' '}
-                <Link component={RouterLink} to="/signup" fontWeight={700}>
+                <Link component={RouterLink} to="/signup" fontWeight={700} underline="hover">
                   Sign up
                 </Link>
               </Typography>
