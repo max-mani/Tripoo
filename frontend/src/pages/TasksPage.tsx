@@ -1,21 +1,23 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import {
   Box,
   Button,
   Checkbox,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
   Fab,
-  FormControlLabel,
   IconButton,
+  InputAdornment,
   List,
   ListItem,
   ListItemText,
   Stack,
   TextField,
   Typography,
+  Avatar,
   Divider,
   LinearProgress,
   Menu,
@@ -28,6 +30,11 @@ import CloseIcon from '@mui/icons-material/Close'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import GroupsIcon from '@mui/icons-material/Groups'
 import AssignmentIcon from '@mui/icons-material/Assignment'
+import LabelOutlinedIcon from '@mui/icons-material/LabelOutlined'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import ChecklistIcon from '@mui/icons-material/Checklist'
+import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined'
+import ClearIcon from '@mui/icons-material/Clear'
 import {
   addTask,
   deleteTask,
@@ -37,7 +44,7 @@ import {
 } from '../services/taskService'
 import { subscribeTripMembers } from '../services/tripService'
 import type { Task, Trip, TripMember } from '../types/models'
-import { TASK_CATEGORIES, TASK_PRIORITIES } from '../lib/constants'
+import { TASK_CATEGORIES } from '../lib/constants'
 import { bgForSeed, letterFromName, textColorForSeed } from '../lib/avatarIdentity'
 import { tripooColors } from '../theme'
 import { TripTabScaffold } from '../components/TripTabScaffold'
@@ -47,42 +54,24 @@ import { photoSrcForDisplay } from '../lib/imageToBase64'
 
 type TaskTab = 'all' | 'progress' | 'done'
 
-function AssigneePickerCircle({
-  selected,
-  onClick,
-  size,
-  label,
-  children,
-}: {
-  selected: boolean
-  onClick: () => void
-  size: number
-  label: string
-  children: ReactNode
-}) {
-  return (
-    <Box onClick={onClick} sx={{ cursor: 'pointer', textAlign: 'center', flex: '0 0 auto' }}>
-      <Box
-        sx={{
-          width: size,
-          height: size,
-          borderRadius: '50%',
-          border: selected ? `3px solid ${tripooColors.orange}` : `2px solid ${tripooColors.border}`,
-          overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          mx: 'auto',
-          bgcolor: tripooColors.surface,
-        }}
-      >
-        {children}
-      </Box>
-      <Typography sx={{ fontSize: 10, fontWeight: 700, mt: 0.35, maxWidth: size + 28 }} noWrap>
-        {label}
-      </Typography>
-    </Box>
-  )
+function toYmdLocal(ms: number): string {
+  const d = new Date(ms)
+  const y = d.getFullYear()
+  const mo = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${mo}-${day}`
+}
+
+const TASK_PRIORITY_SEGMENTS = [
+  { key: 'low', label: 'Low', dot: '#16A34A', bg: '#DCFCE7', border: '#16A34A' },
+  { key: 'medium', label: 'Medium', dot: '#D97706', bg: '#FEF3C7', border: '#D97706' },
+  { key: 'high', label: 'High', dot: '#DC2626', bg: '#FEF2F2', border: '#DC2626' },
+] as const
+
+function normalizeTaskCategoryKey(raw: string): string {
+  const c = raw.toLowerCase()
+  if (c === 'booking') return 'bookings'
+  return TASK_CATEGORIES.some((x) => x.key === c) ? c : 'general'
 }
 
 export default function TasksPage() {
@@ -101,9 +90,9 @@ export default function TasksPage() {
   const [assignedTo, setAssignedTo] = useState('everyone')
   const [priority, setPriority] = useState('medium')
   const [notes, setNotes] = useState('')
-  const [due, setDue] = useState('')
-  const [completed, setCompleted] = useState(false)
+  const [dueMs, setDueMs] = useState<number | null>(null)
   const [taskRowMenu, setTaskRowMenu] = useState<null | { anchor: HTMLElement; task: Task }>(null)
+  const dueDateInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!tripId) return
@@ -140,31 +129,28 @@ export default function TasksPage() {
     setAssignedTo('everyone')
     setPriority('medium')
     setNotes('')
-    setDue('')
-    setCompleted(false)
+    setDueMs(null)
     setOpen(true)
   }
 
   function openEdit(t: Task) {
     setEdit(t)
     setTitle(t.title)
-    setCategory(t.category)
+    setCategory(normalizeTaskCategoryKey(t.category))
     setAssignedTo(t.assignedTo)
     setPriority(t.priority)
     setNotes(t.notes ?? '')
-    setDue(t.dueDate ? new Date(t.dueDate).toISOString().slice(0, 10) : '')
-    setCompleted(t.completed)
+    setDueMs(t.dueDate ?? null)
     setOpen(true)
   }
 
   async function saveTask() {
     if (!tripId) return
-    const dueMs = due ? new Date(due).getTime() : null
     const body: Omit<Task, 'id'> = {
       title: title.trim(),
       category,
       assignedTo,
-      completed,
+      completed: edit?.completed ?? false,
       dueDate: dueMs,
       priority,
       notes: notes.trim() || null,
@@ -473,111 +459,260 @@ export default function TasksPage() {
         <Divider sx={{ borderColor: 'rgba(244,140,37,0.08)' }} />
         <DialogContent sx={{ px: 2.25, pt: 2, pb: 1 }}>
           <Stack spacing={2}>
-            <TextField label="Title" fullWidth value={title} onChange={(e) => setTitle(e.target.value)} />
-            <TextField
-              select
-              label="Category"
-              fullWidth
-              SelectProps={{ native: true }}
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              {TASK_CATEGORIES.map((c) => (
-                <option key={c.key} value={c.key}>
-                  {c.label}
-                </option>
-              ))}
-            </TextField>
             <Box>
               <Typography sx={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: tripooColors.textSecondary, mb: 0.9 }}>
-                ASSIGNED TO
+                TASK NAME
               </Typography>
-              <Stack direction="row" spacing={1.25} sx={{ overflowX: 'auto', pb: 0.5, pt: 0.25 }}>
-                <AssigneePickerCircle
-                  selected={assignedTo === 'everyone'}
-                  size={48}
-                  label="Everyone"
-                  onClick={() => setAssignedTo('everyone')}
+              <TextField
+                fullWidth
+                placeholder="e.g. Book Airport Transfer"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <ChecklistIcon sx={{ color: '#8A7560', fontSize: 20 }} />
+                    </InputAdornment>
+                  ),
+                  sx: { pl: 0.5 },
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    minHeight: 50,
+                    borderRadius: 1.25,
+                    '& fieldset': { borderColor: tripooColors.border },
+                  },
+                }}
+              />
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: tripooColors.textSecondary, mb: 0.9 }}>
+                CATEGORY
+              </Typography>
+              <TextField
+                select
+                fullWidth
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                SelectProps={{ IconComponent: ExpandMoreIcon }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LabelOutlinedIcon sx={{ color: '#8A7560', fontSize: 20 }} />
+                    </InputAdornment>
+                  ),
+                  sx: { pl: 0.5 },
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    minHeight: 50,
+                    borderRadius: 1.25,
+                    '& fieldset': { borderColor: tripooColors.border },
+                  },
+                  '& .MuiSelect-select': { py: 1.5, display: 'flex', alignItems: 'center' },
+                }}
+              >
+                {TASK_CATEGORIES.map((c) => (
+                  <MenuItem key={c.key} value={c.key}>
+                    {c.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: tripooColors.textSecondary, mb: 0.9 }}>
+                ASSIGN TO
+              </Typography>
+              <Box
+                onClick={() => setAssignedTo('everyone')}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  minHeight: 50,
+                  px: 1.5,
+                  borderRadius: '10px',
+                  border: `1.5px solid ${assignedTo === 'everyone' ? tripooColors.orange : tripooColors.border}`,
+                  bgcolor: assignedTo === 'everyone' ? 'rgba(244,140,37,0.12)' : '#F8F7F5',
+                  cursor: 'pointer',
+                  mb: 1,
+                }}
+              >
+                <GroupsIcon
+                  sx={{
+                    fontSize: 20,
+                    color: assignedTo === 'everyone' ? tripooColors.orange : tripooColors.textSecondary,
+                  }}
+                />
+                <Typography
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: 13,
+                    color: assignedTo === 'everyone' ? tripooColors.orange : tripooColors.textSecondary,
+                  }}
                 >
-                  <Box
-                    sx={{
-                      width: 1,
-                      height: 1,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      bgcolor: 'rgba(244,140,37,0.12)',
-                    }}
-                  >
-                    <GroupsIcon sx={{ color: tripooColors.orange, fontSize: 26 }} />
-                  </Box>
-                </AssigneePickerCircle>
+                  Everyone
+                </Typography>
+              </Box>
+              <Stack direction="row" flexWrap="wrap" useFlexGap gap={1}>
                 {members.map((m) => {
                   const src = photoSrcForDisplay(m.photoUrl)
                   const letter = m.avatarLetter?.trim() || letterFromName(m.name)
                   const bg = m.avatarColorHex?.trim() || bgForSeed(m.userId)
                   const tc = textColorForSeed(m.userId)
                   const sel = assignedTo === m.userId
-                  const shortName = m.name.split(/\s+/)[0] ?? m.name
+                  const first = m.name.split(/\s+/)[0] ?? m.name
                   return (
-                    <AssigneePickerCircle
+                    <Chip
                       key={m.userId}
-                      selected={sel}
-                      size={48}
-                      label={shortName}
-                      onClick={() => setAssignedTo(m.userId)}
-                    >
-                      {src ? (
-                        <Box component="img" src={src} alt="" sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <Typography
-                          sx={{
-                            fontWeight: 900,
-                            fontSize: 18,
-                            color: tc,
-                            bgcolor: bg,
-                            width: 1,
-                            height: 1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
+                      avatar={
+                        <Avatar
+                          src={src || undefined}
+                          sx={{ width: 24, height: 24, fontSize: 12, fontWeight: 800, bgcolor: bg, color: tc }}
                         >
-                          {letter}
-                        </Typography>
-                      )}
-                    </AssigneePickerCircle>
+                          {!src ? letter : undefined}
+                        </Avatar>
+                      }
+                      label={first}
+                      onClick={() => setAssignedTo(m.userId)}
+                      variant="outlined"
+                      sx={{
+                        borderRadius: 99,
+                        borderColor: sel ? tripooColors.orange : tripooColors.border,
+                        bgcolor: sel ? 'rgba(244,140,37,0.12)' : tripooColors.surface,
+                        color: sel ? tripooColors.orange : tripooColors.textPrimary,
+                        fontWeight: 800,
+                        '& .MuiChip-avatar': { ml: 0.75 },
+                      }}
+                    />
                   )
                 })}
               </Stack>
             </Box>
-            <TextField
-              select
-              label="Priority"
-              fullWidth
-              SelectProps={{ native: true }}
-              value={priority}
-              onChange={(e) => setPriority(e.target.value)}
-            >
-              {TASK_PRIORITIES.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </TextField>
-            <TextField
-              label="Due date"
-              type="date"
-              fullWidth
-              InputLabelProps={{ shrink: true }}
-              value={due}
-              onChange={(e) => setDue(e.target.value)}
-            />
-            <TextField label="Notes" fullWidth multiline minRows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
-            <FormControlLabel
-              control={<Checkbox checked={completed} onChange={(e) => setCompleted(e.target.checked)} />}
-              label="Completed"
-            />
+            <Box>
+              <Typography sx={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: tripooColors.textSecondary, mb: 0.9 }}>
+                DUE DATE (OPTIONAL)
+              </Typography>
+              <input
+                ref={dueDateInputRef}
+                type="date"
+                value={dueMs != null ? toYmdLocal(dueMs) : ''}
+                onChange={(e) => {
+                  const v = e.target.value
+                  setDueMs(v ? new Date(v + 'T12:00:00').getTime() : null)
+                }}
+                style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }}
+                tabIndex={-1}
+              />
+              <Stack direction="row" alignItems="center" spacing={0.5}>
+                <Box
+                  onClick={() => dueDateInputRef.current?.showPicker?.() ?? dueDateInputRef.current?.click()}
+                  sx={{
+                    flex: 1,
+                    height: 50,
+                    px: 1.6,
+                    borderRadius: 1.25,
+                    border: `1px solid ${tripooColors.border}`,
+                    bgcolor: tripooColors.surface,
+                    display: 'flex',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <CalendarTodayOutlinedIcon sx={{ fontSize: 20, color: '#8A7560', mr: 1.25 }} />
+                  <Typography sx={{ fontSize: 15, color: dueMs != null ? tripooColors.textPrimary : '#BBA898' }}>
+                    {dueMs != null
+                      ? new Date(dueMs).toLocaleDateString(undefined, {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })
+                      : 'No due date'}
+                  </Typography>
+                </Box>
+                {dueMs != null ? (
+                  <IconButton
+                    aria-label="Clear due date"
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setDueMs(null)
+                    }}
+                    sx={{ color: tripooColors.textHint }}
+                  >
+                    <ClearIcon fontSize="small" />
+                  </IconButton>
+                ) : null}
+              </Stack>
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: tripooColors.textSecondary, mb: 0.9 }}>
+                PRIORITY
+              </Typography>
+              <Stack direction="row" spacing={0.5} sx={{ width: '100%' }}>
+                {TASK_PRIORITY_SEGMENTS.map((seg) => {
+                  const sel = priority === seg.key
+                  return (
+                    <Box
+                      key={seg.key}
+                      onClick={() => setPriority(seg.key)}
+                      sx={{
+                        flex: 1,
+                        height: 40,
+                        borderRadius: 1.125,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        border: sel ? `1.5px solid ${seg.border}` : `1px solid ${tripooColors.border}`,
+                        bgcolor: sel ? seg.bg : tripooColors.surface,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          bgcolor: seg.dot,
+                          mr: 0.625,
+                          flexShrink: 0,
+                        }}
+                      />
+                      <Typography
+                        sx={{
+                          fontWeight: 800,
+                          fontSize: 12,
+                          color: sel ? seg.border : '#8A7560',
+                        }}
+                      >
+                        {seg.label}
+                      </Typography>
+                    </Box>
+                  )
+                })}
+              </Stack>
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: tripooColors.textSecondary, mb: 0.9 }}>
+                NOTES (OPTIONAL)
+              </Typography>
+              <TextField
+                fullWidth
+                multiline
+                minRows={2}
+                placeholder="Any details or reminders..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 1.25,
+                    alignItems: 'flex-start',
+                    '& fieldset': { borderColor: tripooColors.border },
+                  },
+                }}
+              />
+            </Box>
           </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 2.25, pb: 2, flexDirection: 'column', gap: 1, alignItems: 'stretch' }}>

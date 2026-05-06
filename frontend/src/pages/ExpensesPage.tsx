@@ -1,15 +1,12 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import {
   Box,
   Button,
-  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   Fab,
-  FormControlLabel,
-  FormGroup,
   IconButton,
   LinearProgress,
   List,
@@ -34,6 +31,18 @@ import CloseIcon from '@mui/icons-material/Close'
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong'
 import TrendingDownIcon from '@mui/icons-material/TrendingDown'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined'
+import RestaurantOutlinedIcon from '@mui/icons-material/RestaurantOutlined'
+import DirectionsCarOutlinedIcon from '@mui/icons-material/DirectionsCarOutlined'
+import LocalBarOutlinedIcon from '@mui/icons-material/LocalBarOutlined'
+import SurfingOutlinedIcon from '@mui/icons-material/SurfingOutlined'
+import MoreHorizOutlinedIcon from '@mui/icons-material/MoreHorizOutlined'
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
+import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined'
+import TuneIcon from '@mui/icons-material/Tune'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined'
+import type { SvgIconComponent } from '@mui/icons-material'
 import { useAuth } from '../context/AuthContext'
 import {
   addExpense,
@@ -66,43 +75,22 @@ function formatRs2(n: number) {
   return `₹${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
-function PickerCircle({
-  selected,
-  onClick,
-  size,
-  label,
-  children,
-}: {
-  selected: boolean
-  onClick: () => void
-  size: number
-  label: string
-  children: ReactNode
-}) {
-  return (
-    <Box onClick={onClick} sx={{ cursor: 'pointer', textAlign: 'center', flex: '0 0 auto' }}>
-      <Box
-        sx={{
-          width: size,
-          height: size,
-          borderRadius: '50%',
-          border: selected ? `3px solid ${tripooColors.orange}` : `2px solid ${tripooColors.border}`,
-          overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          mx: 'auto',
-          bgcolor: tripooColors.surface,
-        }}
-      >
-        {children}
-      </Box>
-      <Typography sx={{ fontSize: 10, fontWeight: 700, mt: 0.35, maxWidth: size + 28 }} noWrap>
-        {label}
-      </Typography>
-    </Box>
-  )
+function toYmdLocal(ms: number): string {
+  const d = new Date(ms)
+  const y = d.getFullYear()
+  const mo = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${mo}-${day}`
 }
+
+const EXPENSE_CATEGORY_ICONS: SvgIconComponent[] = [
+  HomeOutlinedIcon,
+  RestaurantOutlinedIcon,
+  DirectionsCarOutlinedIcon,
+  LocalBarOutlinedIcon,
+  SurfingOutlinedIcon,
+  MoreHorizOutlinedIcon,
+]
 
 type SortMode = 'latest' | 'oldest' | 'highest' | 'lowest'
 
@@ -150,6 +138,10 @@ export default function ExpensesPage() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [moreEl, setMoreEl] = useState<null | HTMLElement>(null)
   const [expenseRowMenu, setExpenseRowMenu] = useState<null | { anchor: HTMLElement; expense: Expense }>(null)
+  const [splitMode, setSplitMode] = useState<'equally' | 'custom' | 'justme'>('equally')
+  const [expenseDateMs, setExpenseDateMs] = useState(() => Date.now())
+  const [paidByMenuAnchor, setPaidByMenuAnchor] = useState<null | HTMLElement>(null)
+  const expenseDateInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!tripId) return
@@ -225,9 +217,11 @@ export default function ExpensesPage() {
     setEdit(null)
     setTitleInput('')
     setAmount('')
-    setCategory('other')
+    setCategory('accommodation')
     setPaidBy(firebaseUser?.uid ?? '')
+    setSplitMode('equally')
     setSplitWith(members.map((m) => m.userId))
+    setExpenseDateMs(Date.now())
     setOpen(true)
   }
 
@@ -237,23 +231,39 @@ export default function ExpensesPage() {
     setAmount(String(e.amount))
     setCategory(e.category)
     setPaidBy(e.paidBy)
+    setSplitMode('custom')
     setSplitWith([...e.splitWith])
+    setExpenseDateMs(e.timestamp)
     setOpen(true)
   }
 
-  function toggleSplit(uid: string) {
+  function toggleSplitMember(uid: string) {
+    if (splitMode !== 'custom') return
     setSplitWith((prev) => (prev.includes(uid) ? prev.filter((x) => x !== uid) : [...prev, uid]))
+  }
+
+  function applySplitMode(mode: 'equally' | 'custom' | 'justme') {
+    setSplitMode(mode)
+    const uid = firebaseUser?.uid ?? ''
+    if (mode === 'equally') setSplitWith(members.map((m) => m.userId))
+    else if (mode === 'justme') setSplitWith(uid ? [uid] : [])
   }
 
   async function saveExpense() {
     if (!tripId) return
+    const uid = firebaseUser?.uid ?? paidBy
+    let resolvedSplit = splitWith
+    if (splitMode === 'equally') resolvedSplit = members.map((m) => m.userId)
+    else if (splitMode === 'justme') resolvedSplit = uid ? [uid] : [paidBy]
+    else resolvedSplit = splitWith.length ? splitWith : [paidBy]
+
     const exp: Omit<Expense, 'id'> = {
       title: title.trim(),
       amount: Number(amount) || 0,
       category,
       paidBy,
-      splitWith: splitWith.length ? splitWith : [paidBy],
-      timestamp: edit?.timestamp ?? Date.now(),
+      splitWith: resolvedSplit,
+      timestamp: expenseDateMs,
       settled: edit?.settled ?? false,
     }
     if (!exp.title) return
@@ -783,107 +793,214 @@ export default function ExpensesPage() {
               <Typography sx={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: tripooColors.textSecondary, mb: 0.9 }}>
                 CATEGORY
               </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {EXPENSE_CATEGORIES.map((c) => (
-                  <Chip
-                    key={c.key}
-                    label={c.label}
-                    onClick={() => setCategory(c.key)}
-                    variant={category === c.key ? 'filled' : 'outlined'}
-                    sx={{
-                      borderColor: tripooColors.border,
-                      ...(category === c.key
-                        ? { bgcolor: tripooColors.orange, color: tripooColors.surface, borderColor: tripooColors.orange }
-                        : {}),
-                    }}
-                  />
-                ))}
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: 1,
+                }}
+              >
+                {EXPENSE_CATEGORIES.map((c, idx) => {
+                  const Icon = EXPENSE_CATEGORY_ICONS[idx]!
+                  const sel = category === c.key
+                  return (
+                    <Box
+                      key={c.key}
+                      onClick={() => setCategory(c.key)}
+                      sx={{
+                        borderRadius: 2,
+                        py: 1,
+                        px: 0.75,
+                        cursor: 'pointer',
+                        border: sel ? `2px solid ${tripooColors.orange}` : `1px solid ${tripooColors.border}`,
+                        bgcolor: sel ? 'rgba(244,140,37,0.08)' : tripooColors.surface,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: '50%',
+                          bgcolor: c.bg,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Icon sx={{ fontSize: 22, color: c.tint }} />
+                      </Box>
+                      <Typography sx={{ fontSize: 10, fontWeight: 800, mt: 0.75, textAlign: 'center', lineHeight: 1.15 }}>
+                        {c.label}
+                      </Typography>
+                    </Box>
+                  )
+                })}
               </Box>
             </Box>
             <Box>
               <Typography sx={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: tripooColors.textSecondary, mb: 0.9 }}>
                 PAID BY
               </Typography>
-              <Stack direction="row" spacing={1.25} sx={{ overflowX: 'auto', pb: 0.5, pt: 0.25 }}>
+              <Box
+                onClick={(e) => setPaidByMenuAnchor(e.currentTarget)}
+                sx={{
+                  height: 50,
+                  px: 1.6,
+                  borderRadius: 1.25,
+                  border: `1px solid ${tripooColors.border}`,
+                  bgcolor: tripooColors.surface,
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <PersonOutlineIcon sx={{ fontSize: 20, color: '#8A7560', mr: 1.25 }} />
+                <Typography sx={{ flex: 1, fontSize: 15, color: tripooColors.textPrimary, fontWeight: 600 }}>
+                  {memberById.get(paidBy)?.name?.trim() || 'Select'}
+                </Typography>
+                <ExpandMoreIcon sx={{ fontSize: 18, color: '#8A7560' }} />
+              </Box>
+              <Menu
+                anchorEl={paidByMenuAnchor}
+                open={Boolean(paidByMenuAnchor)}
+                onClose={() => setPaidByMenuAnchor(null)}
+              >
+                {members.map((m) => (
+                  <MenuItem
+                    key={m.userId}
+                    onClick={() => {
+                      setPaidBy(m.userId)
+                      setPaidByMenuAnchor(null)
+                    }}
+                  >
+                    {m.name}
+                  </MenuItem>
+                ))}
+              </Menu>
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: tripooColors.textSecondary, mb: 0.9 }}>
+                SPLIT
+              </Typography>
+              <Stack direction="row" spacing={1} sx={{ '& .MuiButton-root': { flex: 1, py: 0.75, fontSize: 11, fontWeight: 800, textTransform: 'none' } }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<GroupsOutlinedIcon sx={{ fontSize: 16 }} />}
+                  onClick={() => applySplitMode('equally')}
+                  sx={{
+                    borderColor: splitMode === 'equally' ? tripooColors.orange : tripooColors.border,
+                    color: splitMode === 'equally' ? tripooColors.orange : '#8A7560',
+                    bgcolor: splitMode === 'equally' ? 'rgba(244,140,37,0.12)' : tripooColors.surface,
+                  }}
+                >
+                  Equally
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<TuneIcon sx={{ fontSize: 16 }} />}
+                  onClick={() => applySplitMode('custom')}
+                  sx={{
+                    borderColor: splitMode === 'custom' ? tripooColors.orange : tripooColors.border,
+                    color: splitMode === 'custom' ? tripooColors.orange : '#8A7560',
+                    bgcolor: splitMode === 'custom' ? 'rgba(244,140,37,0.12)' : tripooColors.surface,
+                  }}
+                >
+                  Custom
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<PersonOutlineIcon sx={{ fontSize: 16 }} />}
+                  onClick={() => applySplitMode('justme')}
+                  sx={{
+                    borderColor: splitMode === 'justme' ? tripooColors.orange : tripooColors.border,
+                    color: splitMode === 'justme' ? tripooColors.orange : '#8A7560',
+                    bgcolor: splitMode === 'justme' ? 'rgba(244,140,37,0.12)' : tripooColors.surface,
+                  }}
+                >
+                  Just Me
+                </Button>
+              </Stack>
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: tripooColors.textSecondary, mb: 0.9 }}>
+                SPLIT WITH
+              </Typography>
+              <Stack direction="row" flexWrap="wrap" useFlexGap gap={1}>
                 {members.map((m) => {
                   const src = photoSrcForDisplay(m.photoUrl)
                   const letter = m.avatarLetter?.trim() || letterFromName(m.name)
                   const bg = m.avatarColorHex?.trim() || bgForSeed(m.userId)
                   const tc = textColorForSeed(m.userId)
-                  const sel = paidBy === m.userId
-                  const shortName = m.name.split(/\s+/)[0] ?? m.name
+                  const checked = splitWith.includes(m.userId)
+                  const locked = splitMode !== 'custom'
+                  const first = m.name.split(/\s+/)[0] ?? m.name
                   return (
-                    <PickerCircle
+                    <Chip
                       key={m.userId}
-                      selected={sel}
-                      size={48}
-                      label={shortName}
-                      onClick={() => setPaidBy(m.userId)}
-                    >
-                      {src ? (
-                        <Box component="img" src={src} alt="" sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <Typography
-                          sx={{
-                            fontWeight: 900,
-                            fontSize: 18,
-                            color: tc,
-                            bgcolor: bg,
-                            width: 1,
-                            height: 1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          {letter}
-                        </Typography>
-                      )}
-                    </PickerCircle>
+                      avatar={
+                        <Avatar src={src || undefined} sx={{ width: 24, height: 24, fontSize: 12, fontWeight: 800, bgcolor: bg, color: tc }}>
+                          {!src ? letter : undefined}
+                        </Avatar>
+                      }
+                      label={first}
+                      onClick={() => toggleSplitMember(m.userId)}
+                      variant="outlined"
+                      sx={{
+                        borderRadius: 99,
+                        opacity: locked ? 0.72 : 1,
+                        pointerEvents: locked ? 'none' : 'auto',
+                        borderColor: checked ? tripooColors.orange : tripooColors.border,
+                        bgcolor: checked ? 'rgba(244,140,37,0.12)' : tripooColors.surface,
+                        color: checked ? tripooColors.orange : tripooColors.textPrimary,
+                        fontWeight: 800,
+                        '& .MuiChip-avatar': { ml: 0.75 },
+                      }}
+                    />
                   )
                 })}
               </Stack>
             </Box>
-            <Typography sx={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: tripooColors.textSecondary, mb: 0.9 }}>
-              SPLIT WITH
-            </Typography>
-            <FormGroup>
-              {members.map((m) => {
-                const src = photoSrcForDisplay(m.photoUrl)
-                const letter = m.avatarLetter?.trim() || letterFromName(m.name)
-                const bg = m.avatarColorHex?.trim() || bgForSeed(m.userId)
-                const tc = textColorForSeed(m.userId)
-                return (
-                  <FormControlLabel
-                    key={m.userId}
-                    control={
-                      <Checkbox
-                        checked={splitWith.includes(m.userId)}
-                        onChange={() => toggleSplit(m.userId)}
-                      />
-                    }
-                    label={
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        <Avatar
-                          src={src || undefined}
-                          sx={{
-                            width: 32,
-                            height: 32,
-                            fontWeight: 800,
-                            fontSize: 14,
-                            bgcolor: bg,
-                            color: tc,
-                          }}
-                        >
-                          {!src ? letter : undefined}
-                        </Avatar>
-                        <Typography sx={{ fontSize: 14 }}>{m.name}</Typography>
-                      </Stack>
-                    }
-                  />
-                )
-              })}
-            </FormGroup>
+            <Box>
+              <Typography sx={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: tripooColors.textSecondary, mb: 0.9 }}>
+                DATE
+              </Typography>
+              <input
+                ref={expenseDateInputRef}
+                type="date"
+                value={toYmdLocal(expenseDateMs)}
+                onChange={(e) => {
+                  const v = e.target.value
+                  if (v) setExpenseDateMs(new Date(v + 'T12:00:00').getTime())
+                }}
+                style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }}
+                tabIndex={-1}
+              />
+              <Box
+                onClick={() => expenseDateInputRef.current?.showPicker?.() ?? expenseDateInputRef.current?.click()}
+                sx={{
+                  height: 50,
+                  px: 1.6,
+                  borderRadius: 1.25,
+                  border: `1px solid ${tripooColors.border}`,
+                  bgcolor: tripooColors.surface,
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <CalendarTodayOutlinedIcon sx={{ fontSize: 20, color: '#8A7560', mr: 1.25 }} />
+                <Typography sx={{ flex: 1, fontSize: 15, color: tripooColors.textPrimary }}>
+                  {new Date(expenseDateMs).toLocaleDateString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </Typography>
+              </Box>
+            </Box>
           </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 2.25, pb: 2, pt: 0, flexDirection: 'column', gap: 1, alignItems: 'stretch' }}>

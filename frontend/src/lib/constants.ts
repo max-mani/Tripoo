@@ -11,10 +11,13 @@ export function categoryMeta(key: string) {
   return EXPENSE_CATEGORIES.find((c) => c.key === key) ?? EXPENSE_CATEGORIES[5]!
 }
 
+/** Keys align with Android `AddTaskBottomSheet` / `TaskAdapter` (`bookings`, not `booking`). */
 export const TASK_CATEGORIES = [
   { key: 'general', label: 'General' },
-  { key: 'booking', label: 'Booking' },
+  { key: 'bookings', label: 'Bookings' },
   { key: 'packing', label: 'Packing' },
+  { key: 'documents', label: 'Documents' },
+  { key: 'other', label: 'Other' },
 ] as const
 
 export const TASK_PRIORITIES = ['low', 'medium', 'high'] as const
