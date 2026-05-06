@@ -161,13 +161,13 @@ export default function TasksPage() {
                 >
                   <ListItemText
                     primary={
-                      <Typography fontWeight={700} sx={{ textDecoration: t.completed ? 'line-through' : 'none' }}>
+                      <Typography sx={{ fontWeight: 700, textDecoration: t.completed ? 'line-through' : 'none' }}>
                         {t.title}
                       </Typography>
                     }
                     secondary={
                       <>
-                        <Typography variant="caption" display="block">
+                        <Typography variant="caption" sx={{ display: 'block' }}>
                           {t.category} · {t.priority}
                           {t.dueDate ? ` · Due ${new Date(t.dueDate).toLocaleDateString()}` : ''}
                         </Typography>

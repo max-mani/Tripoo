@@ -110,7 +110,7 @@ export default function TripHomePage() {
       </AppBar>
 
       <Box sx={{ p: 2 }}>
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 2 }}>
           <Chip
             label={statusLabel(live)}
             size="small"
@@ -125,7 +125,7 @@ export default function TripHomePage() {
           {formatTripDates(trip.startDate, trip.endDate)}
         </Typography>
         {trip.destination ? (
-          <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 1 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 1 }}>
             {trip.destination}
           </Typography>
         ) : null}
