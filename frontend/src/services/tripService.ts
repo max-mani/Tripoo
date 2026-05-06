@@ -265,7 +265,29 @@ export async function setMemberAdminRole(
   if (targetUserId === tripCreatorId) {
     throw new Error('The organiser cannot be demoted')
   }
-  await updateDoc(doc(db, 'trips', tripId, 'members', targetUserId), { isAdmin: asAdmin })
+  await updateDoc(doc(db, 'trips', tripId, 'members', targetUserId), {
+    isAdmin: asAdmin,
+    admin: asAdmin,
+  })
+}
+
+export async function removeMemberFromTrip(
+  tripId: string,
+  targetUserId: string,
+  actingOrganiserId: string,
+  tripOrganiserId: string,
+): Promise<void> {
+  if (actingOrganiserId !== tripOrganiserId) {
+    throw new Error('Only the trip organiser can remove members')
+  }
+  if (targetUserId === tripOrganiserId) {
+    throw new Error('Cannot remove the organiser')
+  }
+  const batch = writeBatch(db)
+  batch.delete(doc(db, 'trips', tripId, 'members', targetUserId))
+  batch.update(tripDocRef(tripId), { memberIds: arrayRemove(targetUserId) })
+  await batch.commit()
+  await removeTripFromUser(targetUserId, tripId)
 }
 
 function chunkIds<T>(arr: T[], size: number): T[][] {

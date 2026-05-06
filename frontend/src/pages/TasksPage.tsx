@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import {
   Box,
@@ -18,11 +18,15 @@ import {
   Typography,
   Divider,
   LinearProgress,
+  Menu,
+  MenuItem,
 } from '@mui/material'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import AddIcon from '@mui/icons-material/Add'
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
+import GroupsIcon from '@mui/icons-material/Groups'
 import AssignmentIcon from '@mui/icons-material/Assignment'
 import {
   addTask,
@@ -34,14 +38,52 @@ import {
 import { subscribeTripMembers } from '../services/tripService'
 import type { Task, Trip, TripMember } from '../types/models'
 import { TASK_CATEGORIES, TASK_PRIORITIES } from '../lib/constants'
+import { bgForSeed, letterFromName, textColorForSeed } from '../lib/avatarIdentity'
 import { tripooColors } from '../theme'
 import { TripTabScaffold } from '../components/TripTabScaffold'
 import { FAB_BOTTOM_FROM_VIEWPORT } from '../lib/tripChrome'
 import { TripooRocketLogo } from '../components/TripooRocketLogo'
 import { photoSrcForDisplay } from '../lib/imageToBase64'
-import { letterFromName } from '../lib/avatarIdentity'
 
 type TaskTab = 'all' | 'progress' | 'done'
+
+function AssigneePickerCircle({
+  selected,
+  onClick,
+  size,
+  label,
+  children,
+}: {
+  selected: boolean
+  onClick: () => void
+  size: number
+  label: string
+  children: ReactNode
+}) {
+  return (
+    <Box onClick={onClick} sx={{ cursor: 'pointer', textAlign: 'center', flex: '0 0 auto' }}>
+      <Box
+        sx={{
+          width: size,
+          height: size,
+          borderRadius: '50%',
+          border: selected ? `3px solid ${tripooColors.orange}` : `2px solid ${tripooColors.border}`,
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          mx: 'auto',
+          bgcolor: tripooColors.surface,
+        }}
+      >
+        {children}
+      </Box>
+      <Typography sx={{ fontSize: 10, fontWeight: 700, mt: 0.35, maxWidth: size + 28 }} noWrap>
+        {label}
+      </Typography>
+    </Box>
+  )
+}
 
 export default function TasksPage() {
   const { trip } = useOutletContext<{ trip: Trip }>()
@@ -61,6 +103,7 @@ export default function TasksPage() {
   const [notes, setNotes] = useState('')
   const [due, setDue] = useState('')
   const [completed, setCompleted] = useState(false)
+  const [taskRowMenu, setTaskRowMenu] = useState<null | { anchor: HTMLElement; task: Task }>(null)
 
   useEffect(() => {
     if (!tripId) return
@@ -71,11 +114,6 @@ export default function TasksPage() {
     if (!tripId) return
     return subscribeTripMembers(tripId, setMembers)
   }, [tripId])
-
-  const assignOptions = useMemo(() => {
-    const ids = members.map((m) => ({ v: m.userId, l: m.name }))
-    return [{ v: 'everyone', l: 'Everyone' }, ...ids]
-  }, [members])
 
   const { doneCount, pct } = useMemo(() => {
     const total = tasks.length
@@ -350,25 +388,29 @@ export default function TasksPage() {
                 <Box key={t.id}>
                   <ListItem
                     secondaryAction={
-                      <Checkbox edge="end" checked={t.completed} onChange={() => void toggleDone(t)} />
+                      <Stack direction="row" alignItems="center" spacing={0}>
+                        <IconButton
+                          size="small"
+                          aria-label="Task options"
+                          onClick={(e) => setTaskRowMenu({ anchor: e.currentTarget, task: t })}
+                        >
+                          <MoreHorizIcon sx={{ color: tripooColors.textHint, fontSize: 22 }} />
+                        </IconButton>
+                        <Checkbox edge="end" checked={t.completed} onChange={() => void toggleDone(t)} />
+                      </Stack>
                     }
                   >
                     <ListItemText
                       primary={
-                        <Typography sx={{ fontWeight: 700, textDecoration: t.completed ? 'line-through' : 'none' }}>
+                        <Typography sx={{ fontWeight: 700, textDecoration: t.completed ? 'line-through' : 'none', pr: 2 }}>
                           {t.title}
                         </Typography>
                       }
                       secondary={
-                        <>
-                          <Typography variant="caption" sx={{ display: 'block' }}>
-                            {t.category} · {t.priority}
-                            {t.dueDate ? ` · Due ${new Date(t.dueDate).toLocaleDateString()}` : ''}
-                          </Typography>
-                          <Button size="small" onClick={() => openEdit(t)}>
-                            Edit
-                          </Button>
-                        </>
+                        <Typography variant="caption" sx={{ display: 'block' }}>
+                          {t.category} · {t.priority}
+                          {t.dueDate ? ` · Due ${new Date(t.dueDate).toLocaleDateString()}` : ''}
+                        </Typography>
                       }
                     />
                   </ListItem>
@@ -446,20 +488,69 @@ export default function TasksPage() {
                 </option>
               ))}
             </TextField>
-            <TextField
-              select
-              label="Assignee"
-              fullWidth
-              SelectProps={{ native: true }}
-              value={assignedTo}
-              onChange={(e) => setAssignedTo(e.target.value)}
-            >
-              {assignOptions.map((o) => (
-                <option key={o.v} value={o.v}>
-                  {o.l}
-                </option>
-              ))}
-            </TextField>
+            <Box>
+              <Typography sx={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: tripooColors.textSecondary, mb: 0.9 }}>
+                ASSIGNED TO
+              </Typography>
+              <Stack direction="row" spacing={1.25} sx={{ overflowX: 'auto', pb: 0.5, pt: 0.25 }}>
+                <AssigneePickerCircle
+                  selected={assignedTo === 'everyone'}
+                  size={48}
+                  label="Everyone"
+                  onClick={() => setAssignedTo('everyone')}
+                >
+                  <Box
+                    sx={{
+                      width: 1,
+                      height: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      bgcolor: 'rgba(244,140,37,0.12)',
+                    }}
+                  >
+                    <GroupsIcon sx={{ color: tripooColors.orange, fontSize: 26 }} />
+                  </Box>
+                </AssigneePickerCircle>
+                {members.map((m) => {
+                  const src = photoSrcForDisplay(m.photoUrl)
+                  const letter = m.avatarLetter?.trim() || letterFromName(m.name)
+                  const bg = m.avatarColorHex?.trim() || bgForSeed(m.userId)
+                  const tc = textColorForSeed(m.userId)
+                  const sel = assignedTo === m.userId
+                  const shortName = m.name.split(/\s+/)[0] ?? m.name
+                  return (
+                    <AssigneePickerCircle
+                      key={m.userId}
+                      selected={sel}
+                      size={48}
+                      label={shortName}
+                      onClick={() => setAssignedTo(m.userId)}
+                    >
+                      {src ? (
+                        <Box component="img" src={src} alt="" sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <Typography
+                          sx={{
+                            fontWeight: 900,
+                            fontSize: 18,
+                            color: tc,
+                            bgcolor: bg,
+                            width: 1,
+                            height: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          {letter}
+                        </Typography>
+                      )}
+                    </AssigneePickerCircle>
+                  )
+                })}
+              </Stack>
+            </Box>
             <TextField
               select
               label="Priority"
@@ -500,6 +591,32 @@ export default function TasksPage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Menu
+        anchorEl={taskRowMenu?.anchor ?? null}
+        open={Boolean(taskRowMenu)}
+        onClose={() => setTaskRowMenu(null)}
+      >
+        <MenuItem
+          onClick={() => {
+            const row = taskRowMenu
+            setTaskRowMenu(null)
+            if (row) openEdit(row.task)
+          }}
+        >
+          Edit
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            const row = taskRowMenu
+            setTaskRowMenu(null)
+            if (row) void onDelete(row.task)
+          }}
+          sx={{ color: tripooColors.red }}
+        >
+          Delete
+        </MenuItem>
+      </Menu>
     </>
   )
 }

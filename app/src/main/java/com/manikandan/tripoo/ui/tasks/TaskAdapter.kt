@@ -16,7 +16,6 @@ import com.manikandan.tripoo.R
 import com.manikandan.tripoo.data.model.Task
 import com.manikandan.tripoo.data.model.TripMember
 import com.manikandan.tripoo.databinding.ItemTaskBinding
-import com.manikandan.tripoo.utils.UserAvatarIdentity
 import com.manikandan.tripoo.databinding.ItemTaskHeaderBinding
 
 class TaskAdapter(
@@ -227,39 +226,8 @@ class TaskAdapter(
                 }
             }
 
-            // Assignee badge: centered group icon or initial (match Groups / user avatar colours)
-            val isEveryone = rawAssigned.equals("everyone", ignoreCase = true) || rawAssigned.isEmpty()
-            val everyoneBg = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(Color.parseColor("#1FF48C25"))
-            }
-            if (isEveryone) {
-                b.ivAssigneeGroup.visibility = View.VISIBLE
-                b.tvAssigneeAvatar.visibility = View.GONE
-                b.tvAssigneeAvatar.text = ""
-                b.flAssigneeBadge.background = everyoneBg
-            } else {
-                b.ivAssigneeGroup.visibility = View.GONE
-                b.tvAssigneeAvatar.visibility = View.VISIBLE
-                val m = membersById[rawAssigned]
-                val initial = if (m != null) {
-                    UserAvatarIdentity.displayLetter(m).toString()
-                } else {
-                    assigneeName.firstOrNull()?.uppercase() ?: "?"
-                }
-                b.tvAssigneeAvatar.text = initial
-                val (bgCol, txtCol) = if (m != null) {
-                    UserAvatarIdentity.chipColors(m, 0)
-                } else {
-                    Color.parseColor("#1FF48C25") to Color.parseColor("#F48C25")
-                }
-                val avatarBg = GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL
-                    setColor(bgCol)
-                }
-                b.flAssigneeBadge.background = avatarBg
-                b.tvAssigneeAvatar.setTextColor(txtCol)
-            }
+            // List rows: show assignee text only (no avatar / icon badge in the row).
+            b.flAssigneeBadge.visibility = View.GONE
 
             // Divider: hide on last row
             b.divider.visibility = if (item.isLast) View.GONE else View.VISIBLE

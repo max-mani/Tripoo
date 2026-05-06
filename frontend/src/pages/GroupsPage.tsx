@@ -18,7 +18,6 @@ import {
   Radio,
   RadioGroup,
   FormControlLabel,
-  Switch,
   Typography,
   Stack,
   Card,
@@ -34,6 +33,7 @@ import { useAuth } from '../context/AuthContext'
 import {
   deleteTripForCurrentUser,
   leaveTripAsMember,
+  removeMemberFromTrip,
   setMemberAdminRole,
   subscribeTripMembers,
 } from '../services/tripService'
@@ -54,8 +54,8 @@ export default function GroupsPage() {
   const [transferOpen, setTransferOpen] = useState(false)
   const [transferPick, setTransferPick] = useState<string>('')
   const [transferList, setTransferList] = useState<TripMember[]>([])
+  const [memberMenu, setMemberMenu] = useState<null | { anchor: HTMLElement; member: TripMember }>(null)
 
-  const isOrganiser = firebaseUser?.uid === trip.adminId
   const canManageTrip = useMemo(() => {
     if (!firebaseUser) return false
     if (trip.adminId === firebaseUser.uid) return true
@@ -67,15 +67,43 @@ export default function GroupsPage() {
     return subscribeTripMembers(tripId, setMembers)
   }, [tripId])
 
-  async function toggleAdmin(m: TripMember, checked: boolean) {
+  async function onMakeCoOrganiser(m: TripMember) {
     if (!tripId || !firebaseUser) return
     try {
-      await setMemberAdminRole(tripId, m.userId, checked, firebaseUser.uid, trip.adminId)
+      await setMemberAdminRole(tripId, m.userId, true, firebaseUser.uid, trip.adminId)
     } catch (e: unknown) {
       window.alert(e instanceof Error ? e.message : 'Could not update role')
     }
   }
 
+  async function onRemoveCoOrganiser(m: TripMember) {
+    if (!tripId || !firebaseUser) return
+    try {
+      await setMemberAdminRole(tripId, m.userId, false, firebaseUser.uid, trip.adminId)
+    } catch (e: unknown) {
+      window.alert(e instanceof Error ? e.message : 'Could not update role')
+    }
+  }
+
+  async function onRemoveMemberRow(m: TripMember) {
+    if (!tripId || !firebaseUser) return
+    const name = m.name?.trim() || m.userId
+    if (!window.confirm(`Remove ${name} from this trip?`)) return
+    try {
+      await removeMemberFromTrip(tripId, m.userId, firebaseUser.uid, trip.adminId)
+    } catch (e: unknown) {
+      window.alert(e instanceof Error ? e.message : 'Could not remove member')
+    }
+  }
+
+  function canShowMemberMenu(m: TripMember): boolean {
+    if (!firebaseUser) return false
+    return (
+      firebaseUser.uid === trip.adminId &&
+      m.userId !== trip.adminId &&
+      m.userId !== firebaseUser.uid
+    )
+  }
   async function onInviteShare() {
     const code = trip.joinCode
     const text = `Join my Tripoo trip! Code: ${code}`
@@ -194,16 +222,14 @@ export default function GroupsPage() {
             <EditIcon sx={{ fontSize: 18, mr: 1 }} /> Edit trip
           </MenuItem>
         )}
-        {canManageTrip && (
-          <MenuItem
-            onClick={() => {
-              setMenuEl(null)
-              void onConfirmDelete()
-            }}
-          >
-            <DeleteOutlineIcon sx={{ fontSize: 18, mr: 1 }} /> Delete trip
-          </MenuItem>
-        )}
+        <MenuItem
+          onClick={() => {
+            setMenuEl(null)
+            void onConfirmDelete()
+          }}
+        >
+          <DeleteOutlineIcon sx={{ fontSize: 18, mr: 1 }} /> Delete trip
+        </MenuItem>
       </Menu>
     </Box>
   )
@@ -289,24 +315,31 @@ export default function GroupsPage() {
                 const letter = m.avatarLetter?.trim() || letterFromName(m.name)
                 const bg = m.avatarColorHex?.trim() || tripooColors.orange
                 const tc = textColorForSeed(m.userId)
-                const showSwitch = isOrganiser && m.userId !== trip.adminId
+                const rowIsOrganiser = m.userId === trip.adminId
+                const isCoAdmin = m.isAdmin && !rowIsOrganiser
+                let roleLabel = 'Member'
+                if (rowIsOrganiser) roleLabel = 'Organiser'
+                else if (isCoAdmin) roleLabel = 'Co-organiser'
                 return (
                   <ListItem
                     key={m.userId}
                     divider
                     secondaryAction={
-                      showSwitch ? (
-                        <Switch
-                          edge="end"
-                          checked={m.isAdmin}
-                          onChange={(e) => void toggleAdmin(m, e.target.checked)}
-                          inputProps={{ 'aria-label': 'Co-organiser' }}
-                        />
-                      ) : m.isAdmin ? (
-                        <Typography variant="caption" sx={{ color: tripooColors.textSecondary }}>
-                          {m.userId === trip.adminId ? 'Organiser' : 'Co-organiser'}
+                      <Stack direction="row" alignItems="center" spacing={0.25}>
+                        <Typography variant="caption" sx={{ color: tripooColors.textSecondary, maxWidth: 88 }} noWrap>
+                          {roleLabel}
                         </Typography>
-                      ) : null
+                        {canShowMemberMenu(m) ? (
+                          <IconButton
+                            edge="end"
+                            size="small"
+                            aria-label="Member options"
+                            onClick={(e) => setMemberMenu({ anchor: e.currentTarget, member: m })}
+                          >
+                            <MoreHorizIcon sx={{ fontSize: 20 }} />
+                          </IconButton>
+                        ) : null}
+                      </Stack>
                     }
                   >
                     <ListItemAvatar>
@@ -355,6 +388,47 @@ export default function GroupsPage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Menu
+        anchorEl={memberMenu?.anchor ?? null}
+        open={Boolean(memberMenu)}
+        onClose={() => setMemberMenu(null)}
+      >
+        {memberMenu?.member ? (
+          <>
+            {memberMenu.member.isAdmin && memberMenu.member.userId !== trip.adminId ? (
+              <MenuItem
+                onClick={() => {
+                  const mm = memberMenu.member
+                  setMemberMenu(null)
+                  void onRemoveCoOrganiser(mm)
+                }}
+              >
+                Remove co-organiser
+              </MenuItem>
+            ) : !memberMenu.member.isAdmin ? (
+              <MenuItem
+                onClick={() => {
+                  const mm = memberMenu.member
+                  setMemberMenu(null)
+                  void onMakeCoOrganiser(mm)
+                }}
+              >
+                Make co-organiser
+              </MenuItem>
+            ) : null}
+            <MenuItem
+              onClick={() => {
+                const mm = memberMenu.member
+                setMemberMenu(null)
+                void onRemoveMemberRow(mm)
+              }}
+            >
+              Remove from trip
+            </MenuItem>
+          </>
+        ) : null}
+      </Menu>
     </>
   )
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import {
   Box,
@@ -20,6 +20,7 @@ import {
   Typography,
   Chip,
   Card,
+  Avatar,
   Menu,
   MenuItem,
   Divider,
@@ -44,6 +45,8 @@ import {
 import { canUserManageTripAsLeader, subscribeTripMembers } from '../services/tripService'
 import type { Expense, Trip, TripMember } from '../types/models'
 import { categoryMeta, EXPENSE_CATEGORIES } from '../lib/constants'
+import { bgForSeed, letterFromName, textColorForSeed } from '../lib/avatarIdentity'
+import { photoSrcForDisplay } from '../lib/imageToBase64'
 import { tripooColors } from '../theme'
 import { computeYouOweYouAreOwed, computeOweOwedTrends } from '../lib/expenseBalances'
 import { TripTabScaffold } from '../components/TripTabScaffold'
@@ -61,6 +64,44 @@ function shortTripDates(startMs: number, endMs: number): string {
 
 function formatRs2(n: number) {
   return `₹${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+function PickerCircle({
+  selected,
+  onClick,
+  size,
+  label,
+  children,
+}: {
+  selected: boolean
+  onClick: () => void
+  size: number
+  label: string
+  children: ReactNode
+}) {
+  return (
+    <Box onClick={onClick} sx={{ cursor: 'pointer', textAlign: 'center', flex: '0 0 auto' }}>
+      <Box
+        sx={{
+          width: size,
+          height: size,
+          borderRadius: '50%',
+          border: selected ? `3px solid ${tripooColors.orange}` : `2px solid ${tripooColors.border}`,
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          mx: 'auto',
+          bgcolor: tripooColors.surface,
+        }}
+      >
+        {children}
+      </Box>
+      <Typography sx={{ fontSize: 10, fontWeight: 700, mt: 0.35, maxWidth: size + 28 }} noWrap>
+        {label}
+      </Typography>
+    </Box>
+  )
 }
 
 type SortMode = 'latest' | 'oldest' | 'highest' | 'lowest'
@@ -108,6 +149,7 @@ export default function ExpensesPage() {
   const [sortMode, setSortMode] = useState<SortMode>('latest')
   const [searchOpen, setSearchOpen] = useState(false)
   const [moreEl, setMoreEl] = useState<null | HTMLElement>(null)
+  const [expenseRowMenu, setExpenseRowMenu] = useState<null | { anchor: HTMLElement; expense: Expense }>(null)
 
   useEffect(() => {
     if (!tripId) return
@@ -580,13 +622,16 @@ export default function ExpensesPage() {
                   return (
                     <Box key={e.id} sx={{ bgcolor: tripooColors.surface, mb: 1, mx: 2, borderRadius: 2 }}>
                       <ListItem
-                        sx={{ alignItems: 'flex-start' }}
+                        sx={{ alignItems: 'flex-start', pr: 1 }}
                         secondaryAction={
-                          canManage && !e.settled ? (
-                            <Button size="small" onClick={() => void onToggleSettled(e)}>
-                              Settle
-                            </Button>
-                          ) : null
+                          <IconButton
+                            edge="end"
+                            size="small"
+                            aria-label="Expense options"
+                            onClick={(ev) => setExpenseRowMenu({ anchor: ev.currentTarget, expense: e })}
+                          >
+                            <MoreHorizIcon sx={{ color: tripooColors.textHint }} />
+                          </IconButton>
                         }
                       >
                         <Box
@@ -607,20 +652,15 @@ export default function ExpensesPage() {
                         </Box>
                         <ListItemText
                           primary={
-                            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', pr: 4 }}>
                               <Typography sx={{ fontWeight: 700 }}>{e.title}</Typography>
                               {e.settled && <Chip size="small" label="Settled" color="success" />}
                             </Stack>
                           }
                           secondary={
-                            <>
-                              <Typography variant="body2" component="span" sx={{ display: 'block' }}>
-                                {formatRs2(e.amount)} · Paid by {payer}
-                              </Typography>
-                              <Button size="small" onClick={() => openEdit(e)}>
-                                Edit
-                              </Button>
-                            </>
+                            <Typography variant="body2" component="span" sx={{ display: 'block' }}>
+                              {formatRs2(e.amount)} · Paid by {payer}
+                            </Typography>
                           }
                         />
                       </ListItem>
@@ -760,35 +800,89 @@ export default function ExpensesPage() {
                 ))}
               </Box>
             </Box>
-            <TextField
-              label="Paid by"
-              fullWidth
-              select
-              SelectProps={{ native: true }}
-              value={paidBy}
-              onChange={(e) => setPaidBy(e.target.value)}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.25 } }}
-            >
-              {members.map((m) => (
-                <option key={m.userId} value={m.userId}>
-                  {m.name}
-                </option>
-              ))}
-            </TextField>
-            <Typography sx={{ fontSize: 13, fontWeight: 800, color: tripooColors.textSecondary }}>Split with</Typography>
+            <Box>
+              <Typography sx={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: tripooColors.textSecondary, mb: 0.9 }}>
+                PAID BY
+              </Typography>
+              <Stack direction="row" spacing={1.25} sx={{ overflowX: 'auto', pb: 0.5, pt: 0.25 }}>
+                {members.map((m) => {
+                  const src = photoSrcForDisplay(m.photoUrl)
+                  const letter = m.avatarLetter?.trim() || letterFromName(m.name)
+                  const bg = m.avatarColorHex?.trim() || bgForSeed(m.userId)
+                  const tc = textColorForSeed(m.userId)
+                  const sel = paidBy === m.userId
+                  const shortName = m.name.split(/\s+/)[0] ?? m.name
+                  return (
+                    <PickerCircle
+                      key={m.userId}
+                      selected={sel}
+                      size={48}
+                      label={shortName}
+                      onClick={() => setPaidBy(m.userId)}
+                    >
+                      {src ? (
+                        <Box component="img" src={src} alt="" sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <Typography
+                          sx={{
+                            fontWeight: 900,
+                            fontSize: 18,
+                            color: tc,
+                            bgcolor: bg,
+                            width: 1,
+                            height: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          {letter}
+                        </Typography>
+                      )}
+                    </PickerCircle>
+                  )
+                })}
+              </Stack>
+            </Box>
+            <Typography sx={{ fontSize: 10, fontWeight: 800, letterSpacing: 1, color: tripooColors.textSecondary, mb: 0.9 }}>
+              SPLIT WITH
+            </Typography>
             <FormGroup>
-              {members.map((m) => (
-                <FormControlLabel
-                  key={m.userId}
-                  control={
-                    <Checkbox
-                      checked={splitWith.includes(m.userId)}
-                      onChange={() => toggleSplit(m.userId)}
-                    />
-                  }
-                  label={m.name}
-                />
-              ))}
+              {members.map((m) => {
+                const src = photoSrcForDisplay(m.photoUrl)
+                const letter = m.avatarLetter?.trim() || letterFromName(m.name)
+                const bg = m.avatarColorHex?.trim() || bgForSeed(m.userId)
+                const tc = textColorForSeed(m.userId)
+                return (
+                  <FormControlLabel
+                    key={m.userId}
+                    control={
+                      <Checkbox
+                        checked={splitWith.includes(m.userId)}
+                        onChange={() => toggleSplit(m.userId)}
+                      />
+                    }
+                    label={
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <Avatar
+                          src={src || undefined}
+                          sx={{
+                            width: 32,
+                            height: 32,
+                            fontWeight: 800,
+                            fontSize: 14,
+                            bgcolor: bg,
+                            color: tc,
+                          }}
+                        >
+                          {!src ? letter : undefined}
+                        </Avatar>
+                        <Typography sx={{ fontSize: 14 }}>{m.name}</Typography>
+                      </Stack>
+                    }
+                  />
+                )
+              })}
             </FormGroup>
           </Stack>
         </DialogContent>
@@ -816,6 +910,43 @@ export default function ExpensesPage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Menu
+        anchorEl={expenseRowMenu?.anchor ?? null}
+        open={Boolean(expenseRowMenu)}
+        onClose={() => setExpenseRowMenu(null)}
+      >
+        <MenuItem
+          onClick={() => {
+            const row = expenseRowMenu
+            setExpenseRowMenu(null)
+            if (row) openEdit(row.expense)
+          }}
+        >
+          Edit
+        </MenuItem>
+        {canManage && expenseRowMenu?.expense && !expenseRowMenu.expense.settled ? (
+          <MenuItem
+            onClick={() => {
+              const row = expenseRowMenu
+              setExpenseRowMenu(null)
+              if (row) void onToggleSettled(row.expense)
+            }}
+          >
+            Mark as settled
+          </MenuItem>
+        ) : null}
+        <MenuItem
+          onClick={() => {
+            const row = expenseRowMenu
+            setExpenseRowMenu(null)
+            if (row) void onDelete(row.expense)
+          }}
+          sx={{ color: tripooColors.red }}
+        >
+          Delete
+        </MenuItem>
+      </Menu>
     </>
   )
 }

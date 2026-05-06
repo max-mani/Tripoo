@@ -185,7 +185,10 @@ class ExpensesFragment : Fragment() {
     }
 
     private fun setupBottomNav() {
-        binding.navHome.setOnClickListener { navigateToTripDashboard() }
+        binding.navHome.setOnClickListener {
+            val bundle = Bundle().apply { putString("tripId", args.tripId) }
+            findNavController().navigate(R.id.homeFragment, bundle)
+        }
         binding.navExpenses.setOnClickListener {
             setActiveBottomNav("expenses")
         }

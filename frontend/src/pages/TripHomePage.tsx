@@ -199,37 +199,33 @@ export default function TripHomePage() {
           {dateSubtitle}
         </Typography>
       </Box>
-      {canManage ? (
-        <>
-          <IconButton
-            onClick={(e) => setMenuEl(e.currentTarget)}
-            sx={{ width: 36, height: 36 }}
-            aria-label="More"
+      <IconButton
+        onClick={(e) => setMenuEl(e.currentTarget)}
+        sx={{ width: 36, height: 36 }}
+        aria-label="More"
+      >
+        <MoreHorizIcon sx={{ color: tripooColors.textPrimary }} />
+      </IconButton>
+      <Menu anchorEl={menuEl} open={Boolean(menuEl)} onClose={() => setMenuEl(null)}>
+        {canManage ? (
+          <MenuItem
+            onClick={() => {
+              setMenuEl(null)
+              setOpen(true)
+            }}
           >
-            <MoreHorizIcon sx={{ color: tripooColors.textPrimary }} />
-          </IconButton>
-          <Menu anchorEl={menuEl} open={Boolean(menuEl)} onClose={() => setMenuEl(null)}>
-            <MenuItem
-              onClick={() => {
-                setMenuEl(null)
-                setOpen(true)
-              }}
-            >
-              <EditIcon sx={{ fontSize: 18, mr: 1 }} /> Edit trip
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                setMenuEl(null)
-                void onConfirmDelete()
-              }}
-            >
-              <DeleteOutlineIcon sx={{ fontSize: 18, mr: 1 }} /> Delete trip
-            </MenuItem>
-          </Menu>
-        </>
-      ) : (
-        <Box sx={{ width: 36, height: 36 }} />
-      )}
+            <EditIcon sx={{ fontSize: 18, mr: 1 }} /> Edit trip
+          </MenuItem>
+        ) : null}
+        <MenuItem
+          onClick={() => {
+            setMenuEl(null)
+            void onConfirmDelete()
+          }}
+        >
+          <DeleteOutlineIcon sx={{ fontSize: 18, mr: 1 }} /> Delete trip
+        </MenuItem>
+      </Menu>
     </Box>
   )
 
