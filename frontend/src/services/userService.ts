@@ -36,7 +36,10 @@ export function parseUser(id: string, data: Record<string, unknown> | undefined)
       data.preferredLanguage != null ? String(data.preferredLanguage) : null,
     preferredCurrency:
       data.preferredCurrency != null ? String(data.preferredCurrency) : null,
-    photoUrl: data.photoUrl != null ? String(data.photoUrl) : null,
+    photoUrl:
+      data.photoUrl != null && String(data.photoUrl).trim() !== ''
+        ? String(data.photoUrl)
+        : null,
     tripIds,
     lastActiveTripId:
       data.lastActiveTripId != null ? String(data.lastActiveTripId) : null,
@@ -59,18 +62,20 @@ export function subscribeUser(uid: string, cb: (user: User | null) => void): Uns
 }
 
 export async function createOrMergeUser(user: User): Promise<void> {
+  const letter = user.avatarLetter?.trim() || letterFromName(user.name)
+  const color = user.avatarColorHex?.trim() || bgForSeed(user.uid)
   const payload: Record<string, unknown> = {
     name: user.name,
     email: user.email,
     tripIds: user.tripIds,
+    photoUrl: user.photoUrl?.trim() ?? '',
+    avatarLetter: letter,
+    avatarColorHex: color,
   }
   if (user.phoneNumber != null) payload.phoneNumber = user.phoneNumber
   if (user.preferredLanguage != null) payload.preferredLanguage = user.preferredLanguage
   if (user.preferredCurrency != null) payload.preferredCurrency = user.preferredCurrency
-  if (user.photoUrl != null) payload.photoUrl = user.photoUrl
   if (user.lastActiveTripId != null) payload.lastActiveTripId = user.lastActiveTripId
-  if (user.avatarLetter != null) payload.avatarLetter = user.avatarLetter
-  if (user.avatarColorHex != null) payload.avatarColorHex = user.avatarColorHex
   await setDoc(userDocRef(user.uid), payload, { merge: true })
 }
 

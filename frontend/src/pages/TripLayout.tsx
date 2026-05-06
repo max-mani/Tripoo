@@ -4,8 +4,13 @@ import { Box, CircularProgress, Typography } from '@mui/material'
 import { useAuth } from '../context/AuthContext'
 import { subscribeTrip } from '../services/tripService'
 import type { Trip } from '../types/models'
+import { AdBanner } from '../components/AdBanner'
 import { TripBottomNav } from '../components/TripBottomNav'
+import { AD_SLOT_TRIP } from '../config/ads'
 import { tripooColors } from '../theme'
+
+/** Trip tabs: banner (~90px) + bottom nav (~56px) + safe area */
+const TRIP_MAIN_PADDING_BOTTOM = 'calc(90px + 56px + env(safe-area-inset-bottom, 0px))'
 
 export default function TripLayout() {
   const { tripId } = useParams<{ tripId: string }>()
@@ -39,9 +44,9 @@ export default function TripLayout() {
   }
 
   return (
-    <Box sx={{ pb: 10 }}>
+    <Box sx={{ pb: TRIP_MAIN_PADDING_BOTTOM }}>
       <Outlet context={{ trip }} />
-      <TripBottomNav />
+      <TripBottomNav bottomAd={<AdBanner adSlot={AD_SLOT_TRIP} minHeight={90} />} />
     </Box>
   )
 }

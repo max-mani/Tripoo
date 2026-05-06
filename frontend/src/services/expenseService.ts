@@ -2,6 +2,7 @@ import {
   collection,
   doc,
   getDoc,
+  getDocs,
   onSnapshot,
   orderBy,
   query,
@@ -88,4 +89,14 @@ export async function markExpenseSettled(
 
 export async function deleteExpense(tripId: string, expenseId: string): Promise<void> {
   await deleteDoc(doc(db, 'trips', tripId, 'expenses', expenseId))
+}
+
+export async function getTotalExpenses(tripId: string): Promise<number> {
+  const snap = await getDocs(collection(db, 'trips', tripId, 'expenses'))
+  let sum = 0
+  snap.forEach((d) => {
+    const e = parseExpense(d.id, d.data() as Record<string, unknown>)
+    if (e) sum += e.amount
+  })
+  return sum
 }

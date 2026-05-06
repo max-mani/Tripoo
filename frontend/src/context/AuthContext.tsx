@@ -13,6 +13,7 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
+  updateProfile,
   type User as FirebaseUser,
 } from 'firebase/auth'
 import { auth } from '../firebase'
@@ -64,10 +65,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Bootstrap user doc if missing (older accounts)
       const minimal: User = {
         uid: firebaseUser.uid,
-        name: firebaseUser.displayName?.trim() || 'User',
+        name: firebaseUser.displayName?.trim() || firebaseUser.email?.split('@')[0] || 'User',
         email: firebaseUser.email || '',
         tripIds: [],
-        avatarLetter: letterFromName(firebaseUser.displayName || ''),
+        photoUrl: null,
+        avatarLetter: letterFromName(
+          firebaseUser.displayName || firebaseUser.email?.split('@')[0] || '',
+        ),
         avatarColorHex: bgForSeed(firebaseUser.uid),
       }
       await createOrMergeUser(minimal)
@@ -86,13 +90,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null)
     const cred = await createUserWithEmailAndPassword(auth, email.trim(), password)
     const fu = cred.user
-    const avLetter = letterFromName(name)
-    const avColor = bgForSeed(fu.uid)
+    const displayName = name.trim()
+    await updateProfile(fu, { displayName })
+    await fu.reload()
+    const refreshed = auth.currentUser!
+    const avLetter = letterFromName(displayName)
+    const avColor = bgForSeed(refreshed.uid)
     await createOrMergeUser({
-      uid: fu.uid,
-      name: name.trim(),
+      uid: refreshed.uid,
+      name: displayName,
       email: email.trim(),
-      photoUrl: fu.photoURL || null,
+      photoUrl: refreshed.photoURL || null,
       tripIds: [],
       avatarLetter: avLetter,
       avatarColorHex: avColor,

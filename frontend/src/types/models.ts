@@ -58,3 +58,9 @@ export interface Task {
   notes?: string | null
   deadlineNotified?: boolean
 }
+
+export interface TripWithMeta {
+  trip: Trip
+  memberCount: number
+  totalSpent: number
+}
