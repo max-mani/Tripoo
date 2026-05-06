@@ -21,3 +21,9 @@ app/google-services.json
 key.properties
 *.jks
 upload-keystore.jks
+
+# Web frontend
+frontend/node_modules
+frontend/dist
+frontend/.env
+frontend/.env.local
