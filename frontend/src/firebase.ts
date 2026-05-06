@@ -1,6 +1,7 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
+import { getAnalytics, isSupported } from 'firebase/analytics'
 
 function requiredEnv(name: string): string {
   const v = import.meta.env[name]
@@ -35,3 +36,11 @@ try {
 
 export const auth = getAuth(app)
 export const db = getFirestore(app)
+
+/** Set when `VITE_FIREBASE_MEASUREMENT_ID` is present and the browser supports Analytics. */
+export let analytics: ReturnType<typeof getAnalytics> | null = null
+if (typeof window !== 'undefined' && firebaseConfig.measurementId) {
+  void isSupported().then((ok) => {
+    if (ok) analytics = getAnalytics(app)
+  })
+}
