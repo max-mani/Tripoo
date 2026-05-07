@@ -365,7 +365,14 @@ public class HomeFragment extends Fragment {
         if (showEdit) {
             menu.getMenu().add(0, MENU_EDIT, 0, "Edit trip");
         }
-        menu.getMenu().add(0, MENU_DELETE, 1, "Delete trip");
+        FirebaseUser organizerCheck = FirebaseAuth.getInstance().getCurrentUser();
+        String organiserUid = trip.getAdminId() != null ? trip.getAdminId() : "";
+        boolean isOrganiser = organizerCheck != null
+                && organizerCheck.getUid() != null
+                && organizerCheck.getUid().equals(organiserUid);
+        if (isOrganiser) {
+            menu.getMenu().add(0, MENU_DELETE, 1, "Delete trip");
+        }
         menu.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == MENU_EDIT) {
                 String tripId = getCurrentTripId();

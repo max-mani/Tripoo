@@ -4,6 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import com.manikandan.tripoo.data.model.Task
 import com.manikandan.tripoo.data.model.Trip
 import com.manikandan.tripoo.data.model.TripMember
@@ -87,7 +88,9 @@ class TasksViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     }
 
     fun toggleTask(task: Task) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
         viewModelScope.launch {
+            if (uid.isEmpty() || !tripRepo.canUserManageTripAsLeader(tripId, uid)) return@launch
             try {
                 val currentCompleted = task.completed as? Boolean ?: false
                 taskRepo.updateTaskCompletion(tripId, task.id, !currentCompleted)

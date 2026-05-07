@@ -326,23 +326,17 @@ public class HomeViewModel extends AndroidViewModel {
         }
 
         String uid = firebaseUser.getUid();
-        tripRepository.canUserManageTripAsLeader(tripId, uid, can -> {
-            if (!can) {
-                deleteTripLiveData.postValue(Resource.error("Only the organiser or a co-organiser can delete this trip"));
+        if (!uid.equals(organiserUid)) {
+            deleteTripLiveData.setValue(Resource.error("Only the trip organiser can delete this trip"));
+            return;
+        }
+        tripRepository.deleteTripAsAdmin(tripId, organiserUid, err -> {
+            if (err != null) {
+                deleteTripLiveData.postValue(Resource.error(err.getMessage() != null ? err.getMessage() : "Delete failed"));
                 return Unit.INSTANCE;
             }
-            // Member doc IDs match user UIDs; deletion order must keep the trip organiser's doc until last.
-            tripRepository.deleteTripAsAdmin(tripId, organiserUid, err -> {
-                if (err != null) {
-                    deleteTripLiveData.postValue(Resource.error(err.getMessage() != null ? err.getMessage() : "Delete failed"));
-                    return Unit.INSTANCE;
-                }
-
-                // Option B: only update current user's doc (rules prevent updating other users)
-                userRepository.removeTripFromUser(uid, tripId, ignored -> {
-                    deleteTripLiveData.postValue(Resource.success(null));
-                    return Unit.INSTANCE;
-                });
+            userRepository.removeTripFromUser(uid, tripId, ignored -> {
+                deleteTripLiveData.postValue(Resource.success(null));
                 return Unit.INSTANCE;
             });
             return Unit.INSTANCE;

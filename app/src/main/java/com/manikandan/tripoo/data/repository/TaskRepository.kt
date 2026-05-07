@@ -2,6 +2,7 @@ package com.manikandan.tripoo.data.repository
 
 import com.manikandan.tripoo.data.model.Task
 import com.manikandan.tripoo.notifications.FanoutNotificationPublisher
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.CoroutineScope
@@ -18,12 +19,17 @@ class TaskRepository {
 
     suspend fun addTask(tripId: String, task: Task) {
         try {
+            val uid = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
             val ref = db.collection("trips").document(tripId).collection("tasks").document()
-            ref.set(task.copy(id = ref.id)).await()
+            val toSave = task.copy(
+                id = ref.id,
+                createdBy = uid.ifBlank { task.createdBy }
+            )
+            ref.set(toSave).await()
             FanoutNotificationPublisher.publishAsync(
                 tripId,
                 "Task",
-                "New task: ${task.title}",
+                "New task: ${toSave.title}",
                 "task_added"
             )
         } catch (e: Exception) {
@@ -104,6 +110,7 @@ class TaskRepository {
                 prevDue == null || newDue == null -> true
                 else -> prevDue != newDue
             }
+            val existingCreatedBy = existing.getString("createdBy").orEmpty()
             val updates = mutableMapOf<String, Any?>(
                 "title" to task.title,
                 "category" to task.category,
@@ -111,7 +118,8 @@ class TaskRepository {
                 "completed" to task.completed,
                 "dueDate" to task.dueDate,
                 "priority" to task.priority,
-                "notes" to task.notes
+                "notes" to task.notes,
+                "createdBy" to existingCreatedBy.ifBlank { task.createdBy }
             )
             if (dueChanged) {
                 updates["deadlineNotified"] = false

@@ -55,7 +55,7 @@ public class ExpenseViewModel extends AndroidViewModel {
     public void addExpense(String tripId, String title, double amount, String category, String paidBy, List<String> splitWith) {
         addExpenseLiveData.setValue(Resource.loading());
         if (category == null) category = "other";
-        Expense expense = new Expense("", title, amount, category, paidBy, splitWith != null ? splitWith : java.util.Collections.emptyList(), System.currentTimeMillis(), false);
+        Expense expense = new Expense("", "", title, amount, category, paidBy, splitWith != null ? splitWith : java.util.Collections.emptyList(), System.currentTimeMillis(), false);
         expenseRepository.addExpense(tripId, expense, err -> {
             if (err == null) {
                 addExpenseLiveData.setValue(Resource.success("Expense added successfully"));
@@ -68,7 +68,7 @@ public class ExpenseViewModel extends AndroidViewModel {
 
     public void updateExpense(String tripId, String expenseId, String title, double amount, String paidBy, List<String> splitWith) {
         updateExpenseLiveData.setValue(Resource.loading());
-        Expense expense = new Expense(expenseId, title, amount, "other", paidBy, splitWith != null ? splitWith : java.util.Collections.emptyList(), System.currentTimeMillis(), false);
+        Expense expense = new Expense(expenseId, "", title, amount, "other", paidBy, splitWith != null ? splitWith : java.util.Collections.emptyList(), System.currentTimeMillis(), false);
         expenseRepository.updateExpense(tripId, expenseId, expense, err -> {
             if (err == null) {
                 updateExpenseLiveData.setValue(Resource.success("Expense updated successfully"));

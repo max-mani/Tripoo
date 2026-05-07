@@ -274,7 +274,9 @@ public class GroupsFragment extends Fragment implements MemberAdapter.MemberMenu
         if (isOrganiser || isCoOrganiser) {
             menu.getMenu().add(0, MENU_EDIT, 0, "Edit trip");
         }
-        menu.getMenu().add(0, MENU_DELETE, 1, "Delete trip");
+        if (isOrganiser) {
+            menu.getMenu().add(0, MENU_DELETE, 1, "Delete trip");
+        }
         menu.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == MENU_EDIT) {
                 String tripId = getCurrentTripId();

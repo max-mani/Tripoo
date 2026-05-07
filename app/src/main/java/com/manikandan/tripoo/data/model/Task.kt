@@ -2,6 +2,8 @@ package com.manikandan.tripoo.data.model
 
 data class Task(
     val id: String = "",
+    /** User id of the member who created this task (Firestore security). */
+    val createdBy: String = "",
     val title: String = "",
     val category: String = "general",
     val assignedTo: String = "everyone",

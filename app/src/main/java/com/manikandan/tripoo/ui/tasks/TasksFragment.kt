@@ -36,6 +36,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.google.android.gms.ads.AdRequest
+import com.google.firebase.auth.FirebaseAuth
 import com.manikandan.tripoo.R
 import com.manikandan.tripoo.ads.TripExitInterstitialHelper
 import com.manikandan.tripoo.utils.ImageUtils
@@ -136,8 +137,17 @@ class TasksFragment : Fragment() {
         binding.rvTasks.itemAnimator = null
     }
 
+    private fun computeCanManageTripAsLeader(): Boolean {
+        val trip = viewModel.trip.value
+        val uid = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
+        if (uid.isEmpty()) return false
+        return trip?.adminId == uid || membersById[uid]?.isAdmin == true
+    }
+
     private fun createAdapter() = TaskAdapter(
         membersById = membersById,
+        currentUserId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty(),
+        canManageTripAsLeader = computeCanManageTripAsLeader(),
         onToggle = { task -> viewModel.toggleTask(task) },
         onEdit = { task -> onEditTask(task) },
         onDelete = { task -> onDeleteTask(task) }
@@ -230,6 +240,9 @@ class TasksFragment : Fragment() {
     private fun observeViewModel() {
         viewModel.trip.observe(viewLifecycleOwner) { trip ->
             binding.tvTasksTripName.text = trip?.name ?: ""
+            taskAdapter = createAdapter()
+            binding.rvTasks.adapter = taskAdapter
+            updateList()
         }
 
         viewModel.members.observe(viewLifecycleOwner) { members ->

@@ -2,6 +2,8 @@ package com.manikandan.tripoo.data.model
 
 data class Expense(
     val id: String = "",
+    /** User id of the member who created this expense (Firestore security). */
+    val createdBy: String = "",
     val title: String = "",
     val amount: Double = 0.0,
     val category: String = "other",

@@ -20,6 +20,9 @@ import com.manikandan.tripoo.databinding.ItemTaskHeaderBinding
 
 class TaskAdapter(
     private val membersById: Map<String, TripMember>,
+    private val currentUserId: String,
+    /** Organiser or co-organiser — can mark tasks complete and edit/delete any task. */
+    private val canManageTripAsLeader: Boolean,
     private val onToggle: (Task) -> Unit,
     private val onEdit: (Task) -> Unit = {},
     private val onDelete: (Task) -> Unit = {}
@@ -232,11 +235,24 @@ class TaskAdapter(
             // Divider: hide on last row
             b.divider.visibility = if (item.isLast) View.GONE else View.VISIBLE
 
-            // Toggle on checkbox tap
-            b.flCheckbox.setOnClickListener { onToggle(task) }
+            // Toggle on checkbox tap (leaders only)
+            if (canManageTripAsLeader) {
+                b.flCheckbox.setOnClickListener { onToggle(task) }
+                b.flCheckbox.isClickable = true
+                b.flCheckbox.alpha = 1f
+            } else {
+                b.flCheckbox.setOnClickListener(null)
+                b.flCheckbox.isClickable = false
+                b.flCheckbox.alpha = 0.5f
+            }
+
+            val canModifyTask = canManageTripAsLeader ||
+                (task.createdBy.isNotBlank() && task.createdBy == currentUserId)
+            b.btnTaskMore.visibility = if (canModifyTask) View.VISIBLE else View.GONE
 
             // More menu: Edit / Delete
             b.btnTaskMore.setOnClickListener { anchor ->
+                if (!canModifyTask) return@setOnClickListener
                 val wrapper = ContextThemeWrapper(ctx, androidx.appcompat.R.style.ThemeOverlay_AppCompat_Light)
                 val popup = PopupMenu(wrapper, anchor)
                 popup.menu.add(0, 1, 0, "Edit")

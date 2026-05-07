@@ -95,7 +95,7 @@ public class TaskViewModel extends AndroidViewModel {
         addTaskLiveData.setValue(Resource.loading());
         String currentUserId = authRepository.getCurrentUser() != null ? authRepository.getCurrentUser().getUid() : "everyone";
         Long dueDateLong = timestampToLong(dueDate);
-        Task task = new Task("", title, category != null ? category : Task.CATEGORY_GENERAL, assignedTo != null ? assignedTo : "everyone", false, dueDateLong, "medium", null, false);
+        Task task = new Task("", "", title, category != null ? category : Task.CATEGORY_GENERAL, assignedTo != null ? assignedTo : "everyone", false, dueDateLong, "medium", null, false);
         taskRepository.addTask(tripId, task, err -> {
             if (err == null) {
                 addTaskLiveData.setValue(Resource.success("Task added successfully"));
@@ -110,7 +110,7 @@ public class TaskViewModel extends AndroidViewModel {
     public void updateTask(String tripId, String taskId, String title, String category, String assignedTo, boolean completed, Timestamp dueDate) {
         updateTaskLiveData.setValue(Resource.loading());
         Long dueDateLong = timestampToLong(dueDate);
-        Task task = new Task(taskId, title, category != null ? category : Task.CATEGORY_GENERAL, assignedTo != null ? assignedTo : "everyone", completed, dueDateLong, "medium", null, false);
+        Task task = new Task(taskId, "", title, category != null ? category : Task.CATEGORY_GENERAL, assignedTo != null ? assignedTo : "everyone", completed, dueDateLong, "medium", null, false);
         taskRepository.updateTask(tripId, taskId, task, err -> {
             if (err == null) {
                 updateTaskLiveData.setValue(Resource.success("Task updated successfully"));

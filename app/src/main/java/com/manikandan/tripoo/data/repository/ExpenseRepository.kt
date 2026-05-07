@@ -2,6 +2,7 @@ package com.manikandan.tripoo.data.repository
 
 import com.manikandan.tripoo.data.model.Expense
 import com.manikandan.tripoo.notifications.FanoutNotificationPublisher
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
@@ -27,13 +28,18 @@ class ExpenseRepository {
 
     suspend fun addExpense(tripId: String, expense: Expense) {
         try {
+            val uid = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
             val ref = db.collection("trips").document(tripId).collection("expenses").document()
+            val toSave = expense.copy(
+                id = ref.id,
+                createdBy = uid.ifBlank { expense.createdBy }
+            )
             db.collection("trips").document(tripId).collection("expenses")
-                .document(ref.id).set(expense.copy(id = ref.id)).await()
+                .document(ref.id).set(toSave).await()
             FanoutNotificationPublisher.publishAsync(
                 tripId,
                 "Expense",
-                "New expense: ${expense.title}",
+                "New expense: ${toSave.title}",
                 "expense_added"
             )
         } catch (e: Exception) {
@@ -172,6 +178,7 @@ class ExpenseRepository {
             // Read existing settled state; once settled it can never be unset
             val existingSettled = existing.getBoolean("settled") == true
             val finalSettled = expense.settled || existingSettled
+            val existingCreatedBy = existing.getString("createdBy").orEmpty()
             val updates = mapOf(
                 "title" to expense.title,
                 "amount" to expense.amount,
@@ -179,7 +186,8 @@ class ExpenseRepository {
                 "paidBy" to expense.paidBy,
                 "splitWith" to expense.splitWith,
                 "timestamp" to expense.timestamp,
-                "settled" to finalSettled
+                "settled" to finalSettled,
+                "createdBy" to (existingCreatedBy.ifBlank { expense.createdBy })
             )
             docRef.update(updates).await()
             if (!existingSettled && finalSettled) {

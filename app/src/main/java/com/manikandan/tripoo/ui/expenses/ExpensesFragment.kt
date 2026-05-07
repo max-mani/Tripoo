@@ -111,6 +111,7 @@ class ExpensesFragment : Fragment() {
         expenseAdapter = ExpenseAdapter(
             currentUserId = viewModel.currentUserId,
             memberNames = emptyMap(),
+            canManageTripAsLeader = false,
             canMarkSettled = false,
             onClick = {},
             onEdit = { openEditExpense(it) },
@@ -226,6 +227,7 @@ class ExpensesFragment : Fragment() {
             members.firstOrNull { it.userId == currentUid }?.isAdmin == true ||
                 trip?.adminId == currentUid
         if (::expenseAdapter.isInitialized) {
+            expenseAdapter.setCanManageTripAsLeader(isCurrentUserAdmin)
             expenseAdapter.setCanMarkSettled(isCurrentUserAdmin)
         }
     }
@@ -255,6 +257,7 @@ class ExpensesFragment : Fragment() {
             expenseAdapter = ExpenseAdapter(
                 currentUserId = viewModel.currentUserId,
                 memberNames = memberNames,
+                canManageTripAsLeader = isCurrentUserAdmin,
                 canMarkSettled = isCurrentUserAdmin,
                 onClick = {},
                 onEdit = { openEditExpense(it) },

@@ -191,6 +191,7 @@ class AddExpenseBottomSheet(
 
         val expense = Expense(
             id = initialExpense?.id.orEmpty(),
+            createdBy = initialExpense?.createdBy.orEmpty(),
             title = description,
             amount = amount,
             category = selectedCategory,
