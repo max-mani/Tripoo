@@ -33,8 +33,8 @@ android {
         applicationId = "com.manikandan.tripoo"
         minSdk = 24
         targetSdk = 36
-        versionCode = 9
-        versionName = "1.4.1"
+        versionCode = 11
+        versionName = "1.6.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -100,6 +100,10 @@ dependencies {
 
     // AdMob
     implementation(libs.play.services.ads)
+
+    // Play Store: detect when a newer version is available on Play
+    implementation("com.google.android.play:app-update:2.1.0")
+    implementation("com.google.android.play:app-update-ktx:2.1.0")
 
     // Testing
     testImplementation(libs.junit)

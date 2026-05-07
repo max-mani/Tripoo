@@ -60,4 +60,9 @@
     <string name="groups_remove_from_trip">Remove from trip</string>
     <string name="groups_remove_member_title">Remove member?</string>
     <string name="groups_remove_member_message">%1$s will lose access to this trip. You can invite them again with the trip code.</string>
+
+    <string name="update_available_title">Update available</string>
+    <string name="update_available_message">A newer version of Tripoo is on Google Play. Update for the latest fixes and features.</string>
+    <string name="update_available_confirm">Update</string>
+    <string name="update_available_later">Later</string>
 </resources>

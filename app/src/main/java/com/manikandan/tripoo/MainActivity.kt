@@ -15,6 +15,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.manikandan.tripoo.databinding.ActivityMainBinding
 import com.manikandan.tripoo.notifications.NotificationConstants
+import com.manikandan.tripoo.utils.PlayStoreUpdateHelper
 
 class MainActivity : AppCompatActivity() {
 
@@ -52,6 +53,8 @@ class MainActivity : AppCompatActivity() {
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
+
+        PlayStoreUpdateHelper.attach(this)
     }
 
     override fun onNewIntent(intent: Intent) {
