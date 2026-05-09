@@ -8,7 +8,7 @@ import {
   setDoc,
   type Unsubscribe,
 } from 'firebase/firestore'
-import { db } from '../firebase'
+import { db, auth } from '../firebase'
 import type { Task } from '../types/models'
 
 export function parseTask(id: string, data: Record<string, unknown> | undefined): Task | null {
@@ -20,6 +20,8 @@ export function parseTask(id: string, data: Record<string, unknown> | undefined)
   return {
     id,
     title: String(data.title ?? ''),
+    createdBy:
+      data.createdBy != null && String(data.createdBy).trim() !== '' ? String(data.createdBy) : undefined,
     category: String(data.category ?? 'general'),
     assignedTo: String(data.assignedTo ?? 'everyone'),
     completed: data.completed === true,
@@ -47,6 +49,7 @@ export function subscribeTasks(tripId: string, cb: (rows: Task[]) => void): Unsu
 
 export async function addTask(tripId: string, task: Omit<Task, 'id'>): Promise<string> {
   const ref = doc(collection(db, 'trips', tripId, 'tasks'))
+  const uid = auth.currentUser?.uid ?? ''
   await setDoc(ref, {
     title: task.title,
     category: task.category,
@@ -56,6 +59,7 @@ export async function addTask(tripId: string, task: Omit<Task, 'id'>): Promise<s
     priority: task.priority,
     notes: task.notes ?? null,
     deadlineNotified: task.deadlineNotified ?? false,
+    createdBy: task.createdBy?.trim() || uid,
   })
   return ref.id
 }
@@ -82,6 +86,11 @@ export async function updateTask(tripId: string, taskId: string, task: Task): Pr
     priority: task.priority,
     notes: task.notes ?? null,
   }
+  const priorCreated =
+    existing.exists() && existing.get('createdBy') != null
+      ? String(existing.get('createdBy'))
+      : ''
+  updates.createdBy = priorCreated.trim() || task.createdBy?.trim() || ''
   if (dueChanged) updates.deadlineNotified = false
   await updateDoc(docRef, updates)
 }

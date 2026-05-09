@@ -114,6 +114,7 @@ export default function TripHomePage() {
   }, [canManage, searchParams, setSearchParams])
 
   const live = deriveStatus(trip.startDate, trip.endDate)
+  const isOrganiser = Boolean(firebaseUser && trip.adminId === firebaseUser.uid)
   const totalSpent = useMemo(() => expenses.reduce((a, e) => a + e.amount, 0), [expenses])
   const budgetNum = trip.budget > 0 ? trip.budget : 0
   const spentRatio = budgetNum > 0 ? Math.min(1, totalSpent / budgetNum) : 0
@@ -217,6 +218,7 @@ export default function TripHomePage() {
             <EditIcon sx={{ fontSize: 18, mr: 1 }} /> Edit trip
           </MenuItem>
         ) : null}
+        {isOrganiser ? (
         <MenuItem
           onClick={() => {
             setMenuEl(null)
@@ -225,6 +227,7 @@ export default function TripHomePage() {
         >
           <DeleteOutlineIcon sx={{ fontSize: 18, mr: 1 }} /> Delete trip
         </MenuItem>
+        ) : null}
       </Menu>
     </Box>
   )

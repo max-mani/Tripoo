@@ -38,6 +38,8 @@ export interface TripMember {
 
 export interface Expense {
   id: string
+  /** Creator uid (required server-side for new expenses) */
+  createdBy?: string
   title: string
   amount: number
   category: string
@@ -49,6 +51,8 @@ export interface Expense {
 
 export interface Task {
   id: string
+  /** Creator uid (required server-side for new tasks) */
+  createdBy?: string
   title: string
   category: string
   assignedTo: string

@@ -42,7 +42,7 @@ import {
   updateTask,
   updateTaskCompletion,
 } from '../services/taskService'
-import { subscribeTripMembers } from '../services/tripService'
+import { subscribeTripMembers, canUserManageTripAsLeader } from '../services/tripService'
 import type { Task, Trip, TripMember } from '../types/models'
 import { TASK_CATEGORIES } from '../lib/constants'
 import { bgForSeed, letterFromName, textColorForSeed } from '../lib/avatarIdentity'
@@ -51,6 +51,7 @@ import { TripTabScaffold } from '../components/TripTabScaffold'
 import { FAB_BOTTOM_FROM_VIEWPORT } from '../lib/tripChrome'
 import { TripooRocketLogo } from '../components/TripooRocketLogo'
 import { photoSrcForDisplay } from '../lib/imageToBase64'
+import { useAuth } from '../context/AuthContext'
 
 type TaskTab = 'all' | 'progress' | 'done'
 
@@ -78,8 +79,10 @@ export default function TasksPage() {
   const { trip } = useOutletContext<{ trip: Trip }>()
   const { tripId } = useParams<{ tripId: string }>()
   const navigate = useNavigate()
+  const { firebaseUser } = useAuth()
   const [tasks, setTasks] = useState<Task[]>([])
   const [members, setMembers] = useState<TripMember[]>([])
+  const [canManage, setCanManage] = useState(false)
   const [tab, setTab] = useState<TaskTab>('all')
   const [q, setQ] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
@@ -104,6 +107,11 @@ export default function TasksPage() {
     return subscribeTripMembers(tripId, setMembers)
   }, [tripId])
 
+  useEffect(() => {
+    if (!tripId || !firebaseUser) return
+    void canUserManageTripAsLeader(tripId, firebaseUser.uid).then(setCanManage)
+  }, [tripId, firebaseUser])
+
   const { doneCount, pct } = useMemo(() => {
     const total = tasks.length
     const done = tasks.filter((t) => t.completed).length
@@ -119,6 +127,13 @@ export default function TasksPage() {
     if (s) list = list.filter((t) => t.title.toLowerCase().includes(s))
     return list
   }, [tasks, tab, q])
+
+  const uid = firebaseUser?.uid ?? ''
+
+  function canModifyTask(t: Task): boolean {
+    if (canManage) return true
+    return Boolean(t.createdBy && uid && t.createdBy === uid)
+  }
 
   const avatarStack = useMemo(() => members.slice(0, 4), [members])
 
@@ -165,7 +180,7 @@ export default function TasksPage() {
   }
 
   async function toggleDone(t: Task) {
-    if (!tripId) return
+    if (!tripId || !canManage) return
     await updateTaskCompletion(tripId, t.id, !t.completed)
   }
 
@@ -375,14 +390,22 @@ export default function TasksPage() {
                   <ListItem
                     secondaryAction={
                       <Stack direction="row" alignItems="center" spacing={0}>
-                        <IconButton
-                          size="small"
-                          aria-label="Task options"
-                          onClick={(e) => setTaskRowMenu({ anchor: e.currentTarget, task: t })}
-                        >
-                          <MoreHorizIcon sx={{ color: tripooColors.textHint, fontSize: 22 }} />
-                        </IconButton>
-                        <Checkbox edge="end" checked={t.completed} onChange={() => void toggleDone(t)} />
+                        {canModifyTask(t) ? (
+                          <IconButton
+                            size="small"
+                            aria-label="Task options"
+                            onClick={(e) => setTaskRowMenu({ anchor: e.currentTarget, task: t })}
+                          >
+                            <MoreHorizIcon sx={{ color: tripooColors.textHint, fontSize: 22 }} />
+                          </IconButton>
+                        ) : null}
+                        <Checkbox
+                          edge="end"
+                          checked={t.completed}
+                          onChange={() => void toggleDone(t)}
+                          disabled={!canManage}
+                          sx={{ opacity: canManage ? 1 : 0.45 }}
+                        />
                       </Stack>
                     }
                   >
@@ -716,7 +739,7 @@ export default function TasksPage() {
           </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 2.25, pb: 2, flexDirection: 'column', gap: 1, alignItems: 'stretch' }}>
-          {edit ? (
+          {edit && canModifyTask(edit) ? (
             <Button color="error" variant="outlined" onClick={() => void onDelete(edit)}>
               Delete task
             </Button>
@@ -732,25 +755,29 @@ export default function TasksPage() {
         open={Boolean(taskRowMenu)}
         onClose={() => setTaskRowMenu(null)}
       >
-        <MenuItem
-          onClick={() => {
-            const row = taskRowMenu
-            setTaskRowMenu(null)
-            if (row) openEdit(row.task)
-          }}
-        >
-          Edit
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            const row = taskRowMenu
-            setTaskRowMenu(null)
-            if (row) void onDelete(row.task)
-          }}
-          sx={{ color: tripooColors.red }}
-        >
-          Delete
-        </MenuItem>
+        {taskRowMenu?.task && canModifyTask(taskRowMenu.task) ? (
+          <>
+            <MenuItem
+              onClick={() => {
+                const row = taskRowMenu
+                setTaskRowMenu(null)
+                if (row) openEdit(row.task)
+              }}
+            >
+              Edit
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                const row = taskRowMenu
+                setTaskRowMenu(null)
+                if (row) void onDelete(row.task)
+              }}
+              sx={{ color: tripooColors.red }}
+            >
+              Delete
+            </MenuItem>
+          </>
+        ) : null}
       </Menu>
     </>
   )

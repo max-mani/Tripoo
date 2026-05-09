@@ -164,6 +164,7 @@ export default function GroupsPage() {
 
   const subtitle = `${members.length} PARTICIPANTS · ${formatTripDates(trip.startDate, trip.endDate).toUpperCase()}`
   const base = `/trips/${tripId}`
+  const isOrganiser = Boolean(firebaseUser && trip.adminId === firebaseUser.uid)
 
   const header = (
     <Box
@@ -222,14 +223,16 @@ export default function GroupsPage() {
             <EditIcon sx={{ fontSize: 18, mr: 1 }} /> Edit trip
           </MenuItem>
         )}
-        <MenuItem
-          onClick={() => {
-            setMenuEl(null)
-            void onConfirmDelete()
-          }}
-        >
-          <DeleteOutlineIcon sx={{ fontSize: 18, mr: 1 }} /> Delete trip
-        </MenuItem>
+        {isOrganiser ? (
+          <MenuItem
+            onClick={() => {
+              setMenuEl(null)
+              void onConfirmDelete()
+            }}
+          >
+            <DeleteOutlineIcon sx={{ fontSize: 18, mr: 1 }} /> Delete trip
+          </MenuItem>
+        ) : null}
       </Menu>
     </Box>
   )

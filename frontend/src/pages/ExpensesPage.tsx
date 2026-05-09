@@ -265,6 +265,7 @@ export default function ExpensesPage() {
       splitWith: resolvedSplit,
       timestamp: expenseDateMs,
       settled: edit?.settled ?? false,
+      createdBy: edit?.createdBy,
     }
     if (!exp.title) return
     if (edit) {
@@ -291,6 +292,17 @@ export default function ExpensesPage() {
 
   const oweArrow = trends.oweTrendPct >= 0 ? '▲' : '▼'
   const owedArrow = trends.owedTrendPct >= 0 ? '▲' : '▼'
+
+  const uid = firebaseUser?.uid ?? ''
+
+  function canModifyExpense(e: Expense): boolean {
+    if (canManage) return true
+    return Boolean(e.createdBy && uid && e.createdBy === uid)
+  }
+
+  function showExpenseRowMenu(e: Expense): boolean {
+    return canModifyExpense(e) || (canManage && !e.settled)
+  }
 
   const header = (
     <Box>
@@ -634,6 +646,7 @@ export default function ExpensesPage() {
                       <ListItem
                         sx={{ alignItems: 'flex-start', pr: 1 }}
                         secondaryAction={
+                          showExpenseRowMenu(e) ? (
                           <IconButton
                             edge="end"
                             size="small"
@@ -642,6 +655,7 @@ export default function ExpensesPage() {
                           >
                             <MoreHorizIcon sx={{ color: tripooColors.textHint }} />
                           </IconButton>
+                          ) : null
                         }
                       >
                         <Box
@@ -1004,7 +1018,7 @@ export default function ExpensesPage() {
           </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 2.25, pb: 2, pt: 0, flexDirection: 'column', gap: 1, alignItems: 'stretch' }}>
-          {edit ? (
+          {edit && canModifyExpense(edit) ? (
             <Button color="error" variant="outlined" onClick={() => void onDelete(edit)}>
               Delete expense
             </Button>
@@ -1033,15 +1047,17 @@ export default function ExpensesPage() {
         open={Boolean(expenseRowMenu)}
         onClose={() => setExpenseRowMenu(null)}
       >
-        <MenuItem
-          onClick={() => {
-            const row = expenseRowMenu
-            setExpenseRowMenu(null)
-            if (row) openEdit(row.expense)
-          }}
-        >
-          Edit
-        </MenuItem>
+        {expenseRowMenu?.expense && canModifyExpense(expenseRowMenu.expense) ? (
+          <MenuItem
+            onClick={() => {
+              const row = expenseRowMenu
+              setExpenseRowMenu(null)
+              if (row) openEdit(row.expense)
+            }}
+          >
+            Edit
+          </MenuItem>
+        ) : null}
         {canManage && expenseRowMenu?.expense && !expenseRowMenu.expense.settled ? (
           <MenuItem
             onClick={() => {
@@ -1053,16 +1069,18 @@ export default function ExpensesPage() {
             Mark as settled
           </MenuItem>
         ) : null}
-        <MenuItem
-          onClick={() => {
-            const row = expenseRowMenu
-            setExpenseRowMenu(null)
-            if (row) void onDelete(row.expense)
-          }}
-          sx={{ color: tripooColors.red }}
-        >
-          Delete
-        </MenuItem>
+        {expenseRowMenu?.expense && canModifyExpense(expenseRowMenu.expense) ? (
+          <MenuItem
+            onClick={() => {
+              const row = expenseRowMenu
+              setExpenseRowMenu(null)
+              if (row) void onDelete(row.expense)
+            }}
+            sx={{ color: tripooColors.red }}
+          >
+            Delete
+          </MenuItem>
+        ) : null}
       </Menu>
     </>
   )

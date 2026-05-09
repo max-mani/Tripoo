@@ -11,7 +11,7 @@ import {
   setDoc,
   type Unsubscribe,
 } from 'firebase/firestore'
-import { db } from '../firebase'
+import { db, auth } from '../firebase'
 import type { Expense } from '../types/models'
 
 export function parseExpense(id: string, data: Record<string, unknown> | undefined): Expense | null {
@@ -19,6 +19,8 @@ export function parseExpense(id: string, data: Record<string, unknown> | undefin
   return {
     id,
     title: String(data.title ?? ''),
+    createdBy:
+      data.createdBy != null && String(data.createdBy).trim() !== '' ? String(data.createdBy) : undefined,
     amount: Number(data.amount ?? 0),
     category: String(data.category ?? 'other'),
     paidBy: String(data.paidBy ?? ''),
@@ -50,6 +52,7 @@ export function subscribeExpenses(tripId: string, cb: (rows: Expense[]) => void)
 }
 
 export async function addExpense(tripId: string, expense: Omit<Expense, 'id'>): Promise<string> {
+  const uid = auth.currentUser?.uid ?? ''
   const ref = doc(collection(db, 'trips', tripId, 'expenses'))
   await setDoc(ref, {
     title: expense.title,
@@ -59,6 +62,7 @@ export async function addExpense(tripId: string, expense: Omit<Expense, 'id'>): 
     splitWith: expense.splitWith,
     timestamp: expense.timestamp,
     settled: expense.settled,
+    createdBy: expense.createdBy?.trim() || uid,
   })
   return ref.id
 }
@@ -68,6 +72,11 @@ export async function updateExpense(tripId: string, expense: Expense): Promise<v
   const existing = await getDoc(ref)
   const existingSettled = existing.exists() && existing.get('settled') === true
   const finalSettled = expense.settled || existingSettled
+  const priorCreated =
+    existing.exists() && existing.get('createdBy') != null
+      ? String(existing.get('createdBy'))
+      : ''
+  const createdBy = priorCreated.trim() || expense.createdBy?.trim() || ''
   await updateDoc(ref, {
     title: expense.title,
     amount: expense.amount,
@@ -76,6 +85,7 @@ export async function updateExpense(tripId: string, expense: Expense): Promise<v
     splitWith: expense.splitWith,
     timestamp: expense.timestamp,
     settled: finalSettled,
+    createdBy,
   })
 }
 

@@ -329,9 +329,8 @@ export async function deleteTripForCurrentUser(
   uid: string,
   organiserUid: string,
 ): Promise<void> {
-  const allowed = await canUserManageTripAsLeader(tripId, uid)
-  if (!allowed) {
-    throw new Error('Only the organiser or a co-organiser can delete this trip')
+  if (uid !== organiserUid) {
+    throw new Error('Only the trip organiser can delete this trip')
   }
   await deleteTripAsLeader(tripId, organiserUid)
   await removeTripFromUser(uid, tripId)
