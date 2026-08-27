@@ -59,10 +59,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
-                    android:text="Set up your Tripoo profile"
+                    android:text="@string/signup_profile_subtitle"
                     android:textColor="@color/tripoo_text_secondary"
-                    android:textSize="11sp"
-                    tools:ignore="HardcodedText" />
+                    android:textSize="11sp" />
             </LinearLayout>
         </LinearLayout>
 
@@ -106,7 +105,7 @@
                             android:contentDescription="@null"
                             android:scaleType="centerCrop"
                             android:visibility="gone"
-                            tools:src="@drawable/ic_tripoo_logo" />
+                            tools:src="@drawable/ic_ulla_logo" />
 
                         <ImageView
                             android:id="@+id/ivAvatarIcon"

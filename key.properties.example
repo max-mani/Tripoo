@@ -1,0 +1,6 @@
+# Copy to key.properties in the project root (never commit key.properties).
+# Use the upload keystore registered with Google Play — see KEYSTORE_README.md.
+storeFile=upload-keystore.jks
+storePassword=YOUR_STORE_PASSWORD
+keyAlias=YOUR_KEY_ALIAS
+keyPassword=YOUR_KEY_PASSWORD

@@ -1,5 +1,6 @@
 <resources>
-    <string name="app_name">Tripoo</string>
+    <string name="app_name">Ulla</string>
+    <string name="signup_profile_subtitle">Set up your Ulla profile</string>
     <string name="save">Save</string>
 
     <string-array name="task_categories">
@@ -27,7 +28,7 @@
     <string name="save_changes">Save changes</string>
     <string name="add_task">Add task</string>
 
-    <string name="notification_default_title">Tripoo</string>
+    <string name="notification_default_title">Ulla</string>
     <string name="notification_default_body">You have a trip update.</string>
     <string name="notification_channel_trip_name">Trip updates</string>
     <string name="notification_channel_trip_desc">Alerts when your trips, expenses, tasks, or members change.</string>
@@ -48,7 +49,7 @@
     <string name="groups_role_member">Member</string>
     <string name="groups_make_co_organiser">Make co-organiser</string>
     <string name="groups_remove_co_organiser">Remove co-organiser</string>
-    <string name="groups_invite_share">Join my Tripoo trip with code: %1$s</string>
+    <string name="groups_invite_share">Join my Ulla trip with code: %1$s</string>
     <string name="groups_leave_confirm_title">Leave this trip?</string>
     <string name="groups_leave_confirm_message">You can rejoin later with the trip code if you still have access.</string>
     <string name="groups_transfer_title">Transfer organiser role</string>
@@ -62,7 +63,7 @@
     <string name="groups_remove_member_message">%1$s will lose access to this trip. You can invite them again with the trip code.</string>
 
     <string name="update_available_title">Update available</string>
-    <string name="update_available_message">A newer version of Tripoo is on Google Play. Update for the latest fixes and features.</string>
+    <string name="update_available_message">A newer version of Ulla is on Google Play. Update for the latest fixes and features.</string>
     <string name="update_available_confirm">Update</string>
     <string name="update_available_later">Later</string>
 </resources>

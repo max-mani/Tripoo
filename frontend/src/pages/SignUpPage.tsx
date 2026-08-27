@@ -121,7 +121,7 @@ export default function SignUpPage() {
             Create Account
           </Typography>
           <Typography sx={{ fontSize: 11, color: tripooColors.textSecondary, mt: 0.1 }}>
-            Set up your Tripoo profile
+            Set up your Ulla profile
           </Typography>
         </Box>
       </Box>

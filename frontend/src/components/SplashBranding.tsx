@@ -1,5 +1,5 @@
 import { Box, CircularProgress, Typography } from '@mui/material'
-import { TripooRocketLogo } from './TripooRocketLogo'
+import { UllaLogo } from './UllaLogo'
 import { tripooColors } from '../theme'
 
 /** Full-screen splash: `fragment_splash.xml` (84dp tile uses `bg_splash_icon_box` #33FFFFFF). */
@@ -30,7 +30,7 @@ export function SplashBranding() {
             justifyContent: 'center',
           }}
         >
-          <TripooRocketLogo size={40} color="#FFFFFF" />
+          <UllaLogo size={64} variant="full" />
         </Box>
         <Typography
           sx={{
@@ -41,7 +41,7 @@ export function SplashBranding() {
             lineHeight: 1.05,
           }}
         >
-          Tripoo
+          Ulla
         </Typography>
         <Typography
           sx={{

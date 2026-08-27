@@ -106,7 +106,7 @@ export default function GroupsPage() {
   }
   async function onInviteShare() {
     const code = trip.joinCode
-    const text = `Join my Tripoo trip! Code: ${code}`
+    const text = `Join my Ulla trip! Code: ${code}`
     try {
       if (navigator.share) {
         await navigator.share({ text })

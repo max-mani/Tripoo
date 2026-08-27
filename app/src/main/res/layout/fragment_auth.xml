@@ -51,23 +51,22 @@
 
                         <ImageView
                             android:id="@+id/ivLogoHero"
-                            android:layout_width="28dp"
-                            android:layout_height="28dp"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
                             android:layout_gravity="center"
                             android:contentDescription="@string/app_name"
-                            android:src="@drawable/ic_tripoo_logo"
-                            android:tint="@android:color/white" />
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_ulla_logo_circle" />
                     </FrameLayout>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Tripoo"
+                        android:text="@string/app_name"
                         android:textColor="@color/tripoo_surface"
                         android:textSize="32sp"
                         android:textStyle="bold"
-                        android:textFontWeight="900"
-                        tools:ignore="HardcodedText" />
+                        android:textFontWeight="900" />
                 </LinearLayout>
 
                 <TextView

@@ -26,12 +26,12 @@
 
             <ImageView
                 android:id="@+id/ivSplashIcon"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
                 android:layout_gravity="center"
                 android:contentDescription="@string/app_name"
-                android:src="@drawable/ic_tripoo_logo"
-                android:tint="@android:color/white" />
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_ulla_logo_circle" />
         </FrameLayout>
 
         <TextView
@@ -44,7 +44,7 @@
             android:fontWeight="900"
             android:letterSpacing="-0.035"
             android:textColor="@color/tripoo_surface"
-            tools:text="Tripoo" />
+            tools:text="Ulla" />
 
         <TextView
             android:id="@+id/tvSubtitle"

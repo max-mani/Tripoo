@@ -723,7 +723,7 @@ export default function ProfilePage() {
         <DialogTitle>Delete account</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary">
-            Full account deletion (including trip cleanup) is available in the Tripoo Android app. On the web you can
+            Full account deletion (including trip cleanup) is available in the Ulla Android app. On the web you can
             sign out and contact support if you need your data removed.
           </Typography>
         </DialogContent>

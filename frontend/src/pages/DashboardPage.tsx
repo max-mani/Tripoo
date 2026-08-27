@@ -132,9 +132,15 @@ export default function DashboardPage() {
       >
         <Box
           component="img"
-          src="/tripoo-logo.svg"
+          src="/ulla-logo.png"
           alt=""
-          sx={{ width: 23, height: 23 }}
+          sx={{
+            width: 23,
+            height: 23,
+            borderRadius: '50%',
+            objectFit: 'contain',
+            display: 'block',
+          }}
         />
         <Typography
           sx={{
@@ -144,7 +150,7 @@ export default function DashboardPage() {
             letterSpacing: -0.3,
           }}
         >
-          Tripoo
+          Ulla
         </Typography>
         <Box sx={{ flex: 1 }} />
         <DashboardProfileAvatar onClick={() => navigate('/profile')} />

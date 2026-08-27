@@ -15,7 +15,7 @@ import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import LoginIcon from '@mui/icons-material/Login'
 import { useAuth } from '../context/AuthContext'
-import { TripooRocketLogo } from '../components/TripooRocketLogo'
+import { UllaLogo } from '../components/UllaLogo'
 import { tripooColors } from '../theme'
 
 /** Matches `fragment_auth.xml`: hero gradient, logo row, tagline, elevated sign-in card, outline inputs. */
@@ -124,16 +124,16 @@ export default function LoginPage() {
               sx={{
                 width: 52,
                 height: 52,
-                borderRadius: '50%',
+                borderRadius: '26px',
                 bgcolor: 'rgba(255,255,255,0.2)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <TripooRocketLogo size={28} color={tripooColors.surface} />
+              <UllaLogo size={44} variant="full" />
             </Box>
-            <Typography sx={{ fontWeight: 900, fontSize: 32, color: tripooColors.surface }}>Tripoo</Typography>
+            <Typography sx={{ fontWeight: 900, fontSize: 32, color: tripooColors.surface }}>Ulla</Typography>
           </Stack>
           <Typography
             sx={{

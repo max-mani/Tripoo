@@ -49,7 +49,7 @@ import { bgForSeed, letterFromName, textColorForSeed } from '../lib/avatarIdenti
 import { tripooColors } from '../theme'
 import { TripTabScaffold } from '../components/TripTabScaffold'
 import { FAB_BOTTOM_FROM_VIEWPORT } from '../lib/tripChrome'
-import { TripooRocketLogo } from '../components/TripooRocketLogo'
+import { UllaLogo } from '../components/UllaLogo'
 import { photoSrcForDisplay } from '../lib/imageToBase64'
 import { useAuth } from '../context/AuthContext'
 
@@ -255,7 +255,7 @@ export default function TasksPage() {
             <ArrowBackIosNewIcon sx={{ fontSize: 16, ml: 0.5 }} />
           </IconButton>
           <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: 1, minWidth: 0 }}>
-            <TripooRocketLogo size={23} color={tripooColors.orange} />
+            <UllaLogo size={23} variant="full" />
             <Typography sx={{ fontWeight: 900, fontSize: 18 }} noWrap>
               {trip.name}
             </Typography>

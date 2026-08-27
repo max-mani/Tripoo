@@ -1,6 +1,6 @@
-# Tripoo — Group trip planner
+# Ulla — Group trip planner
 
-Android app for planning group trips: shared trip hub, expenses, tasks, and participants, backed by Firebase (Auth, Firestore, Storage). Local trip alerts use Firestore fan-out documents plus WorkManager (no FCM server or Cloud Functions required for notifications).
+Android and web app for planning group trips: shared trip hub, expenses, tasks, and participants, backed by Firebase (Auth, Firestore, Storage). Local trip alerts use Firestore fan-out documents plus WorkManager (no FCM server or Cloud Functions required for notifications).
 
 ## Features
 
@@ -25,7 +25,7 @@ Android app for planning group trips: shared trip hub, expenses, tasks, and part
 | **Min SDK** | 24 |
 | **Target / compile SDK** | 36 |
 | **Java / Kotlin JVM** | 17 |
-| **Version** | `versionName` **1.3.2** (`versionCode` **8**) — see `app/build.gradle.kts` |
+| **Version** | `versionName` **2.1.1** (`versionCode` **14**) — see `app/build.gradle.kts` |
 | **Android Gradle Plugin** | 8.9.1 (`gradle/libs.versions.toml`) |
 | **Kotlin** | 1.9.0 |
 | **Gradle wrapper** | 8.11.1 (`gradle/wrapper/gradle-wrapper.properties`) |

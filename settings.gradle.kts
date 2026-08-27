@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Tripoo"
+rootProject.name = "Ulla"
 include(":app")
  

@@ -370,7 +370,7 @@ public class ProfileFragment extends Fragment {
     private void showDeleteAccountConfirm(View view) {
         themedDialog()
                 .setTitle("Delete account?")
-                .setMessage("This will remove you from all trips, delete your Tripoo profile data, and delete your sign-in account. This cannot be undone.")
+                .setMessage("This will remove you from all trips, delete your Ulla profile data, and delete your sign-in account. This cannot be undone.")
                 .setPositiveButton("Delete", (d, w) -> viewModel.deleteAccount())
                 .setNegativeButton(android.R.string.cancel, null)
                 .show();

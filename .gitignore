@@ -22,6 +22,10 @@ key.properties
 *.jks
 upload-keystore.jks
 
+# Play / local release artifacts
+*.aab
+app/release/
+
 # Web frontend
 frontend/node_modules
 frontend/dist

@@ -105,7 +105,7 @@ public class MemberCheckboxAdapter extends RecyclerView.Adapter<MemberCheckboxAd
                 Glide.with(binding.getRoot())
                         .load(photoUrl)
                         .circleCrop()
-                        .placeholder(R.drawable.ic_launcher_foreground)
+                        .placeholder(R.mipmap.ic_launcher_foreground)
                         .into(binding.ivMemberPhoto);
                 return;
             }
@@ -114,7 +114,7 @@ public class MemberCheckboxAdapter extends RecyclerView.Adapter<MemberCheckboxAd
                 Glide.with(binding.getRoot())
                         .load(bitmap)
                         .circleCrop()
-                        .placeholder(R.drawable.ic_launcher_foreground)
+                        .placeholder(R.mipmap.ic_launcher_foreground)
                         .into(binding.ivMemberPhoto);
             }
         }

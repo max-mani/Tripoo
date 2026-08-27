@@ -41,6 +41,7 @@
                     <ImageView
                         android:layout_width="23dp"
                         android:layout_height="23dp"
+                        android:scaleType="fitCenter"
                         android:src="@drawable/ic_logo_rocket"
                         android:contentDescription="@null" />
 

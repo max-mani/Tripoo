@@ -8,23 +8,34 @@ plugins {
     id("kotlin-parcelize")
 }
 
+val keystorePropertiesFile = rootProject.file("key.properties")
+val keystoreProperties = Properties()
+val hasReleaseKeystore = keystorePropertiesFile.isFile
+
+if (hasReleaseKeystore) {
+    keystoreProperties.load(keystorePropertiesFile.inputStream())
+}
+
+fun requireKeystoreProperty(name: String): String {
+    return keystoreProperties.getProperty(name)?.trim()?.takeIf { it.isNotEmpty() }
+        ?: error("key.properties is missing or empty: $name")
+}
+
 android {
     namespace = "com.manikandan.tripoo"
     compileSdk = 36
 
-    val keystorePropertiesFile = rootProject.file("key.properties")
-    val keystoreProperties = Properties()
-    if (keystorePropertiesFile.exists()) {
-        keystoreProperties.load(keystorePropertiesFile.inputStream())
-    }
-
     signingConfigs {
-        create("release") {
-            if (keystorePropertiesFile.exists()) {
-                keyAlias = keystoreProperties["keyAlias"] as String
-                keyPassword = keystoreProperties["keyPassword"] as String
-                storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
-                storePassword = keystoreProperties["storePassword"] as String
+        if (hasReleaseKeystore) {
+            create("release") {
+                keyAlias = requireKeystoreProperty("keyAlias")
+                keyPassword = requireKeystoreProperty("keyPassword")
+                storePassword = requireKeystoreProperty("storePassword")
+                val store = rootProject.file(requireKeystoreProperty("storeFile"))
+                if (!store.isFile) {
+                    error("Keystore not found: ${store.absolutePath}")
+                }
+                storeFile = store
             }
         }
     }
@@ -33,15 +44,17 @@ android {
         applicationId = "com.manikandan.tripoo"
         minSdk = 24
         targetSdk = 36
-        versionCode = 11
-        versionName = "1.6.1"
+        versionCode = 14
+        versionName = "2.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            if (hasReleaseKeystore) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -109,4 +122,22 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+}
+
+listOf("assembleRelease", "bundleRelease").forEach { taskName ->
+    tasks.matching { it.name == taskName }.configureEach {
+        doFirst {
+            if (!hasReleaseKeystore) {
+                throw GradleException(
+                    """
+                    |Release signing is not configured.
+                    |1. Copy key.properties.example → key.properties
+                    |2. Put your Play upload keystore in the project root (see KEYSTORE_README.md)
+                    |3. Fill in storeFile, storePassword, keyAlias, keyPassword
+                    |4. Run: ./gradlew :app:bundleRelease
+                    """.trimMargin(),
+                )
+            }
+        }
+    }
 }
