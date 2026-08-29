@@ -10,6 +10,14 @@ export interface Trip {
   joinCode: string
   memberIds: string[]
   status: string
+  type?: string
+}
+
+export interface RecentCollaborator {
+  uid: string
+  name: string
+  photoUrl?: string | null
+  lastSeenAt: number
 }
 
 export interface User {
@@ -24,6 +32,8 @@ export interface User {
   lastActiveTripId?: string | null
   avatarLetter?: string | null
   avatarColorHex?: string | null
+  /** Android-owned; web must not strip this on user writes. */
+  recentCollaborators?: RecentCollaborator[]
 }
 
 export interface TripMember {
@@ -47,6 +57,16 @@ export interface Expense {
   splitWith: string[]
   timestamp: number
   settled: boolean
+}
+
+export interface Settlement {
+  id: string
+  fromUserId: string
+  toUserId: string
+  amount: number
+  note?: string | null
+  createdBy: string
+  timestamp: number
 }
 
 export interface Task {

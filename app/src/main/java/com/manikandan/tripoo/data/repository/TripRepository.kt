@@ -5,6 +5,7 @@ import com.manikandan.tripoo.data.model.Trip
 import com.manikandan.tripoo.data.model.TripMember
 import com.manikandan.tripoo.data.model.User
 import com.manikandan.tripoo.notifications.FanoutNotificationPublisher
+import com.manikandan.tripoo.notifications.FanoutTypes
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
@@ -90,7 +91,7 @@ class TripRepository {
                 tripId,
                 tripName,
                 "${member.name} joined the trip",
-                "member_joined"
+                FanoutTypes.MEMBER_JOINED
             )
             tripId
         } catch (e: Exception) {
@@ -171,7 +172,7 @@ class TripRepository {
             tripId,
             name.ifBlank { "Trip" },
             "Trip details were updated",
-            "trip_edited"
+            FanoutTypes.TRIP_EDITED
         )
     }
 
@@ -394,7 +395,7 @@ class TripRepository {
             tripId,
             tripName,
             "$removedName was removed from the trip",
-            "member_removed"
+            FanoutTypes.MEMBER_REMOVED
         )
         val batch = db.batch()
         batch.delete(trips.document(tripId).collection("members").document(targetUserId))
@@ -477,7 +478,7 @@ class TripRepository {
                 tripId,
                 tripName,
                 "${me.name} left the trip",
-                "member_left"
+                FanoutTypes.MEMBER_LEFT
             )
             val batch = db.batch()
             batch.delete(trips.document(tripId).collection("members").document(uid))
@@ -534,7 +535,7 @@ class TripRepository {
                 tripId,
                 tripName,
                 "Trip admin was transferred",
-                "admin_transfer"
+                FanoutTypes.ADMIN_TRANSFER
             )
             val batch = db.batch()
             val membersRef = trips.document(tripId).collection("members")
@@ -560,7 +561,7 @@ class TripRepository {
                 tripId,
                 tripName,
                 "This trip was deleted",
-                "trip_deleted"
+                FanoutTypes.TRIP_DELETED
             )
 
             // 1) Delete expenses + tasks (batched)
@@ -575,6 +576,9 @@ class TripRepository {
 
             deleteSubcollection("expenses")
             deleteSubcollection("tasks")
+            deleteSubcollection("settlements")
+            deleteSubcollection("itinerary")
+            deleteSubcollection("polls")
 
             // 2) Delete members except admin (keep admin member doc so isAdmin() continues to pass)
             val memberDocs = tripRef.collection("members").get().await().documents

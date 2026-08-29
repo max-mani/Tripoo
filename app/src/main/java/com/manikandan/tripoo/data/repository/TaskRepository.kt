@@ -2,6 +2,7 @@ package com.manikandan.tripoo.data.repository
 
 import com.manikandan.tripoo.data.model.Task
 import com.manikandan.tripoo.notifications.FanoutNotificationPublisher
+import com.manikandan.tripoo.notifications.FanoutTypes
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -30,7 +31,7 @@ class TaskRepository {
                 tripId,
                 "Task",
                 "New task: ${toSave.title}",
-                "task_added"
+                FanoutTypes.TASK_ADDED
             )
         } catch (e: Exception) {
             throw e
@@ -57,7 +58,7 @@ class TaskRepository {
                 tripId,
                 "Task",
                 if (completed) "Task completed: $t" else "Task updated: $t",
-                "task_edited"
+                FanoutTypes.TASK_EDITED
             )
         } catch (e: Exception) {
             throw e
@@ -130,7 +131,7 @@ class TaskRepository {
                 tripId,
                 "Task",
                 "Task updated: ${task.title}",
-                "task_edited"
+                FanoutTypes.TASK_EDITED
             )
         } catch (e: Exception) {
             throw e
@@ -157,7 +158,7 @@ class TaskRepository {
                 tripId,
                 "Task",
                 "Task deleted: $title",
-                "task_deleted"
+                FanoutTypes.TASK_DELETED
             )
         } catch (e: Exception) {
             throw e

@@ -15,6 +15,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import com.bumptech.glide.Glide;
 import com.manikandan.tripoo.R;
+import com.manikandan.tripoo.data.model.Trip;
 import com.manikandan.tripoo.data.repository.AuthRepository;
 import com.manikandan.tripoo.data.repository.UserRepository;
 import com.manikandan.tripoo.databinding.FragmentJoinTripBinding;
@@ -85,7 +86,17 @@ public class JoinTripFragment extends Fragment {
             binding.btnBack.setOnClickListener(v -> Navigation.findNavController(view).popBackStack());
         }
         if (binding.tvCreateTrip != null) {
-            binding.tvCreateTrip.setOnClickListener(v -> Navigation.findNavController(view).navigate(R.id.action_join_to_create));
+            getChildFragmentManager().setFragmentResultListener(
+                    CreateChoiceBottomSheet.REQUEST_KEY,
+                    getViewLifecycleOwner(),
+                    (key, bundle) -> {
+                        String type = bundle.getString(CreateChoiceBottomSheet.RESULT_TYPE, Trip.TYPE_TRIP);
+                        Bundle args = new Bundle();
+                        args.putString("type", type);
+                        Navigation.findNavController(view).navigate(R.id.action_join_to_create, args);
+                    });
+            binding.tvCreateTrip.setOnClickListener(v ->
+                    new CreateChoiceBottomSheet().show(getChildFragmentManager(), CreateChoiceBottomSheet.TAG));
         }
         if (binding.tvJoinChange != null) {
             binding.tvJoinChange.setOnClickListener(v ->

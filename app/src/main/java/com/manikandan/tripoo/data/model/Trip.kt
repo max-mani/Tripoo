@@ -11,5 +11,13 @@ data class Trip(
     val adminId: String = "",
     val joinCode: String = "",
     val memberIds: List<String> = emptyList(),
-    val status: String = "upcoming"
-)
+    val status: String = "upcoming",
+    val type: String = TYPE_TRIP
+) {
+    fun isOuting(): Boolean = type == TYPE_OUTING
+
+    companion object {
+        const val TYPE_TRIP = "trip"
+        const val TYPE_OUTING = "outing"
+    }
+}

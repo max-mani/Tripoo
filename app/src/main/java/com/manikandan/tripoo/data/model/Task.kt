@@ -14,6 +14,13 @@ data class Task(
     /** Set by Cloud Functions after a deadline notification is sent. */
     val deadlineNotified: Boolean = false
 ) {
+    /** Leader, or the specific assignee — not "everyone". */
+    fun canToggleCompletion(uid: String, isLeader: Boolean): Boolean {
+        if (uid.isBlank()) return false
+        if (isLeader) return true
+        val a = assignedTo
+        return a.isNotBlank() && !a.equals("everyone", ignoreCase = true) && a == uid
+    }
     companion object {
         const val CATEGORY_BOOKING = "booking"
         const val CATEGORY_PACKING = "packing"

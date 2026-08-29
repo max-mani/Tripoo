@@ -140,6 +140,7 @@
 
                 <!-- Trip Name (new, UI only) -->
                 <TextView
+                    android:id="@+id/tvTripNameLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     style="@style/Tripoo.Text.SectionLabel"
@@ -177,6 +178,7 @@
 
                 <!-- Destination (reuses existing etPlace ID) -->
                 <TextView
+                    android:id="@+id/tvDestinationLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     style="@style/Tripoo.Text.SectionLabel"
@@ -211,6 +213,89 @@
                         android:singleLine="true"
                         tools:ignore="HardcodedText" />
                 </FrameLayout>
+
+                <LinearLayout
+                    android:id="@+id/llOutingCategory"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="14dp"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        style="@style/Tripoo.Text.SectionLabel"
+                        android:text="Category (optional)"
+                        android:layout_marginBottom="6dp"
+                        tools:ignore="HardcodedText" />
+
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="none">
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/chipCategoryGroup"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:selectionRequired="false"
+                            app:singleSelection="true">
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipCatFood"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="🍽 Food"
+                                android:tag="Food"
+                                tools:ignore="HardcodedText" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipCatMovie"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="🎬 Movie"
+                                android:tag="Movie"
+                                tools:ignore="HardcodedText" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipCatParty"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="🎉 Party"
+                                android:tag="Party"
+                                tools:ignore="HardcodedText" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipCatShopping"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="🛍 Shopping"
+                                android:tag="Shopping"
+                                tools:ignore="HardcodedText" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipCatOther"
+                                style="@style/Widget.MaterialComponents.Chip.Choice"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="📦 Other"
+                                android:tag="Other"
+                                tools:ignore="HardcodedText" />
+                        </com.google.android.material.chip.ChipGroup>
+                    </HorizontalScrollView>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/llTripScheduleFields"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
                 <!-- Dates -->
                 <LinearLayout
@@ -310,7 +395,15 @@
                         tools:ignore="HardcodedText" />
                 </FrameLayout>
 
+                </LinearLayout>
+
                 <!-- Description (UI only) -->
+                <LinearLayout
+                    android:id="@+id/llTripDescriptionFields"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -333,6 +426,7 @@
                     android:textColorHint="#BBA898"
                     android:textSize="15sp"
                     tools:ignore="HardcodedText" />
+                </LinearLayout>
 
                 <!-- Invite members (visual) -->
                 <com.google.android.material.card.MaterialCardView
@@ -395,6 +489,7 @@
                         </LinearLayout>
 
                         <TextView
+                            android:id="@+id/tvInviteCopy"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="A unique join code will be generated after creating the trip. Share it with your group to let them join instantly!"

@@ -49,4 +49,15 @@ public class DateFormatter {
         if (epochMillis <= 0) return "";
         return DATE_TIME_FORMAT.format(new Date(epochMillis));
     }
+
+    /** End of the local calendar day containing [epochMillis] (23:59:59.999). */
+    public static long endOfLocalDayMillis(long epochMillis) {
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.setTimeInMillis(epochMillis);
+        cal.set(java.util.Calendar.HOUR_OF_DAY, 23);
+        cal.set(java.util.Calendar.MINUTE, 59);
+        cal.set(java.util.Calendar.SECOND, 59);
+        cal.set(java.util.Calendar.MILLISECOND, 999);
+        return cal.getTimeInMillis();
+    }
 }

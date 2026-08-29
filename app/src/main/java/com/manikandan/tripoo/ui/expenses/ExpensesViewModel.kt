@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.manikandan.tripoo.data.model.Expense
+import com.manikandan.tripoo.data.model.Settlement
 import com.manikandan.tripoo.data.model.Trip
 import com.manikandan.tripoo.data.model.TripMember
 import com.manikandan.tripoo.data.repository.AuthRepository
@@ -17,7 +18,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-enum class ExpenseFilter { ALL, MY_SPENDING, SETTLED, STATS }
+enum class ExpenseFilter { ALL, MY_SPENDING, SETTLE_UP, STATS }
 
 class ExpensesViewModel(
     savedStateHandle: SavedStateHandle
@@ -36,15 +37,19 @@ class ExpensesViewModel(
     val owedTrendPct = MutableLiveData(0)
     val tabAllItems = MutableLiveData<List<ExpenseAdapter.ExpenseListItem>>(emptyList())
     val tabMyItems = MutableLiveData<List<ExpenseAdapter.ExpenseListItem>>(emptyList())
-    val tabSettledItems = MutableLiveData<List<ExpenseAdapter.ExpenseListItem>>(emptyList())
     val statsData = MutableLiveData(ExpenseStats())
     val isLoading = MutableLiveData(true)
     val errorMessage = MutableLiveData<String?>()
+    val netBalances = MutableLiveData<Map<String, Double>>(emptyMap())
+    val suggestedPayments = MutableLiveData<List<SettlementCalculator.SuggestedPayment>>(emptyList())
+    val mySuggestedPayments = MutableLiveData<List<SettlementCalculator.SuggestedPayment>>(emptyList())
+    val settlements = MutableLiveData<List<Settlement>>(emptyList())
 
     val currentUserId: String
         get() = authRepo.getCurrentUser()?.uid ?: ""
 
     private var allExpenses: List<Expense> = emptyList()
+    private var allSettlements: List<Settlement> = emptyList()
 
     data class ExpenseStats(
         val total: Double = 0.0,
@@ -57,6 +62,7 @@ class ExpensesViewModel(
         loadTripAndMembers()
         loadPersistedSummary()
         collectExpenses()
+        collectSettlements()
     }
 
     private fun loadTripAndMembers() {
@@ -69,6 +75,20 @@ class ExpensesViewModel(
                 // Pass the freshly loaded list directly to avoid LiveData postValue race condition
                 // (postValue is async so members.value would still be null at this point)
                 processExpenses(allExpenses, memberList = list)
+            } catch (e: Exception) {
+                errorMessage.postValue(e.message)
+            }
+        }
+    }
+
+    private fun collectSettlements() {
+        viewModelScope.launch {
+            try {
+                expenseRepo.listenToSettlements(tripId).collect { list ->
+                    allSettlements = list
+                    settlements.postValue(list)
+                    processExpenses(allExpenses, memberList = members.value)
+                }
             } catch (e: Exception) {
                 errorMessage.postValue(e.message)
             }
@@ -98,23 +118,18 @@ class ExpensesViewModel(
         tabMyItems.postValue(
             buildItems(expenses.filter { it.paidBy == currentUserId || it.splitWith.contains(currentUserId) })
         )
-        tabSettledItems.postValue(
-            buildItems(expenses.filter { it.settled })
-        )
 
-        var owe = 0.0
-        var owed = 0.0
-        expenses.forEach { expense ->
-            if (expense.settled) return@forEach
-            val share = expense.amount / expense.splitWith.size.coerceAtLeast(1)
-            if (expense.paidBy != currentUserId && expense.splitWith.contains(currentUserId)) {
-                owe += share
-            } else if (expense.paidBy == currentUserId) {
-                owed += expense.splitWith.filter { it != currentUserId }.size * share
-            }
-        }
-        youOwe.postValue(owe)
-        youAreOwed.postValue(owed)
+        val memberIds = currentMembers.map { it.userId }.ifEmpty { trip.value?.memberIds.orEmpty() }
+        val nets = SettlementCalculator.computeNetBalances(expenses, allSettlements, memberIds)
+        val simplified = SettlementCalculator.simplifyDebts(nets)
+        netBalances.postValue(nets)
+        suggestedPayments.postValue(simplified)
+        mySuggestedPayments.postValue(
+            simplified.filter { it.fromUserId == currentUserId || it.toUserId == currentUserId }
+        )
+        val myNet = nets[currentUserId] ?: 0.0
+        youOwe.postValue(if (myNet < 0) -myNet else 0.0)
+        youAreOwed.postValue(if (myNet > 0) myNet else 0.0)
         computeWeeklyTrend(expenses)
 
         val total = expenses.sumOf { it.amount }
@@ -175,7 +190,6 @@ class ExpensesViewModel(
             var owe = 0.0
             var owed = 0.0
             list.forEach { e ->
-                if (e.settled) return@forEach
                 val share = e.amount / e.splitWith.size.coerceAtLeast(1)
                 if (e.paidBy != currentUserId && e.splitWith.contains(currentUserId)) owe += share
                 if (e.paidBy == currentUserId) owed += e.splitWith.filter { it != currentUserId }.size * share
@@ -232,23 +246,6 @@ class ExpensesViewModel(
         }
     }
 
-    fun markExpenseSettled(expenseId: String) {
-        if (expenseId.isBlank()) return
-        val expense = allExpenses.firstOrNull { it.id == expenseId } ?: return
-        val updated = expense.copy(settled = true)
-        allExpenses = allExpenses.map { if (it.id == expenseId) updated else it }
-        processExpenses(allExpenses, memberList = members.value)
-        viewModelScope.launch {
-            try {
-                expenseRepo.markExpenseSettled(tripId, expenseId, true)
-            } catch (e: Exception) {
-                allExpenses = allExpenses.map { if (it.id == expenseId) expense else it }
-                processExpenses(allExpenses, memberList = members.value)
-                errorMessage.postValue(e.message ?: "Failed to mark settled")
-            }
-        }
-    }
-
     fun refresh() {
         loadTripAndMembers()
         loadPersistedSummary()
@@ -285,6 +282,54 @@ class ExpensesViewModel(
         }
     }
 
+    fun addSettlement(fromUserId: String, toUserId: String, amount: Double, note: String?) {
+        if (amount <= SettlementCalculator.EPS) return
+        viewModelScope.launch {
+            try {
+                val names = members.value.orEmpty().associate { it.userId to it.name }
+                val fromName = names[fromUserId]?.takeIf { it.isNotBlank() } ?: "Someone"
+                val toName = names[toUserId]?.takeIf { it.isNotBlank() } ?: "Someone"
+                expenseRepo.addSettlement(
+                    tripId,
+                    Settlement(
+                        fromUserId = fromUserId,
+                        toUserId = toUserId,
+                        amount = amount,
+                        note = note?.trim()?.ifBlank { null },
+                        timestamp = System.currentTimeMillis()
+                    ),
+                    fromName,
+                    toName
+                )
+            } catch (e: Exception) {
+                errorMessage.postValue(e.message)
+            }
+        }
+    }
+
+    fun deleteSettlement(settlementId: String) {
+        if (settlementId.isBlank()) return
+        viewModelScope.launch {
+            try {
+                expenseRepo.deleteSettlement(tripId, settlementId)
+            } catch (e: Exception) {
+                errorMessage.postValue(e.message)
+            }
+        }
+    }
+
+    fun canDeleteSettlement(settlement: Settlement): Boolean {
+        if (settlement.createdBy == currentUserId) return true
+        val t = trip.value
+        if (t?.adminId == currentUserId) return true
+        return members.value.orEmpty().any { it.userId == currentUserId && it.isAdmin }
+    }
+
+    fun displayName(uid: String, names: Map<String, String> = members.value.orEmpty().associate { it.userId to it.name }): String {
+        if (uid == currentUserId) return "You"
+        return names[uid]?.takeIf { it.isNotBlank() } ?: "Someone"
+    }
+
     fun addExpense(expense: Expense) {
         viewModelScope.launch {
             try {
@@ -298,7 +343,6 @@ class ExpensesViewModel(
     fun getItemsForTab(tab: Int): LiveData<List<ExpenseAdapter.ExpenseListItem>> = when (tab) {
         0 -> tabAllItems
         1 -> tabMyItems
-        2 -> tabSettledItems
         else -> tabAllItems
     }
 }

@@ -1,7 +1,9 @@
 package com.manikandan.tripoo.data.repository
 
 import com.manikandan.tripoo.data.model.Expense
+import com.manikandan.tripoo.data.model.Settlement
 import com.manikandan.tripoo.notifications.FanoutNotificationPublisher
+import com.manikandan.tripoo.notifications.FanoutTypes
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -32,7 +34,8 @@ class ExpenseRepository {
             val ref = db.collection("trips").document(tripId).collection("expenses").document()
             val toSave = expense.copy(
                 id = ref.id,
-                createdBy = uid.ifBlank { expense.createdBy }
+                createdBy = uid.ifBlank { expense.createdBy },
+                settled = false
             )
             db.collection("trips").document(tripId).collection("expenses")
                 .document(ref.id).set(toSave).await()
@@ -40,7 +43,7 @@ class ExpenseRepository {
                 tripId,
                 "Expense",
                 "New expense: ${toSave.title}",
-                "expense_added"
+                FanoutTypes.EXPENSE_ADDED
             )
         } catch (e: Exception) {
             throw e
@@ -129,22 +132,6 @@ class ExpenseRepository {
         }
     }
 
-    suspend fun markExpenseSettled(tripId: String, expenseId: String, isSettled: Boolean = true) {
-        val ref = db.collection("trips").document(tripId).collection("expenses").document(expenseId)
-        val snap = ref.get().await()
-        val title = snap.getString("title").orEmpty().ifBlank { "Expense" }
-        val wasSettled = snap.getBoolean("settled") == true
-        ref.update("settled", isSettled).await()
-        if (isSettled && !wasSettled) {
-            FanoutNotificationPublisher.publishAsync(
-                tripId,
-                "Expense",
-                "Expense settled: $title",
-                "expense_settled"
-            )
-        }
-    }
-
     fun listenToExpenses(tripId: String, callback: (List<Expense>, Exception?) -> Unit): ListenerRegistration {
         return db.collection("trips").document(tripId).collection("expenses")
             .orderBy("timestamp", Query.Direction.DESCENDING)
@@ -175,10 +162,8 @@ class ExpenseRepository {
         try {
             val docRef = db.collection("trips").document(tripId).collection("expenses").document(expenseId)
             val existing = docRef.get().await()
-            // Read existing settled state; once settled it can never be unset
-            val existingSettled = existing.getBoolean("settled") == true
-            val finalSettled = expense.settled || existingSettled
             val existingCreatedBy = existing.getString("createdBy").orEmpty()
+            val existingSettled = existing.getBoolean("settled") == true
             val updates = mapOf(
                 "title" to expense.title,
                 "amount" to expense.amount,
@@ -186,25 +171,16 @@ class ExpenseRepository {
                 "paidBy" to expense.paidBy,
                 "splitWith" to expense.splitWith,
                 "timestamp" to expense.timestamp,
-                "settled" to finalSettled,
+                "settled" to existingSettled,
                 "createdBy" to (existingCreatedBy.ifBlank { expense.createdBy })
             )
             docRef.update(updates).await()
-            if (!existingSettled && finalSettled) {
-                FanoutNotificationPublisher.publishAsync(
-                    tripId,
-                    "Expense",
-                    "Expense settled: ${expense.title}",
-                    "expense_settled"
-                )
-            } else {
-                FanoutNotificationPublisher.publishAsync(
-                    tripId,
-                    "Expense",
-                    "Expense updated: ${expense.title}",
-                    "expense_edited"
-                )
-            }
+            FanoutNotificationPublisher.publishAsync(
+                tripId,
+                "Expense",
+                "Expense updated: ${expense.title}",
+                FanoutTypes.EXPENSE_EDITED
+            )
         } catch (e: Exception) {
             throw e
         }
@@ -230,7 +206,7 @@ class ExpenseRepository {
                 tripId,
                 "Expense",
                 "Expense deleted: $title",
-                "expense_deleted"
+                FanoutTypes.EXPENSE_DELETED
             )
         } catch (e: Exception) {
             throw e
@@ -246,5 +222,44 @@ class ExpenseRepository {
                 callback(e)
             }
         }
+    }
+
+    fun listenToSettlements(tripId: String): Flow<List<Settlement>> = callbackFlow {
+        val listener = db.collection("trips").document(tripId).collection("settlements")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .addSnapshotListener { snap, _ ->
+                trySend(snap?.documents?.mapNotNull {
+                    it.toObject(Settlement::class.java)?.copy(id = it.id)
+                } ?: emptyList())
+            }
+        awaitClose { listener.remove() }
+    }
+
+    suspend fun addSettlement(
+        tripId: String,
+        settlement: Settlement,
+        fromName: String,
+        toName: String
+    ) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
+        val ref = db.collection("trips").document(tripId).collection("settlements").document()
+        val toSave = settlement.copy(
+            id = ref.id,
+            createdBy = uid.ifBlank { settlement.createdBy }
+        )
+        ref.set(toSave).await()
+        val amt = "₹${"%.0f".format(toSave.amount)}"
+        FanoutNotificationPublisher.publishAsync(
+            tripId,
+            "Settlement",
+            "${fromName.ifBlank { "Someone" }} paid ${toName.ifBlank { "someone" }} $amt",
+            FanoutTypes.SETTLEMENT_ADDED
+        )
+    }
+
+    suspend fun deleteSettlement(tripId: String, settlementId: String) {
+        db.collection("trips").document(tripId).collection("settlements").document(settlementId)
+            .delete()
+            .await()
     }
 }

@@ -93,7 +93,7 @@ public class GroupsFragment extends Fragment implements MemberAdapter.MemberMenu
 
         binding.btnMore.setOnClickListener(v -> showMoreMenu(view));
 
-        binding.btnInvite.setOnClickListener(v -> shareTripCode());
+        binding.btnInvite.setOnClickListener(v -> openAddPeople());
 
         binding.btnLeaveTrip.setOnClickListener(v -> confirmLeaveTrip(view));
 
@@ -308,6 +308,28 @@ public class GroupsFragment extends Fragment implements MemberAdapter.MemberMenu
                     }
                 })
                 .show();
+    }
+
+    private void openAddPeople() {
+        Resource<Trip> tr = groupsViewModel.getTripLiveData().getValue();
+        Resource<List<TripMember>> mr = groupsViewModel.getMembersLiveData().getValue();
+        if (tr == null || !tr.isSuccess() || tr.getData() == null) {
+            shareTripCode();
+            return;
+        }
+        Trip trip = tr.getData();
+        String tripId = trip.getId() != null && !trip.getId().isEmpty() ? trip.getId() : getCurrentTripId();
+        if (tripId == null || tripId.isEmpty()) return;
+        java.util.ArrayList<String> exclude = new java.util.ArrayList<>();
+        if (mr != null && mr.isSuccess() && mr.getData() != null) {
+            for (TripMember m : mr.getData()) {
+                if (m.getUserId() != null && !m.getUserId().isEmpty()) exclude.add(m.getUserId());
+            }
+        }
+        String name = trip.getName() != null ? trip.getName() : "";
+        String code = trip.getJoinCode() != null ? trip.getJoinCode() : binding.tvTripCode.getText().toString();
+        com.manikandan.tripoo.ui.people.AddPeopleBottomSheet.newInstance(tripId, name, code, exclude)
+                .show(getChildFragmentManager(), "add_people");
     }
 
     private void shareTripCode() {

@@ -1,4 +1,6 @@
 rules_version = '2';
+// No Cloud Functions. New trips/{id} subcollections (expenses, tasks, settlements, …)
+// must add a match block here. New Trip/User fields must default so old docs still read.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -152,6 +154,22 @@ service cloud.firestore {
           );
       }
 
+      match /settlements/{settlementId} {
+        function settlementTripMember() {
+          return request.auth.uid in tripSnap().memberIds;
+        }
+        allow read: if isAuthenticated() && settlementTripMember();
+        allow create: if isAuthenticated()
+          && settlementTripMember()
+          && request.resource.data.createdBy == request.auth.uid
+          && (request.resource.data.fromUserId == request.auth.uid
+              || request.resource.data.toUserId == request.auth.uid);
+        allow delete: if isAuthenticated()
+          && settlementTripMember()
+          && (isTripLeaderUid(request.auth.uid) || resource.data.createdBy == request.auth.uid);
+        allow update: if false;
+      }
+
       match /tasks/{taskId} {
         function taskTripMember() {
           return request.auth.uid in tripSnap().memberIds;
@@ -194,8 +212,41 @@ service cloud.firestore {
               && request.resource.data.completed == resource.data.get('completed', false)
             )
             || (
+              resource.data.get('assignedTo', '') == request.auth.uid
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['completed'])
+            )
+            || (
               isDeadlineNotifiedBumpOnly()
               && taskAppliesToUserForDeadline()
+            )
+          );
+      }
+
+      match /itinerary/{dayId} {
+        allow read: if isAuthenticated() && request.auth.uid in tripSnap().memberIds;
+        allow create, update: if isAuthenticated() && request.auth.uid in tripSnap().memberIds;
+        allow delete: if isAuthenticated()
+          && (isTripLeaderUid(request.auth.uid) || request.auth.uid in tripSnap().memberIds);
+      }
+
+      match /polls/{pollId} {
+        allow read: if isAuthenticated() && request.auth.uid in tripSnap().memberIds;
+        allow create: if isAuthenticated()
+          && request.auth.uid in tripSnap().memberIds
+          && request.resource.data.createdBy == request.auth.uid;
+        allow delete: if isAuthenticated()
+          && (isTripLeaderUid(request.auth.uid) || resource.data.createdBy == request.auth.uid);
+        allow update: if isAuthenticated()
+          && request.auth.uid in tripSnap().memberIds
+          && (
+            (
+              resource.data.get('closed', false) == false
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['votes'])
+              && request.resource.data.get('votes', {}).diff(resource.data.get('votes', {})).affectedKeys().hasOnly([request.auth.uid])
+            )
+            || (
+              isTripLeaderUid(request.auth.uid)
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['closed'])
             )
           );
       }

@@ -13,6 +13,17 @@
 
     <string name="splash_subtitle">Plan together. Travel better.</string>
 
+    <string name="nav_home">Home</string>
+    <string name="nav_expenses">Expenses</string>
+    <string name="nav_tasks">Tasks</string>
+    <string name="nav_members">Members</string>
+
+    <string name="dashboard_empty_title">Nothing planned yet</string>
+    <string name="dashboard_empty_body">Plan a multi-day trip, or start a quick outing — split the bill either way</string>
+    <string name="dashboard_new_trip">New Trip</string>
+    <string name="dashboard_new_outing">New Outing</string>
+    <string name="dashboard_join_code">Join with a code</string>
+
     <string name="home_countdown_upcoming_title">Countdown to Adventure</string>
     <string name="home_countdown_current_title">Adventure in Progress</string>
     <string name="home_countdown_past_title">Time Since Adventure</string>
@@ -50,6 +61,7 @@
     <string name="groups_make_co_organiser">Make co-organiser</string>
     <string name="groups_remove_co_organiser">Remove co-organiser</string>
     <string name="groups_invite_share">Join my Ulla trip with code: %1$s</string>
+    <string name="add_people_share_personal">Hey %1$s! Join our trip \'%2$s\' on Ulla — code: %3$s</string>
     <string name="groups_leave_confirm_title">Leave this trip?</string>
     <string name="groups_leave_confirm_message">You can rejoin later with the trip code if you still have access.</string>
     <string name="groups_transfer_title">Transfer organiser role</string>

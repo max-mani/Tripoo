@@ -11,6 +11,7 @@ import kotlinx.coroutines.tasks.await
 /**
  * Writes one document under the trip so all members' apps (listening on Spark / no Cloud Functions)
  * can show a local notification. Not FCM — no server or device tokens required.
+ * Pass [type] from [FanoutTypes].
  */
 object FanoutNotificationPublisher {
 

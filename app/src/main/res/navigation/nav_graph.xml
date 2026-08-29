@@ -68,6 +68,10 @@
             android:name="editTripId"
             app:argType="string"
             android:defaultValue="" />
+        <argument
+            android:name="type"
+            app:argType="string"
+            android:defaultValue="trip" />
         <action android:id="@+id/action_create_to_home"
             app:destination="@id/homeFragment"
             app:popUpTo="@id/tripDashboardFragment"/>
@@ -98,6 +102,40 @@
         <action android:id="@+id/action_home_to_expenses" app:destination="@id/expensesFragment"/>
         <action android:id="@+id/action_home_to_tasks" app:destination="@id/tasksFragment"/>
         <action android:id="@+id/action_home_to_participants" app:destination="@id/participantsFragment"/>
+        <action android:id="@+id/action_home_to_itinerary" app:destination="@id/itineraryFragment"/>
+        <action android:id="@+id/action_home_to_polls" app:destination="@id/pollsFragment"/>
+        <action android:id="@+id/action_home_to_poll_detail" app:destination="@id/pollDetailFragment"/>
+        <action android:id="@+id/action_home_to_notes" app:destination="@id/notesFragment"/>
+    </fragment>
+
+    <fragment android:id="@+id/itineraryFragment"
+        android:name="com.manikandan.tripoo.ui.itinerary.ItineraryFragment"
+        android:label="Itinerary"
+        tools:layout="@layout/fragment_itinerary">
+        <argument android:name="tripId" app:argType="string" android:defaultValue=""/>
+    </fragment>
+
+    <fragment android:id="@+id/pollsFragment"
+        android:name="com.manikandan.tripoo.ui.polls.PollsFragment"
+        android:label="Polls"
+        tools:layout="@layout/fragment_polls">
+        <argument android:name="tripId" app:argType="string" android:defaultValue=""/>
+        <action android:id="@+id/action_polls_to_detail" app:destination="@id/pollDetailFragment"/>
+    </fragment>
+
+    <fragment android:id="@+id/pollDetailFragment"
+        android:name="com.manikandan.tripoo.ui.polls.PollDetailFragment"
+        android:label="Poll"
+        tools:layout="@layout/fragment_poll_detail">
+        <argument android:name="tripId" app:argType="string" android:defaultValue=""/>
+        <argument android:name="pollId" app:argType="string" android:defaultValue=""/>
+    </fragment>
+
+    <fragment android:id="@+id/notesFragment"
+        android:name="com.manikandan.tripoo.ui.notes.NotesFragment"
+        android:label="Notes"
+        tools:layout="@layout/fragment_notes">
+        <argument android:name="tripId" app:argType="string" android:defaultValue=""/>
     </fragment>
 
     <fragment android:id="@+id/expensesFragment"

@@ -112,11 +112,9 @@ class ExpensesFragment : Fragment() {
             currentUserId = viewModel.currentUserId,
             memberNames = emptyMap(),
             canManageTripAsLeader = false,
-            canMarkSettled = false,
             onClick = {},
             onEdit = { openEditExpense(it) },
-            onDelete = { confirmDelete(it) },
-            onSettle = { markAsSettled(it) }
+            onDelete = { confirmDelete(it) }
         )
         binding.rvExpenses.layoutManager = LinearLayoutManager(requireContext())
         binding.rvExpenses.adapter = expenseAdapter
@@ -218,7 +216,7 @@ class ExpensesFragment : Fragment() {
         binding.tvNavGroups.setTextColor(if (tab == "groups") orange else grey)
     }
 
-    /** Co-organisers ([TripMember.isAdmin]) and the trip organiser can mark expenses settled. */
+    /** Co-organisers ([TripMember.isAdmin]) and the trip organiser can edit/delete any expense. */
     private fun syncExpenseSettlePermission() {
         val members = viewModel.members.value.orEmpty()
         val trip = viewModel.trip.value
@@ -228,7 +226,6 @@ class ExpensesFragment : Fragment() {
                 trip?.adminId == currentUid
         if (::expenseAdapter.isInitialized) {
             expenseAdapter.setCanManageTripAsLeader(isCurrentUserAdmin)
-            expenseAdapter.setCanMarkSettled(isCurrentUserAdmin)
         }
     }
 
@@ -258,11 +255,9 @@ class ExpensesFragment : Fragment() {
                 currentUserId = viewModel.currentUserId,
                 memberNames = memberNames,
                 canManageTripAsLeader = isCurrentUserAdmin,
-                canMarkSettled = isCurrentUserAdmin,
                 onClick = {},
                 onEdit = { openEditExpense(it) },
-                onDelete = { confirmDelete(it) },
-                onSettle = { markAsSettled(it) }
+                onDelete = { confirmDelete(it) }
             )
             binding.rvExpenses.adapter = expenseAdapter
             observeCurrentTabData()
@@ -304,10 +299,21 @@ class ExpensesFragment : Fragment() {
             binding.rvExpenses.visibility = View.GONE
             binding.emptyExpenses.visibility = View.GONE
             binding.statsContainer.visibility = View.VISIBLE
+            binding.settleUpContainer.visibility = View.GONE
+            binding.fabAddExpense.visibility = View.GONE
             viewModel.statsData.value?.let { renderStats(it) }
+        } else if (index == 2) {
+            binding.rvExpenses.visibility = View.GONE
+            binding.emptyExpenses.visibility = View.GONE
+            binding.statsContainer.visibility = View.GONE
+            binding.settleUpContainer.visibility = View.VISIBLE
+            binding.fabAddExpense.visibility = View.GONE
+            ensureSettleUpFragment()
         } else {
             binding.statsContainer.visibility = View.GONE
+            binding.settleUpContainer.visibility = View.GONE
             binding.rvExpenses.visibility = View.VISIBLE
+            binding.fabAddExpense.visibility = View.VISIBLE
             observeCurrentTabData()
         }
     }
@@ -402,17 +408,14 @@ class ExpensesFragment : Fragment() {
     private fun updateEmptyState(items: List<ExpenseAdapter.ExpenseListItem>) {
         val isEmpty = items.none { it is ExpenseAdapter.ExpenseListItem.ExpenseRow }
         binding.emptyExpenses.visibility =
-            if (currentTab != 3 && isEmpty) View.VISIBLE else View.GONE
+            if (currentTab == 0 || currentTab == 1) {
+                if (isEmpty) View.VISIBLE else View.GONE
+            } else View.GONE
         binding.emptyExpenses.text = when (currentTab) {
             1 -> "No expenses found for you"
-            2 -> "All clear! No settled expenses yet."
             else -> "No expenses found"
         }
-        if (currentTab == 2) {
-            binding.emptyExpenses.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_check_circle, 0, 0)
-        } else {
-            binding.emptyExpenses.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_receipt, 0, 0)
-        }
+        binding.emptyExpenses.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_receipt, 0, 0)
     }
 
     private fun showMoreMenu() {
@@ -467,10 +470,12 @@ class ExpensesFragment : Fragment() {
             .show()
     }
 
-    private fun markAsSettled(expense: Expense) {
-        if (!isCurrentUserAdmin) return
-        viewModel.markExpenseSettled(expense.id)
-        Snackbar.make(binding.root, "Expense marked as settled", Snackbar.LENGTH_SHORT).show()
+    private fun ensureSettleUpFragment() {
+        if (childFragmentManager.findFragmentById(R.id.settleUpContainer) == null) {
+            childFragmentManager.beginTransaction()
+                .replace(R.id.settleUpContainer, SettleUpFragment())
+                .commit()
+        }
     }
 
     private fun renderStats(stats: ExpensesViewModel.ExpenseStats) {

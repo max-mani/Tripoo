@@ -44,6 +44,7 @@ export function parseTrip(id: string, data: Record<string, unknown> | undefined)
     joinCode: String(data.joinCode ?? ''),
     memberIds,
     status: String(data.status ?? 'upcoming'),
+    type: String(data.type ?? 'trip'),
   }
 }
 
@@ -190,6 +191,7 @@ export async function createTrip(trip: Trip, adminMember: TripMember): Promise<s
     joinCode,
     memberIds: [adminMember.userId],
     status,
+    type: trip.type || 'trip',
   }
   const batch = writeBatch(db)
   batch.set(ref, newTrip)

@@ -111,12 +111,17 @@ public class HomeViewModel extends AndroidViewModel {
     }
 
     public void createTrip(String name, String destination, String description, Timestamp startDate, Timestamp endDate, double budget) {
+        createTrip(name, destination, description, startDate, endDate, budget, Trip.TYPE_TRIP);
+    }
+
+    public void createTrip(String name, String destination, String description, Timestamp startDate, Timestamp endDate, double budget, String type) {
         createTripLiveData.setValue(Resource.loading());
         FirebaseUser firebaseUser = authRepository.getCurrentUser();
         if (firebaseUser == null) {
             createTripLiveData.setValue(Resource.error("Not logged in"));
             return;
         }
+        String gatheringType = (type != null && !type.isEmpty()) ? type : Trip.TYPE_TRIP;
         Trip trip = new Trip(
                 "",
                 name != null ? name.trim() : "",
@@ -128,7 +133,8 @@ public class HomeViewModel extends AndroidViewModel {
                 firebaseUser.getUid(),
                 "",
                 java.util.Collections.emptyList(),
-                "upcoming"
+                "upcoming",
+                gatheringType
         );
         userRepository.getUser(firebaseUser.getUid(), user -> {
             String userName = "User";

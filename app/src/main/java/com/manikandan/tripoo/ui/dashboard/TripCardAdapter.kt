@@ -31,8 +31,12 @@ class TripCardAdapter(
         val ctx = holder.binding.root.context
         val sdf = SimpleDateFormat("MMM d", Locale.getDefault())
 
-        holder.binding.tvTripName.text = trip.name.ifEmpty { trip.destination }.ifEmpty { "Trip" }
-        holder.binding.tvDestination.text = trip.destination.ifEmpty { "—" }
+        holder.binding.tvTripName.text = trip.name.ifEmpty { trip.destination }.ifEmpty {
+            if (trip.isOuting()) "Outing" else "Trip"
+        }
+        holder.binding.tvDestination.text = trip.destination.ifEmpty {
+            if (trip.isOuting()) trip.description.ifEmpty { "Outing" } else "—"
+        }
         holder.binding.tvDates.text = "${sdf.format(Date(trip.startDate))} – ${sdf.format(Date(trip.endDate))}"
         holder.binding.tvMemberCount.text = "${item.memberCount} members"
 
@@ -61,6 +65,12 @@ class TripCardAdapter(
         }
         holder.binding.tvStatus.setTextColor(badgeText)
 
+        if (trip.isOuting()) {
+            holder.binding.tvTypeBadge.visibility = View.VISIBLE
+        } else {
+            holder.binding.tvTypeBadge.visibility = View.GONE
+        }
+
         if (trip.status == "active" && trip.budget > 0) {
             holder.binding.layoutBudget.visibility = View.VISIBLE
             holder.binding.layoutCountdown.visibility = View.GONE
@@ -79,10 +89,9 @@ class TripCardAdapter(
         } else {
             holder.binding.layoutBudget.visibility = View.GONE
             holder.binding.layoutCountdown.visibility = View.GONE
-            holder.itemView.alpha = 0.6f
         }
 
-        if (trip.status != "past") holder.itemView.alpha = 1f
+        holder.itemView.alpha = if (trip.status == "past") 0.6f else 1f
         holder.itemView.setOnClickListener { onClick(item) }
     }
 

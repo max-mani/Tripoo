@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.manikandan.tripoo.data.model.LeaveTripResult
+import com.manikandan.tripoo.data.model.RecentCollaborator
 import com.manikandan.tripoo.data.model.Trip
 import com.manikandan.tripoo.data.model.TripMember
 import com.manikandan.tripoo.data.repository.AuthRepository
@@ -71,6 +72,7 @@ class GroupsViewModel(application: Application) : AndroidViewModel(application) 
                 val organiserId = withContext(Dispatchers.IO) { tripRepository.getTrip(tripId)?.adminId }
                     ?: tripLiveData.value?.takeIf { it.isSuccess }?.getData()?.adminId
                 membersLiveData.postValue(Resource.success(sortMembersForDisplay(merged, organiserId)))
+                rememberCollaborators(merged)
             }
         }
     }
@@ -123,6 +125,21 @@ class GroupsViewModel(application: Application) : AndroidViewModel(application) 
             avatarLetter = letter,
             avatarColorHex = color
         )
+    }
+
+    /** Own user doc only — never writes another uid onto a trip. */
+    private fun rememberCollaborators(members: List<TripMember>) {
+        val uid = authRepository.getCurrentUser()?.uid ?: return
+        val others = members
+            .filter { it.userId.isNotBlank() && it.userId != uid }
+            .map { RecentCollaborator(uid = it.userId, name = it.name, photoUrl = it.photoUrl) }
+        if (others.isEmpty()) return
+        vmScope.launch(Dispatchers.IO) {
+            try {
+                userRepository.mergeRecentCollaborators(uid, others)
+            } catch (_: Exception) {
+            }
+        }
     }
 
     fun leaveTrip(tripId: String) {

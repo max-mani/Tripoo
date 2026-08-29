@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="14dp"
+    android:paddingTop="11dp"
+    android:paddingEnd="8dp"
+    android:paddingBottom="11dp">
+
+    <TextView
+        android:id="@+id/tvStopTime"
+        android:layout_width="72dp"
+        android:layout_height="wrap_content"
+        android:textColor="@color/tripoo_orange"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        tools:text="9:00 AM" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvStopTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/tripoo_text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            tools:text="Airport pickup" />
+
+        <TextView
+            android:id="@+id/tvStopLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/tripoo_text_secondary"
+            android:textSize="12sp"
+            tools:text="BLR" />
+
+        <TextView
+            android:id="@+id/tvStopNotes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/tripoo_text_hint"
+            android:textSize="12sp"
+            tools:text="Meet at gate" />
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/btnStopMore"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="@string/more_options"
+        android:src="@drawable/ic_more_horiz"
+        android:tint="@color/tripoo_text_hint" />
+</LinearLayout>

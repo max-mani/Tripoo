@@ -13,5 +13,6 @@ data class Expense(
     // Named 'settled' (not 'isSettled') so Firebase Java reflection uses field name 'settled'
     // (boolean getters starting with 'is' are stripped to their suffix by Java BeanInfo).
     // Must be var so Firebase can set it via the generated setter when deserializing.
+    // Legacy: new UI settles via trips/{id}/settlements; the ledger ignores this flag.
     var settled: Boolean = false
 )

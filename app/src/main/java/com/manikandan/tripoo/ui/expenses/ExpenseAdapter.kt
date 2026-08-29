@@ -18,13 +18,11 @@ import com.manikandan.tripoo.databinding.ItemExpenseDateHeaderBinding
 class ExpenseAdapter(
     private val currentUserId: String,
     private val memberNames: Map<String, String>,
-    /** Organiser or co-organiser — can settle and edit/delete any expense. */
+    /** Organiser or co-organiser — can edit/delete any expense. */
     canManageTripAsLeader: Boolean,
-    canMarkSettled: Boolean,
     private val onClick: (Expense) -> Unit,
     private val onEdit: (Expense) -> Unit,
-    private val onDelete: (Expense) -> Unit,
-    private val onSettle: (Expense) -> Unit
+    private val onDelete: (Expense) -> Unit
 ) : ListAdapter<ExpenseAdapter.ExpenseListItem, RecyclerView.ViewHolder>(DIFF) {
 
     var canManageTripAsLeader: Boolean = canManageTripAsLeader
@@ -33,16 +31,6 @@ class ExpenseAdapter(
     fun setCanManageTripAsLeader(value: Boolean) {
         if (canManageTripAsLeader != value) {
             canManageTripAsLeader = value
-            notifyDataSetChanged()
-        }
-    }
-
-    var canMarkSettled: Boolean = canMarkSettled
-        private set
-
-    fun setCanMarkSettled(value: Boolean) {
-        if (canMarkSettled != value) {
-            canMarkSettled = value
             notifyDataSetChanged()
         }
     }
@@ -153,7 +141,7 @@ class ExpenseAdapter(
                 binding.root.setOnClickListener { onClick(e) }
                 val canModify = canManageTripAsLeader ||
                     (e.createdBy.isNotBlank() && e.createdBy == currentUserId)
-                val showMoreMenu = canModify || (canMarkSettled && !e.settled)
+                val showMoreMenu = canModify
                 binding.btnExpenseMore.visibility = if (showMoreMenu) View.VISIBLE else View.GONE
                 binding.btnExpenseMore.setOnClickListener {
                     val wrapper = ContextThemeWrapper(ctx, androidx.appcompat.R.style.ThemeOverlay_AppCompat_Light)
@@ -162,14 +150,10 @@ class ExpenseAdapter(
                         popup.menu.add(0, 1, 0, "Edit")
                         popup.menu.add(0, 2, 1, "Delete")
                     }
-                    if (canMarkSettled && !e.settled) {
-                        popup.menu.add(0, 3, 2, "Mark as settled")
-                    }
                     popup.setOnMenuItemClickListener { menuItem ->
                         when (menuItem.itemId) {
                             1 -> onEdit(e)
                             2 -> onDelete(e)
-                            3 -> onSettle(e)
                         }
                         true
                     }

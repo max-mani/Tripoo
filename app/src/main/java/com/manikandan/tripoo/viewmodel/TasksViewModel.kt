@@ -90,7 +90,8 @@ class TasksViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     fun toggleTask(task: Task) {
         val uid = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
         viewModelScope.launch {
-            if (uid.isEmpty() || !tripRepo.canUserManageTripAsLeader(tripId, uid)) return@launch
+            val leader = uid.isNotEmpty() && tripRepo.canUserManageTripAsLeader(tripId, uid)
+            if (!task.canToggleCompletion(uid, leader)) return@launch
             try {
                 val currentCompleted = task.completed as? Boolean ?: false
                 taskRepo.updateTaskCompletion(tripId, task.id, !currentCompleted)

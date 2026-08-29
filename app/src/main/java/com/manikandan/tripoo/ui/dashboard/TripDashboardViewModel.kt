@@ -84,6 +84,7 @@ class TripDashboardViewModel : ViewModel() {
             "active" -> trips.filter { it.trip.status == "active" }
             "upcoming" -> trips.filter { it.trip.status == "upcoming" }
             "past" -> trips.filter { it.trip.status == "past" }
+            "outing" -> trips.filter { it.trip.isOuting() }
             else -> trips
         })
     }

@@ -15,7 +15,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.gms.ads.AdRequest
 import com.manikandan.tripoo.R
+import com.manikandan.tripoo.data.model.Trip
+import com.manikandan.tripoo.data.model.TripWithMeta
 import com.manikandan.tripoo.databinding.FragmentTripDashboardBinding
+import com.manikandan.tripoo.ui.home.CreateChoiceBottomSheet
 import com.manikandan.tripoo.utils.ImageUtils
 
 class TripDashboardFragment : Fragment() {
@@ -45,6 +48,7 @@ class TripDashboardFragment : Fragment() {
         binding.chipActive.setOnClickListener { viewModel.setFilter("active"); updateChipState("active") }
         binding.chipUpcoming.setOnClickListener { viewModel.setFilter("upcoming"); updateChipState("upcoming") }
         binding.chipPast.setOnClickListener { viewModel.setFilter("past"); updateChipState("past") }
+        binding.chipOutings.setOnClickListener { viewModel.setFilter("outing"); updateChipState("outing") }
 
         binding.btnProfile.setOnClickListener {
             findNavController().navigate(R.id.action_dashboard_to_profile)
@@ -52,8 +56,18 @@ class TripDashboardFragment : Fragment() {
         binding.btnJoinTrip.setOnClickListener {
             findNavController().navigate(R.id.action_dashboard_to_join)
         }
+        childFragmentManager.setFragmentResultListener(
+            CreateChoiceBottomSheet.REQUEST_KEY,
+            viewLifecycleOwner
+        ) { _, bundle ->
+            val type = bundle.getString(CreateChoiceBottomSheet.RESULT_TYPE) ?: Trip.TYPE_TRIP
+            findNavController().navigate(
+                R.id.action_dashboard_to_create,
+                Bundle().apply { putString("type", type) }
+            )
+        }
         binding.btnNewTrip.setOnClickListener {
-            findNavController().navigate(R.id.action_dashboard_to_create)
+            CreateChoiceBottomSheet().show(childFragmentManager, CreateChoiceBottomSheet.TAG)
         }
         binding.swipeRefreshDashboard.setOnRefreshListener {
             viewModel.loadTrips()
@@ -79,9 +93,14 @@ class TripDashboardFragment : Fragment() {
         }
 
         viewModel.filteredTrips.observe(viewLifecycleOwner) { trips ->
-            adapter.submitList(trips ?: emptyList())
-            val activeCount = (trips ?: emptyList()).count { it.trip.status == "active" }
-            binding.tvTripCount.text = "You have $activeCount active trips"
+            bindTripList(trips ?: emptyList())
+        }
+        viewModel.allTrips.observe(viewLifecycleOwner) {
+            bindTripList(viewModel.filteredTrips.value ?: emptyList())
+        }
+        viewModel.isLoading.observe(viewLifecycleOwner) { loading ->
+            binding.progressLoading.visibility = if (loading == true) View.VISIBLE else View.GONE
+            bindTripList(viewModel.filteredTrips.value ?: emptyList())
         }
         viewModel.user.observe(viewLifecycleOwner) { user ->
             val fullName = (user?.name?.takeIf { it.isNotBlank() }) ?: viewModel.getCurrentUserName()
@@ -117,9 +136,6 @@ class TripDashboardFragment : Fragment() {
                 binding.tvAvatar.text = viewModel.getCurrentUserInitials()
             }
         }
-        viewModel.isLoading.observe(viewLifecycleOwner) { loading ->
-            binding.progressLoading.visibility = if (loading == true) View.VISIBLE else View.GONE
-        }
         viewModel.errorMessage.observe(viewLifecycleOwner) { msg ->
             msg?.let {
                 Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
@@ -127,9 +143,45 @@ class TripDashboardFragment : Fragment() {
             }
         }
 
+        binding.btnEmptyNewTrip.setOnClickListener {
+            findNavController().navigate(
+                R.id.action_dashboard_to_create,
+                Bundle().apply { putString("type", Trip.TYPE_TRIP) }
+            )
+        }
+        binding.btnEmptyNewOuting.setOnClickListener {
+            findNavController().navigate(
+                R.id.action_dashboard_to_create,
+                Bundle().apply { putString("type", Trip.TYPE_OUTING) }
+            )
+        }
+        binding.tvEmptyJoinCode.setOnClickListener {
+            findNavController().navigate(R.id.action_dashboard_to_join)
+        }
+
         viewModel.loadTrips()
 
         binding.adViewDashboard.loadAd(AdRequest.Builder().build())
+    }
+
+    private fun bindTripList(filtered: List<TripWithMeta>) {
+        if (_binding == null) return
+        val loading = viewModel.isLoading.value == true
+        val noneAtAll = viewModel.allTrips.value.isNullOrEmpty()
+        val showOnboarding = !loading && noneAtAll
+        binding.llEmptyOnboarding.visibility = if (showOnboarding) View.VISIBLE else View.GONE
+        binding.hsvFilters.visibility = if (showOnboarding) View.GONE else View.VISIBLE
+        binding.tvYourTripsLabel.visibility = if (showOnboarding) View.GONE else View.VISIBLE
+        binding.rvTrips.visibility = if (showOnboarding) View.GONE else View.VISIBLE
+        binding.layoutTripActions.visibility = if (showOnboarding) View.GONE else View.VISIBLE
+        if (showOnboarding) {
+            binding.tvTripCount.text = "Ready when you are"
+            adapter.submitList(emptyList())
+            return
+        }
+        adapter.submitList(filtered)
+        val activeCount = filtered.count { it.trip.status == "active" }
+        binding.tvTripCount.text = "You have $activeCount active trips"
     }
 
     override fun onPause() {
@@ -142,7 +194,8 @@ class TripDashboardFragment : Fragment() {
             "all" to binding.chipAll,
             "active" to binding.chipActive,
             "upcoming" to binding.chipUpcoming,
-            "past" to binding.chipPast
+            "past" to binding.chipPast,
+            "outing" to binding.chipOutings
         )
         chips.forEach { (filter, chip) ->
             if (filter == selected) {

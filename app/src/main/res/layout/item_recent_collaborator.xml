@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <TextView
+        android:id="@+id/tvRecentName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/tripoo_text_primary"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        tools:text="Alex" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnShareInvite"
+        style="@style/Tripoo.Button.Outline.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="0dp"
+        android:text="Share invite"
+        android:textAllCaps="false"
+        tools:ignore="HardcodedText" />
+</LinearLayout>

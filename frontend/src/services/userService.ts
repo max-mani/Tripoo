@@ -47,7 +47,26 @@ export function parseUser(id: string, data: Record<string, unknown> | undefined)
     avatarLetter: data.avatarLetter != null ? String(data.avatarLetter) : null,
     avatarColorHex:
       data.avatarColorHex != null ? String(data.avatarColorHex) : null,
+    recentCollaborators: parseRecentCollaborators(data.recentCollaborators),
   }
+}
+
+function parseRecentCollaborators(raw: unknown): User['recentCollaborators'] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .map((item) => {
+      if (!item || typeof item !== 'object') return null
+      const m = item as Record<string, unknown>
+      const uid = m.uid != null ? String(m.uid) : ''
+      if (!uid) return null
+      return {
+        uid,
+        name: m.name != null ? String(m.name) : '',
+        photoUrl: m.photoUrl != null ? String(m.photoUrl) : null,
+        lastSeenAt: typeof m.lastSeenAt === 'number' ? m.lastSeenAt : Number(m.lastSeenAt) || 0,
+      }
+    })
+    .filter((x): x is NonNullable<typeof x> => x != null)
 }
 
 export async function getUser(uid: string): Promise<User | null> {

@@ -1,5 +1,6 @@
 package com.manikandan.tripoo.data.repository
 
+import com.manikandan.tripoo.data.model.RecentCollaborator
 import com.manikandan.tripoo.data.model.User
 import com.manikandan.tripoo.utils.UserAvatarIdentity
 import com.google.firebase.firestore.FieldValue
@@ -17,18 +18,39 @@ class UserRepository {
 
     suspend fun createOrUpdateUser(user: User) {
         try {
-            users.document(user.uid).set(user, SetOptions.merge()).await()
+            // Never include recentCollaborators here — a signup/merge User() defaults
+            // to emptyList and would wipe recents on SetOptions.merge().
+            val payload = hashMapOf<String, Any?>(
+                "uid" to user.uid,
+                "name" to user.name,
+                "email" to user.email,
+                "phoneNumber" to user.phoneNumber,
+                "preferredLanguage" to user.preferredLanguage,
+                "preferredCurrency" to user.preferredCurrency,
+                "photoUrl" to user.photoUrl,
+                "tripIds" to user.tripIds,
+                "lastActiveTripId" to user.lastActiveTripId,
+                "avatarLetter" to user.avatarLetter,
+                "avatarColorHex" to user.avatarColorHex
+            )
+            users.document(user.uid).set(payload, SetOptions.merge()).await()
         } catch (e: Exception) {
             throw e
         }
     }
 
-    suspend fun getUser(uid: String): User? =
-        try {
-            users.document(uid).get().await().toObject(User::class.java)
+    suspend fun getUser(uid: String): User? {
+        return try {
+            val snap = users.document(uid).get().await()
+            val user = snap.toObject(User::class.java) ?: return null
+            user.copy(
+                uid = user.uid.ifBlank { snap.id },
+                recentCollaborators = parseRecentCollaborators(snap.get("recentCollaborators"))
+            )
         } catch (e: Exception) {
             null
         }
+    }
 
     suspend fun addTripToUser(uid: String, tripId: String) {
         try {
@@ -77,6 +99,41 @@ class UserRepository {
             }.await()
         } catch (e: Exception) {
             throw e
+        }
+    }
+
+    /**
+     * Read-modify-write this user's [User.recentCollaborators] only (own doc).
+     * Dedupes by uid, refreshes lastSeenAt, caps at [RECENT_CAP].
+     */
+    suspend fun mergeRecentCollaborators(uid: String, newOnes: List<RecentCollaborator>) {
+        if (uid.isBlank() || newOnes.none { it.uid.isNotBlank() }) return
+        try {
+            db.runTransaction { tx ->
+                val ref = users.document(uid)
+                val snap = tx.get(ref)
+                val existing = parseRecentCollaborators(snap.get("recentCollaborators"))
+                val incoming = newOnes.filter { it.uid.isNotBlank() && it.uid != uid }
+                if (incoming.isEmpty()) return@runTransaction null
+                val now = System.currentTimeMillis()
+                if (shouldSkipRecentWrite(existing, incoming, now)) return@runTransaction null
+                val merged = mergeCollaboratorLists(existing, incoming, now, RECENT_CAP)
+                tx.update(ref, "recentCollaborators", merged.map { collaboratorToMap(it) })
+                null
+            }.await()
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    fun mergeRecentCollaborators(uid: String, newOnes: List<RecentCollaborator>, callback: (Throwable?) -> Unit) {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                withContext(Dispatchers.IO) { mergeRecentCollaborators(uid, newOnes) }
+                callback(null)
+            } catch (e: Exception) {
+                callback(e)
+            }
         }
     }
 
@@ -191,6 +248,69 @@ class UserRepository {
             } catch (e: Exception) {
                 callback(e)
             }
+        }
+    }
+
+    companion object {
+        const val RECENT_CAP = 20
+        const val SKIP_IF_SEEN_WITHIN_MS = 60L * 60L * 1000L
+
+        fun parseRecentCollaborators(raw: Any?): List<RecentCollaborator> {
+            val list = raw as? List<*> ?: return emptyList()
+            return list.mapNotNull { item ->
+                val m = item as? Map<*, *> ?: return@mapNotNull null
+                val id = m["uid"] as? String ?: return@mapNotNull null
+                if (id.isBlank()) return@mapNotNull null
+                RecentCollaborator(
+                    uid = id,
+                    name = m["name"] as? String ?: "",
+                    photoUrl = m["photoUrl"] as? String,
+                    lastSeenAt = (m["lastSeenAt"] as? Number)?.toLong() ?: 0L
+                )
+            }
+        }
+
+        fun mergeCollaboratorLists(
+            existing: List<RecentCollaborator>,
+            incoming: List<RecentCollaborator>,
+            now: Long,
+            cap: Int = RECENT_CAP
+        ): List<RecentCollaborator> {
+            val byId = existing.filter { it.uid.isNotBlank() }.associateBy { it.uid }.toMutableMap()
+            for (n in incoming) {
+                if (n.uid.isBlank()) continue
+                val prev = byId[n.uid]
+                byId[n.uid] = RecentCollaborator(
+                    uid = n.uid,
+                    name = n.name.ifBlank { prev?.name.orEmpty() },
+                    photoUrl = n.photoUrl?.takeIf { it.isNotBlank() } ?: prev?.photoUrl,
+                    lastSeenAt = now
+                )
+            }
+            return byId.values.sortedByDescending { it.lastSeenAt }.take(cap)
+        }
+
+        fun shouldSkipRecentWrite(
+            existing: List<RecentCollaborator>,
+            incoming: List<RecentCollaborator>,
+            now: Long
+        ): Boolean {
+            if (incoming.isEmpty()) return true
+            val byId = existing.associateBy { it.uid }
+            return incoming.all { n ->
+                val prev = byId[n.uid] ?: return@all false
+                now - prev.lastSeenAt < SKIP_IF_SEEN_WITHIN_MS
+            }
+        }
+
+        fun collaboratorToMap(c: RecentCollaborator): Map<String, Any> {
+            val m = mutableMapOf<String, Any>(
+                "uid" to c.uid,
+                "name" to c.name,
+                "lastSeenAt" to c.lastSeenAt
+            )
+            c.photoUrl?.let { if (it.isNotBlank()) m["photoUrl"] = it }
+            return m
         }
     }
 }

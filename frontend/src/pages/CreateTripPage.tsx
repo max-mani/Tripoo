@@ -71,6 +71,7 @@ export default function CreateTripPage() {
         joinCode: '',
         memberIds: [],
         status: 'upcoming',
+        type: 'trip',
       }
       const tripId = await createTrip(trip, member)
       await addTripToUser(firebaseUser.uid, tripId)

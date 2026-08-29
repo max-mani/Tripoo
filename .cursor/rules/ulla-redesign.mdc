@@ -1,0 +1,23 @@
+---
+description: Locked Ulla redesign decisions from 00-overview-and-decisions.md
+alwaysApply: true
+---
+
+# Ulla redesign (Phase 0)
+
+Source: [00-overview-and-decisions.md](00-overview-and-decisions.md). Do not contradict these without an explicit product change.
+
+## Product
+
+- Trip planner first; expenses are a feature inside a trip/outing.
+- Keep orange branding, bottom nav (Home / Expenses / Tasks / Groups), and layout. Fix flows; do not restyle.
+- Android first. Do not build web parity unless the current task says so. New Firestore fields must still have defaults so the web client does not strip them if it writes a trip.
+- Currency stays INR (₹). No UPI/payment gateway. Settlement is in-app ledger only.
+- Membership stays join-code / self-add to `memberIds`. Do not silently add another user’s uid. No Cloud Functions.
+
+## Technical
+
+- New trip/user fields need Kotlin (and TS if touched) defaults so old documents load without a migration.
+- New `trips/{id}/...` subcollections need a `firestore.rules` block in the same style as `expenses` / `tasks`.
+- Member-visible events go through `FanoutNotificationPublisher` with a `FanoutTypes` string (existing types plus reserved `settlement_added`, `poll_created`, `poll_closed`, `itinerary_updated`).
+- Implement only the phase file the user named. Do not start later phases unasked.

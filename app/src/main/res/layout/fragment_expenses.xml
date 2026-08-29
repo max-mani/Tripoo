@@ -330,7 +330,7 @@
                         android:gravity="center_vertical"
                         android:paddingStart="18dp"
                         android:paddingEnd="18dp"
-                        android:text="Settled"
+                        android:text="Settle Up"
                         android:textColor="@color/tripoo_text_hint"
                         android:textSize="13sp"
                         android:textStyle="bold"
@@ -437,6 +437,12 @@
                     android:id="@+id/viewStats"
                     layout="@layout/view_expense_stats"/>
             </androidx.core.widget.NestedScrollView>
+
+            <FrameLayout
+                android:id="@+id/settleUpContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone" />
             </FrameLayout>
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
@@ -481,7 +487,7 @@
                     android:id="@+id/tvNavHome"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Home"
+                    android:text="@string/nav_home"
                     android:textAllCaps="true"
                     android:textSize="9sp"
                     android:textStyle="bold"
@@ -510,7 +516,7 @@
                     android:id="@+id/tvNavExpenses"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Expenses"
+                    android:text="@string/nav_expenses"
                     android:textAllCaps="true"
                     android:textSize="9sp"
                     android:textStyle="bold"
@@ -539,7 +545,7 @@
                     android:id="@+id/tvNavTasks"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Tasks"
+                    android:text="@string/nav_tasks"
                     android:textAllCaps="true"
                     android:textSize="9sp"
                     android:textStyle="bold"
@@ -568,7 +574,7 @@
                     android:id="@+id/tvNavGroups"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Groups"
+                    android:text="@string/nav_members"
                     android:textAllCaps="true"
                     android:textSize="9sp"
                     android:textStyle="bold"

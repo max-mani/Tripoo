@@ -235,8 +235,9 @@ class TaskAdapter(
             // Divider: hide on last row
             b.divider.visibility = if (item.isLast) View.GONE else View.VISIBLE
 
-            // Toggle on checkbox tap (leaders only)
-            if (canManageTripAsLeader) {
+            // Toggle: leader or the person the task is assigned to (not "everyone")
+            val canToggle = task.canToggleCompletion(currentUserId, canManageTripAsLeader)
+            if (canToggle) {
                 b.flCheckbox.setOnClickListener { onToggle(task) }
                 b.flCheckbox.isClickable = true
                 b.flCheckbox.alpha = 1f
